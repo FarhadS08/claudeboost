@@ -44,7 +44,7 @@ function LoginForm() {
           <p className="text-muted-foreground text-sm mt-2">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
           <div>
             <label className="text-sm text-zinc-400 block mb-1.5">Email</label>
             <input
@@ -79,6 +79,7 @@ function LoginForm() {
             type="submit"
             disabled={loading}
             className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition-colors disabled:opacity-50"
+            suppressHydrationWarning
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

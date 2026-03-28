@@ -75,7 +75,7 @@ export default function SignupPage() {
           <p className="text-muted-foreground text-sm mt-2">Create your account</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-4" suppressHydrationWarning>
           <div>
             <label className="text-sm text-zinc-400 block mb-1.5">Email</label>
             <input
