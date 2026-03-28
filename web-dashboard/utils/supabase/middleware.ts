@@ -37,21 +37,22 @@ export const updateSession = async (request: NextRequest) => {
   // Refresh the session — this keeps the user logged in
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to login (except for auth pages)
+  // Public routes — no auth required
+  const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/pricing";
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 
-  if (!user && !isAuthPage && !isApiRoute) {
+  // Redirect unauthenticated users to login (only for protected routes like /dashboard/*)
+  if (!user && !isAuthPage && !isApiRoute && !isPublicPage) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from auth pages
-  // EXCEPT /auth/cli-login — users can be logged in on web but need to connect CLI
+  // Redirect authenticated users away from auth pages (except cli-login)
   const isCliLogin = request.nextUrl.pathname === "/auth/cli-login";
   if (user && isAuthPage && !isCliLogin) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return supabaseResponse;
