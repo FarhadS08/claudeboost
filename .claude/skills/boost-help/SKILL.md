@@ -20,6 +20,8 @@ description: Show ClaudeBoost help with available commands, settings, and usage 
 | Command | Description |
 |---------|-------------|
 | `/boost <prompt>` | Manually boost a specific prompt |
+| `/boost --login` | Sign in to ClaudeBoost (opens browser) |
+| `/boost --logout` | Sign out of ClaudeBoost |
 | `/boost-settings` | View current settings |
 | `/boost-settings --level <light\|medium\|full>` | Change boost intensity |
 | `/boost-settings --auto <true\|false>` | Toggle auto-boost |

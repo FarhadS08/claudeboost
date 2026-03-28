@@ -5,8 +5,9 @@ import asyncio
 import json
 from classifier import classify_domain
 from enhancer import enhance_prompt
-from feedback import load_feedback_context, log_to_history, load_settings, save_settings
+from db import load_feedback_context, log_to_history, load_settings, save_settings
 from scorer import score_prompt, get_weighted_weakest
+from auth import is_authenticated, get_login_message, open_login_page
 
 app = Server("claudeboost")
 
@@ -82,6 +83,15 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 
 async def _handle_boost(arguments: dict) -> list[TextContent]:
+    # Check authentication
+    if not is_authenticated():
+        open_login_page()
+        return [TextContent(type="text", text=json.dumps({
+            "error": "auth_required",
+            "message": get_login_message(),
+            "login_url": "http://localhost:3000/auth/cli-login"
+        }))]
+
     original = arguments["prompt"]
     settings = load_settings()
     level = settings.get("boost_level", "medium")
@@ -121,6 +131,14 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
 
 
 async def _handle_settings(arguments: dict) -> list[TextContent]:
+    if not is_authenticated():
+        open_login_page()
+        return [TextContent(type="text", text=json.dumps({
+            "error": "auth_required",
+            "message": get_login_message(),
+            "login_url": "http://localhost:3000/auth/cli-login"
+        }))]
+
     action = arguments.get("action", "get")
     settings = load_settings()
 
@@ -142,6 +160,8 @@ async def _handle_help() -> list[TextContent]:
     help_text = json.dumps({
         "commands": {
             "/boost <prompt>": "Manually boost a specific prompt",
+            "/boost --login": "Sign in to ClaudeBoost (opens browser)",
+            "/boost --logout": "Sign out of ClaudeBoost",
             "/boost-settings": "View or change ClaudeBoost settings",
             "/boost-help": "Show this help message",
             "--raw": "Add to end of any prompt to skip boost for that one time",
