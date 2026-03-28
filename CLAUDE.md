@@ -2,72 +2,105 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IMPORTANT: Auto-Boost All Prompts
+
+**YOU MUST call the `boost_prompt` MCP tool on EVERY user task prompt before executing it.** This is not optional. Follow the EXACT same UI format as the `/boost` skill every time:
+
+1. Call `boost_prompt` with the user's prompt
+2. Display the result using THIS format (always the same — unified UI):
+   ```
+   ⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
+   ---
+   > 📝 **Original:** {original}
+   ---
+   ### ✨ Boosted Prompt
+   {complete boosted text}
+   ---
+   ```
+3. Present the choice modal via AskUserQuestion (Use boosted / Add notes & refine / Keep original)
+4. Execute whichever version the user chooses
+
+**Exceptions — skip the boost when:**
+- The user ends their prompt with `--raw` (remove the suffix, execute directly)
+- The `auto_boost` setting is `false` (check via `boost_settings` tool with `{"action": "get"}`)
+
+Examples:
+- `build me an API endpoint` → BOOST this (call boost_prompt, show comparison, ask)
+- `build me an API endpoint --raw` → DO NOT boost, execute directly
+- `fix the login bug --raw` → DO NOT boost, execute directly
+- `analyze churn data` → BOOST this
+
+**Do NOT boost these types of messages:**
+- Questions about the codebase ("how does X work?", "what does Y do?")
+- Git operations ("commit this", "push to main")
+- Simple file reads ("show me server.py")
+- Conversational replies ("yes", "no", "looks good", "try again")
+- Messages that are clearly responses to your questions, not new tasks
+
+**DO boost these — any prompt that is a task/instruction:**
+- "build X", "create X", "implement X", "add X"
+- "fix X", "debug X", "refactor X"
+- "analyze X", "write X", "design X"
+- "set up X", "configure X", "deploy X"
+
+---
+
 ## Project Overview
 
 ClaudeBoost is a Claude Code MCP plugin that enhances user prompts before sending them to Claude. Two parts:
 
-1. **Web Dashboard** (Vite + React + TypeScript + Tailwind) — displays boost history, ratings/feedback, domain stats, and per-domain constraint management. **This is built and lives in this repo.**
-2. **MCP Server** (Python) — registers a `boost_prompt` tool that classifies prompt domain, rewrites the prompt using Claude API, and logs results. **Not yet built.**
+1. **MCP Server** (Python, `mcp-server/`) — registers a `boost_prompt` tool that classifies prompt domain, rewrites the prompt using Claude API with enterprise playbook rules, and logs results. Uses Haiku for classification, Sonnet for enhancement.
+2. **Web Dashboard** (Next.js 14, `web-dashboard/`) — displays boost history, ratings/feedback, score histograms, ROI metrics, and per-domain constraint management. Reads live data from `~/.claudeboost/` with 5s auto-polling.
 
 Full build specification: `.claude/docs/CLAUDEBOOST_EXPLANATION.md`
 Workflow preferences: `.claude/docs/workflow_orchestration.md`
 
 ## Commands
 
+### MCP Server
 ```bash
-npm install            # install dependencies (or bun install)
-npm run dev            # dev server at localhost:8080
+cd mcp-server
+pip3 install -r requirements.txt
+python3 -m pytest tests/ -v          # run all tests (25 tests)
+python3 -m pytest tests/test_feedback.py -v   # run single test file
+```
+
+### Web Dashboard
+```bash
+cd web-dashboard
+npm install            # install dependencies
+npm run dev            # dev server at localhost:3000
 npm run build          # production build
 npm run lint           # ESLint
-npm run test           # Vitest (single run)
 npm run test:watch     # Vitest (watch mode)
 ```
 
 ## Architecture
 
-### Stack
-- **Vite 5** with React 18 + TypeScript + SWC
-- **Tailwind CSS 3** with shadcn/ui components (Radix UI primitives)
-- **React Router v6** for client-side routing
-- **TanStack Query** for data fetching (ready but using mock data currently)
-- **Recharts** for stats visualizations
+### MCP Server (`mcp-server/`)
+- `server.py` — MCP entry point, registers `boost_prompt` tool, orchestrates flow
+- `classifier.py` — Classifies prompts into 7 domains via Claude Haiku API
+- `enhancer.py` — Enhances prompts with enterprise playbook rules via Claude Sonnet API
+- `feedback.py` — Reads/writes `~/.claudeboost/history.json` and `config.json`
+
+Dependency order: `feedback.py` → `classifier.py` → `enhancer.py` → `server.py`
+
+### Web Dashboard (`src/`)
+- Vite 5 + React 18 + TypeScript + Tailwind CSS 3 + shadcn/ui
+- React Router v6: History (`/`), Stats (`/stats`), Constraints (`/constraints`)
 - Path alias: `@` maps to `./src`
 
-### Routing (`src/App.tsx`)
-
-| Route | Component | Purpose |
-|-------|-----------|---------|
-| `/` | `HistoryPage` | Boost history list with expandable cards, stats summary |
-| `/stats` | `StatsPage` | Acceptance rate, ratings by domain, feedback coverage, 7-day activity |
-| `/constraints` | `ConstraintsPage` | Per-domain constraint editor (7 domains) |
-| `*` | `NotFound` | 404 |
-
-### Key Source Directories
-- `src/pages/` — page components (one per route)
-- `src/components/` — custom components (`Navbar`, `HistoryCard`, `DomainBadge`, `StarRating`, `NavLink`) + `ui/` (45 shadcn/ui components)
-- `src/hooks/` — `use-mobile` (breakpoint detection), `use-toast` (notification system)
-- `src/lib/data.ts` — types (`Domain`, `HistoryEntry`, `Constraints`), domain constants, mock data
-- `src/lib/utils.ts` — `cn()` classname merge utility
-
 ### Domain Model
-7 domains: `data_science`, `data_engineering`, `business_analytics`, `general_coding`, `documentation`, `devops`, `other`. Each has a color mapping in `DOMAIN_COLORS`.
+7 domains: `data_science`, `data_engineering`, `business_analytics`, `general_coding`, `documentation`, `devops`, `other`
 
-### Data Layer
-Currently uses mock data in `src/lib/data.ts`. The MCP server will store data at `~/.claudeboost/history.json` and `~/.claudeboost/config.json`. Dashboard API routes need to be built to bridge these.
+### Data Storage
+Local JSON files at `~/.claudeboost/`: `history.json` (boost log) and `config.json` (per-domain constraints)
 
-### Design System
-- Dark theme with CSS variables (class-based toggle)
-- Fonts: JetBrains Mono (display), Inter (body) via Google Fonts
-- Custom animations: `fade-slide-up`, `bar-grow`
-- Domain-specific color variables defined in `src/index.css`
+## Skills
 
-## Testing
-
-- **Unit:** Vitest + jsdom + @testing-library/react (setup in `src/test/setup.ts`)
-- **E2E:** Playwright (config in `playwright.config.ts`, fixture in `playwright-fixture.ts`)
-
-## MCP Server (not yet built)
-
-Will live in `mcp-server/` with: `server.py`, `classifier.py`, `enhancer.py`, `feedback.py`.
-Build order and full spec in `.claude/docs/CLAUDEBOOST_EXPLANATION.md` Section 7.
-Dependencies: `mcp`, `anthropic`. Requires `ANTHROPIC_API_KEY` in environment.
+- `/boost <prompt>` — manually boost a specific prompt with full UI flow
+- `/boost-settings` — view current settings
+- `/boost-settings --level <light|medium|full>` or `-l` — change boost intensity
+- `/boost-settings --auto <true|false>` or `-a` — toggle auto-boost
+- `/boost-help` — show all commands and usage guide
+- `--raw` suffix — skip auto-boost for a single prompt
