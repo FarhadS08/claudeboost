@@ -48,7 +48,9 @@ export const updateSession = async (request: NextRequest) => {
   }
 
   // Redirect authenticated users away from auth pages
-  if (user && isAuthPage) {
+  // EXCEPT /auth/cli-login — users can be logged in on web but need to connect CLI
+  const isCliLogin = request.nextUrl.pathname === "/auth/cli-login";
+  if (user && isAuthPage && !isCliLogin) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
