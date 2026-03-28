@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/", label: "History" },
-  { href: "/stats", label: "Stats" },
-  { href: "/constraints", label: "Constraints" },
+  { href: "/dashboard", label: "History" },
+  { href: "/dashboard/stats", label: "Stats" },
+  { href: "/dashboard/constraints", label: "Constraints" },
 ];
 
 export function Navbar() {
@@ -17,7 +17,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link
-          href="/"
+          href="/dashboard"
           className="text-lg font-bold tracking-tight"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >

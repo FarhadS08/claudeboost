@@ -359,7 +359,7 @@ export default function StatsPage() {
                 const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
                 const maxDomainCount = Math.max(...sorted.map(([, c]) => c), 1);
                 return sorted.map(([domain, count]) => (
-                  <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/?domain=${domain}`)}>
+                  <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
                     <div className="w-36 shrink-0">
                       <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                     </div>
@@ -390,7 +390,7 @@ export default function StatsPage() {
           ) : (
             <div className="space-y-3">
               {domainAvgRatings.map(({ domain, avg }) => (
-                <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/?domain=${domain}`)}>
+                <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
                   <div className="w-36 shrink-0">
                     <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                   </div>
@@ -476,7 +476,7 @@ export default function StatsPage() {
                 <p className="text-xs text-muted-foreground mb-2">Quality Level Distribution</p>
                 <div className="space-y-1.5">
                   {[5, 4, 3, 2, 1].map((lvl) => (
-                    <div key={lvl} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => levelCounts[lvl] > 0 && router.push(`/?level=${lvl}`)}>
+                    <div key={lvl} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => levelCounts[lvl] > 0 && router.push(`/dashboard?level=${lvl}`)}>
                       <span
                         className={`text-xs w-20 shrink-0 ${LEVEL_COLORS[lvl]}`}
                       >
