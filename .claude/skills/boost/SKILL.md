@@ -47,12 +47,10 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 5. Based on the user's choice:
    - If "Use boosted prompt": Execute the boosted prompt as the user's new task. Do NOT mention ClaudeBoost again — just do the work.
-   - If "Add notes & refine": Ask the user for their notes using AskUserQuestion:
-     - question: "What should be changed in the boosted prompt?"
-     - header: "Refine"
-     - 1 option: label: "Done", description: "Use the notes field below"
-     - The user will type their notes in the "Other" text field or the Notes field.
-     Then take the boosted prompt + user notes and refine it yourself inline — apply the notes to modify the boosted prompt. Display the refined version using the same full markdown format (step 3) and present the choice modal again (step 4). Repeat this loop until the user picks "Use boosted prompt" or "Keep original".
+   - If "Add notes & refine": Output ONLY this text and then STOP and wait for the user to type:
+     `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "remove the model card section", "add error handling")`
+     Do NOT use AskUserQuestion here. Do NOT ask any follow-up questions. Just print that line and STOP.
+     When the user replies with their notes, take the current boosted prompt + their notes and refine the prompt yourself inline. Then display the refined version using the same full markdown format (step 3) and present the choice modal again (step 4). Repeat this loop until the user picks "Use boosted prompt" or "Keep original".
    - If "Keep original": Execute the original prompt as the user's task.
    - If "Other": Execute whatever the user typed.
 
