@@ -11,12 +11,12 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
 
-2. Parse the JSON output to extract: `domain`, `original`, and `boosted`
+2. Parse the JSON output to extract: `domain`, `original`, `boosted`, and `level`
 
 3. Display the FULL comparison using this EXACT markdown format. Show EVERYTHING — do not truncate or summarize:
 
 ```
-⚡ **CLAUDEBOOST** — Domain: **{domain_with_underscores_replaced_by_spaces_and_capitalized}**
+⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
 
 ---
 
@@ -39,7 +39,7 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
      - description: "Execute the enhanced version shown above"
    - Option 2:
      - label: "📝 Add notes & refine"
-     - description: "Give feedback to refine the boosted prompt (e.g. 'use PyTorch instead of sklearn', 'add logging')"
+     - description: "Give feedback to refine the boosted prompt"
    - Option 3:
      - label: "🚫 Keep original"
      - description: "Ignore the boost and use your original prompt"

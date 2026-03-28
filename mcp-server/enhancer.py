@@ -131,11 +131,35 @@ DOMAIN_RULES = {
 }
 
 
-def enhance_prompt(prompt: str, domain: str, feedback_context: str = "") -> str:
+LEVEL_INSTRUCTIONS = {
+    "light": (
+        "Make minimal improvements only. Clarify ambiguous terms, fix grammar, "
+        "and add basic structure. Do NOT add verification steps, anti-patterns, "
+        "constraints, or output format sections. Keep it concise and close to "
+        "the original intent. The result should be 1-3 sentences longer at most."
+    ),
+    "medium": (
+        "Make moderate improvements. Add clear structure (Context, Goal, Task), "
+        "specify key constraints, and add a brief verification step. "
+        "Do NOT add exhaustive anti-pattern lists, detailed output format specs, "
+        "or enterprise-level requirements. Keep it practical and focused. "
+        "The result should be a short, well-structured paragraph."
+    ),
+    "full": (
+        "Apply the full enterprise playbook. Add all sections: Context, Goal, "
+        "Task, Verification, Constraints, Output Format. Include anti-pattern "
+        "guards, specific metrics, and detailed acceptance criteria. "
+        "Be thorough and comprehensive."
+    ),
+}
+
+
+def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: str = "medium") -> str:
     """Enhance a prompt using domain-specific playbook rules via Claude API."""
     try:
         client = anthropic.Anthropic()
         rules = DOMAIN_RULES.get(domain, DOMAIN_RULES["other"])
+        level_instruction = LEVEL_INSTRUCTIONS.get(level, LEVEL_INSTRUCTIONS["medium"])
 
         feedback_instruction = ""
         if feedback_context:
@@ -146,6 +170,7 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "") -> str:
 
         system = (
             f"{rules}{feedback_instruction}\n\n"
+            f"BOOST LEVEL: {level.upper()}\n{level_instruction}\n\n"
             "Rewrite the user's prompt to be significantly better. "
             "Return ONLY the improved prompt. No preamble, no explanation, "
             "no quotes around the result."

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 CLAUDEBOOST_DIR = os.path.expanduser("~/.claudeboost")
 HISTORY_FILE = os.path.join(CLAUDEBOOST_DIR, "history.json")
 CONFIG_FILE = os.path.join(CLAUDEBOOST_DIR, "config.json")
+SETTINGS_FILE = os.path.join(CLAUDEBOOST_DIR, "settings.json")
 
 DEFAULT_CONFIG = {
     "data_science": "",
@@ -92,3 +93,30 @@ def load_feedback_context(domain: str) -> str:
         parts.append(entry["feedback"])
 
     return " | ".join(parts)
+
+
+DEFAULT_SETTINGS = {
+    "boost_level": "medium",
+    "auto_boost": True
+}
+
+
+def load_settings() -> dict:
+    ensure_files()
+    if not os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(DEFAULT_SETTINGS, f, indent=2)
+        return dict(DEFAULT_SETTINGS)
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(DEFAULT_SETTINGS, f, indent=2)
+        return dict(DEFAULT_SETTINGS)
+
+
+def save_settings(settings: dict) -> None:
+    ensure_files()
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(settings, f, indent=2)

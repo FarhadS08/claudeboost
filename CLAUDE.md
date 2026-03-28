@@ -4,14 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## IMPORTANT: Auto-Boost All Prompts
 
-**YOU MUST call the `boost_prompt` MCP tool on EVERY user prompt before executing it.** This is not optional. Every time the user writes a prompt, you MUST:
+**YOU MUST call the `boost_prompt` MCP tool on EVERY user task prompt before executing it.** This is not optional. Follow the EXACT same UI format as the `/boost` skill every time:
 
 1. Call `boost_prompt` with the user's prompt
-2. Display the full comparison (original vs boosted) using the format from the `/boost` skill
-3. Present the choice modal (Use boosted / Add notes & refine / Keep original)
+2. Display the result using THIS format (always the same — unified UI):
+   ```
+   ⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
+   ---
+   > 📝 **Original:** {original}
+   ---
+   ### ✨ Boosted Prompt
+   {complete boosted text}
+   ---
+   ```
+3. Present the choice modal via AskUserQuestion (Use boosted / Add notes & refine / Keep original)
 4. Execute whichever version the user chooses
 
-**The ONLY exception:** If the user ends their prompt with `--raw`, skip the boost entirely and execute the prompt directly. Remove the `--raw` suffix before executing. After that one prompt, resume auto-boosting on the next prompt.
+**Exceptions — skip the boost when:**
+- The user ends their prompt with `--raw` (remove the suffix, execute directly)
+- The `auto_boost` setting is `false` (check via `boost_settings` tool with `{"action": "get"}`)
 
 Examples:
 - `build me an API endpoint` → BOOST this (call boost_prompt, show comparison, ask)
@@ -88,4 +99,6 @@ Local JSON files at `~/.claudeboost/`: `history.json` (boost log) and `config.js
 ## Skills
 
 - `/boost <prompt>` — manually boost a specific prompt with full UI flow
+- `/boost-settings` — view or change settings (level, auto-boost)
+- `/boost-help` — show all commands and usage guide
 - `--raw` suffix — skip auto-boost for a single prompt
