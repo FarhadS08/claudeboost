@@ -9,6 +9,30 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 ## Instructions
 
+**If `$ARGUMENTS` is `--login` or `login`:**
+Open the browser to `http://localhost:3000/auth/cli-login` using the Bash tool:
+```bash
+open "http://localhost:3000/auth/cli-login"
+```
+Then display:
+```
+🔐 **Opening browser for ClaudeBoost login...**
+
+Sign in or create an account at: http://localhost:3000/auth/cli-login
+After signing in, your CLI session will be authenticated. Run `/boost` again to start boosting.
+```
+Do NOT call any MCP tools. STOP here.
+
+**If `$ARGUMENTS` is `--logout` or `logout`:**
+Delete the auth file using Bash:
+```bash
+rm -f ~/.claudeboost/auth.json
+```
+Then display: `✅ **Logged out of ClaudeBoost.** Run /boost --login to sign in again.`
+STOP here.
+
+**Otherwise (normal boost):**
+
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
 
 2. Parse the JSON output to extract: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, and `improvement`

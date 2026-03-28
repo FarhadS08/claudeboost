@@ -160,6 +160,8 @@ async def _handle_help() -> list[TextContent]:
     help_text = json.dumps({
         "commands": {
             "/boost <prompt>": "Manually boost a specific prompt",
+            "/boost --login": "Sign in to ClaudeBoost (opens browser)",
+            "/boost --logout": "Sign out of ClaudeBoost",
             "/boost-settings": "View or change ClaudeBoost settings",
             "/boost-help": "Show this help message",
             "--raw": "Add to end of any prompt to skip boost for that one time",
