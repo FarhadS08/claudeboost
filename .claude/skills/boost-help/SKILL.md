@@ -20,21 +20,25 @@ description: Show ClaudeBoost help with available commands, settings, and usage 
 | Command | Description |
 |---------|-------------|
 | `/boost <prompt>` | Manually boost a specific prompt |
-| `/boost-settings` | View or change settings (level, auto-boost) |
+| `/boost-settings` | View current settings |
+| `/boost-settings --level <light\|medium\|full>` | Change boost intensity |
+| `/boost-settings --auto <true\|false>` | Toggle auto-boost |
 | `/boost-help` | Show this help message |
-| `--raw` | Add to end of any prompt to skip boost once |
+| `<prompt> --raw` | Add to end of any prompt to skip boost once |
+
+**Short flags:** `-l` for `--level`, `-a` for `--auto`
 
 ---
 
 ### Boost Levels
 
-| Level | Description |
-|-------|-------------|
-| `light` | Clarify + structure only. Minimal changes, stays close to original. |
-| `medium` | Add structure, constraints, and brief verification. **Balanced.** |
-| `full` | Full enterprise playbook with anti-patterns, metrics, and detailed criteria. |
+| Level | Flag | Description |
+|-------|------|-------------|
+| `light` | `--level light` or `-l light` | Clarify + structure only. Minimal changes. |
+| `medium` | `--level medium` or `-l medium` | Add structure, constraints, brief verification. **Default.** |
+| `full` | `--level full` or `-l full` | Full enterprise playbook with anti-patterns and metrics. |
 
-Current level: **{current_level}** · Change: `/boost-settings level <level>`
+Current level: **{current_level}** · Change: `/boost-settings -l <level>`
 
 ---
 
@@ -48,7 +52,7 @@ Current level: **{current_level}** · Change: `/boost-settings level <level>`
 ### Auto-Boost: **{on/off}**
 
 All task prompts are automatically boosted. Questions, git ops, and replies are not boosted.
-Change: `/boost-settings auto true` or `/boost-settings auto false`
+Change: `/boost-settings --auto false` or `/boost-settings -a false`
 ```
 
 ## Important

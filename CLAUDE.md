@@ -99,6 +99,8 @@ Local JSON files at `~/.claudeboost/`: `history.json` (boost log) and `config.js
 ## Skills
 
 - `/boost <prompt>` — manually boost a specific prompt with full UI flow
-- `/boost-settings` — view or change settings (level, auto-boost)
+- `/boost-settings` — view current settings
+- `/boost-settings --level <light|medium|full>` or `-l` — change boost intensity
+- `/boost-settings --auto <true|false>` or `-a` — toggle auto-boost
 - `/boost-help` — show all commands and usage guide
 - `--raw` suffix — skip auto-boost for a single prompt
