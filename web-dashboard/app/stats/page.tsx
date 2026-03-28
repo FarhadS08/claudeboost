@@ -182,10 +182,45 @@ export default function StatsPage() {
           )}
         </div>
 
+        {/* ── Section 1.5: Boosts by Domain (all entries) ─────────────────── */}
+        <div
+          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
+          style={{ animationDelay: "40ms" }}
+        >
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Boosts by Domain
+          </h2>
+          {entries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {(() => {
+                const counts: Record<string, number> = {};
+                for (const e of entries) counts[e.domain] = (counts[e.domain] ?? 0) + 1;
+                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                const maxDomainCount = Math.max(...sorted.map(([, c]) => c), 1);
+                return sorted.map(([domain, count]) => (
+                  <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/?domain=${domain}`)}>
+                    <div className="w-36 shrink-0">
+                      <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
+                    </div>
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-secondary rounded-full" style={{ width: `${(count / maxDomainCount) * 100}%` }} />
+                    </div>
+                    <span className="text-xs tabular-nums text-muted-foreground w-10 text-right">
+                      {count}
+                    </span>
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
+        </div>
+
         {/* ── Section 2: Average Rating by Domain ──────────────────────────── */}
         <div
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "60ms" }}
+          style={{ animationDelay: "80ms" }}
         >
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Average Rating by Domain
@@ -220,9 +255,14 @@ export default function StatsPage() {
           style={{ animationDelay: "120ms" }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Score Improvement — Before vs After
-            </h2>
+            <div>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Score Improvement — Before vs After
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Based on {scoredEntries.length} of {entries.length} boosts with scoring data
+              </p>
+            </div>
             <span className="text-xs text-muted-foreground">
               <span className="inline-block w-3 h-3 rounded bg-zinc-500/40 mr-1 align-middle" />
               Before ·{" "}
