@@ -7,6 +7,20 @@ export type Domain =
   | "devops"
   | "other";
 
+export interface ScoreBreakdown {
+  dimensions: {
+    specificity: number;
+    verification: number;
+    context: number;
+    constraints: number;
+    structure: number;
+    output_definition: number;
+  };
+  total: number;
+  average: number;
+  level: number;
+}
+
 export interface HistoryEntry {
   id: number;
   timestamp: string;
@@ -16,6 +30,8 @@ export interface HistoryEntry {
   chosen: "boosted" | "original" | null;
   rating: number | null;
   feedback: string;
+  original_score: ScoreBreakdown | null;
+  boosted_score: ScoreBreakdown | null;
 }
 
 export type Constraints = Record<Domain, string>;
@@ -51,6 +67,14 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     chosen: "boosted",
     rating: 4,
     feedback: "Good but always assume Python and sklearn",
+    original_score: {
+      dimensions: { specificity: 1, verification: 1, context: 1, constraints: 1, structure: 1, output_definition: 1 },
+      total: 6, average: 1.0, level: 1
+    },
+    boosted_score: {
+      dimensions: { specificity: 4, verification: 4, context: 4, constraints: 3, structure: 4, output_definition: 4 },
+      total: 23, average: 3.8, level: 4
+    },
   },
   {
     id: 2,
@@ -62,6 +86,14 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     chosen: "boosted",
     rating: 5,
     feedback: "",
+    original_score: {
+      dimensions: { specificity: 2, verification: 1, context: 2, constraints: 1, structure: 1, output_definition: 1 },
+      total: 8, average: 1.3, level: 1
+    },
+    boosted_score: {
+      dimensions: { specificity: 5, verification: 4, context: 5, constraints: 4, structure: 4, output_definition: 4 },
+      total: 26, average: 4.3, level: 5
+    },
   },
   {
     id: 3,
@@ -73,6 +105,14 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     chosen: null,
     rating: null,
     feedback: "",
+    original_score: {
+      dimensions: { specificity: 1, verification: 1, context: 2, constraints: 1, structure: 2, output_definition: 1 },
+      total: 8, average: 1.3, level: 1
+    },
+    boosted_score: {
+      dimensions: { specificity: 4, verification: 3, context: 4, constraints: 4, structure: 5, output_definition: 5 },
+      total: 25, average: 4.2, level: 4
+    },
   },
   {
     id: 4,
@@ -84,6 +124,14 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     chosen: "boosted",
     rating: 3,
     feedback: "Should use GitLab CI instead",
+    original_score: {
+      dimensions: { specificity: 2, verification: 1, context: 1, constraints: 2, structure: 1, output_definition: 1 },
+      total: 8, average: 1.3, level: 1
+    },
+    boosted_score: {
+      dimensions: { specificity: 4, verification: 3, context: 4, constraints: 4, structure: 4, output_definition: 3 },
+      total: 22, average: 3.7, level: 4
+    },
   },
   {
     id: 5,
@@ -95,8 +143,25 @@ export const MOCK_HISTORY: HistoryEntry[] = [
     chosen: "boosted",
     rating: null,
     feedback: "",
+    original_score: {
+      dimensions: { specificity: 2, verification: 2, context: 1, constraints: 1, structure: 2, output_definition: 2 },
+      total: 10, average: 1.7, level: 2
+    },
+    boosted_score: {
+      dimensions: { specificity: 5, verification: 4, context: 4, constraints: 3, structure: 4, output_definition: 4 },
+      total: 24, average: 4.0, level: 4
+    },
   },
 ];
+
+export const DIMENSION_NAMES: Record<string, string> = {
+  specificity: "Specificity",
+  verification: "Verification",
+  context: "Context",
+  constraints: "Constraints",
+  structure: "Structure",
+  output_definition: "Output",
+};
 
 export const MOCK_CONSTRAINTS: Constraints = {
   data_science: "Always use Python and sklearn. Never use R.",

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { MOCK_HISTORY, DOMAINS, Domain, DOMAIN_COLORS } from "@/lib/data";
+import { MOCK_HISTORY, DOMAINS, Domain, DOMAIN_COLORS, DIMENSION_NAMES, ScoreBreakdown } from "@/lib/data";
 import DomainBadge from "@/components/DomainBadge";
 
 const StatsPage = () => {
@@ -52,6 +52,42 @@ const StatsPage = () => {
       });
     }
     return result;
+  }, [entries]);
+
+  const dimensionAverages = useMemo(() => {
+    const dims = ["specificity", "verification", "context", "constraints", "structure", "output_definition"] as const;
+    const entriesWithScores = entries.filter(e => e.original_score && e.boosted_score);
+    if (entriesWithScores.length === 0) return [];
+
+    return dims.map(dim => {
+      const origAvg = entriesWithScores.reduce((sum, e) => sum + (e.original_score?.dimensions[dim as keyof ScoreBreakdown["dimensions"]] || 0), 0) / entriesWithScores.length;
+      const boostAvg = entriesWithScores.reduce((sum, e) => sum + (e.boosted_score?.dimensions[dim as keyof ScoreBreakdown["dimensions"]] || 0), 0) / entriesWithScores.length;
+      return { dimension: dim, original: origAvg, boosted: boostAvg };
+    });
+  }, [entries]);
+
+  const roiMetrics = useMemo(() => {
+    const entriesWithScores = entries.filter(e => e.original_score && e.boosted_score);
+    if (entriesWithScores.length === 0) return null;
+
+    const avgScoreLift = entriesWithScores.reduce((sum, e) => sum + (e.boosted_score!.total - e.original_score!.total), 0) / entriesWithScores.length;
+
+    const levelDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    entriesWithScores.forEach(e => {
+      const level = e.boosted_score!.level;
+      levelDist[level] = (levelDist[level] || 0) + 1;
+    });
+
+    const successCount = entriesWithScores.filter(e => e.boosted_score!.total > e.original_score!.total).length;
+    const successRate = Math.round((successCount / entriesWithScores.length) * 100);
+
+    const dims = ["specificity", "verification", "context", "constraints", "structure", "output_definition"] as const;
+    const avgDimsImproved = entriesWithScores.reduce((sum, e) => {
+      const improved = dims.filter(d => e.boosted_score!.dimensions[d] > e.original_score!.dimensions[d]).length;
+      return sum + improved;
+    }, 0) / entriesWithScores.length;
+
+    return { avgScoreLift, levelDist, successRate, avgDimsImproved, total: entriesWithScores.length };
   }, [entries]);
 
   const maxDaily = Math.max(...dailyActivity.map((d) => d.count), 1);
@@ -212,6 +248,118 @@ const StatsPage = () => {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* Score Improvement Histogram */}
+        <section className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up" style={{ animationDelay: "400ms" }}>
+          <h2 className="font-display text-sm font-semibold text-foreground mb-1">
+            Score Improvement — Before vs After
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Average dimension scores across all boosts
+          </p>
+          {dimensionAverages.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 mb-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-muted-foreground/30" /> Before</span>
+                <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-primary" /> After</span>
+              </div>
+              {dimensionAverages.map(({ dimension, original, boosted }) => (
+                <div key={dimension} className="space-y-1">
+                  <span className="font-display text-xs text-muted-foreground">
+                    {DIMENSION_NAMES[dimension] || dimension}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden">
+                      <div
+                        className="h-full bg-muted-foreground/30 animate-bar-grow rounded-sm"
+                        style={{ width: `${(original / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="font-display text-xs text-muted-foreground min-w-[32px] text-right">
+                      {original.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-3 bg-muted rounded-sm overflow-hidden">
+                      <div
+                        className="h-full bg-primary animate-bar-grow rounded-sm"
+                        style={{ width: `${(boosted / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className="font-display text-xs text-foreground min-w-[32px] text-right">
+                      {boosted.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No scored boosts yet</p>
+          )}
+        </section>
+
+        {/* ROI Metrics */}
+        <section className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up" style={{ animationDelay: "500ms" }}>
+          <h2 className="font-display text-sm font-semibold text-foreground mb-1">
+            ROI Metrics
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Estimated value from prompt improvements
+          </p>
+          {roiMetrics ? (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Average Score Lift */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <p className="text-xs text-muted-foreground mb-1">Average Score Lift</p>
+                <p className="font-display text-3xl font-bold text-secondary">
+                  +{roiMetrics.avgScoreLift.toFixed(1)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">points per boost</p>
+              </div>
+
+              {/* Quality Level Distribution */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <p className="text-xs text-muted-foreground mb-2">Quality Level Distribution</p>
+                <div className="space-y-1.5">
+                  {[5, 4, 3, 2, 1].map(level => (
+                    <div key={level} className="flex items-center gap-2">
+                      <span className="font-display text-xs text-muted-foreground min-w-[16px]">L{level}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-sm overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-sm"
+                          style={{ width: `${roiMetrics.total > 0 ? ((roiMetrics.levelDist[level] || 0) / roiMetrics.total) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <span className="font-display text-xs text-muted-foreground min-w-[16px] text-right">
+                        {roiMetrics.levelDist[level] || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boost Success Rate */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <p className="text-xs text-muted-foreground mb-1">Boost Success Rate</p>
+                <p className="font-display text-3xl font-bold text-secondary">
+                  {roiMetrics.successRate}%
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">of boosts improved the score</p>
+              </div>
+
+              {/* Avg Dimensions Improved */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <p className="text-xs text-muted-foreground mb-1">Avg Dimensions Improved</p>
+                <p className="font-display text-3xl font-bold text-secondary">
+                  {roiMetrics.avgDimsImproved.toFixed(1)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">out of 6 dimensions</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No scored boosts yet</p>
+          )}
         </section>
       </div>
     </div>
