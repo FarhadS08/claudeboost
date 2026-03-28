@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { readSettings, writeSettings } from "@/lib/files";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const settings = readSettings();
-  return NextResponse.json(settings);
+  return NextResponse.json(settings, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(request: Request) {

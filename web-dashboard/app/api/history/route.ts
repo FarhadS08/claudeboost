@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { readHistory, writeHistory } from "@/lib/files";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const history = readHistory();
   history.reverse();
-  return NextResponse.json(history);
+  return NextResponse.json(history, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function PATCH(request: Request) {
