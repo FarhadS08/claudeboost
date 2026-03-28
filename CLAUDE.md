@@ -20,6 +20,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. Present the choice modal via AskUserQuestion (Use boosted / Add notes & refine / Keep original)
 4. Execute whichever version the user chooses
 
+**Authentication:** If `boost_prompt` returns `{"error": "auth_required"}`, show the auth message and open the browser to `http://localhost:3000/auth/cli-login`. Do NOT fall back to manual enhancement. Wait for the user to authenticate and try again.
+
 **Exceptions — skip the boost when:**
 - The user ends their prompt with `--raw` (remove the suffix, execute directly)
 - The `auto_boost` setting is `false` (check via `boost_settings` tool with `{"action": "get"}`)

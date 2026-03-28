@@ -74,3 +74,18 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 - Do NOT add extra commentary between the comparison and the modal.
 - If the MCP tool is unavailable, tell the user: "ClaudeBoost MCP server is not connected. Run `/mcp` to check status."
   Do NOT fall back to manual enhancement — that defeats the purpose of the tool.
+
+## Authentication
+
+If the MCP tool returns a JSON response with `"error": "auth_required"`, display this message:
+
+```
+🔐 **ClaudeBoost requires authentication.**
+
+A browser window has been opened to sign in. If it didn't open automatically, visit:
+→ http://localhost:3000/auth/cli-login
+
+After signing in, run your `/boost` command again.
+```
+
+Do NOT attempt to enhance the prompt manually. Do NOT retry automatically. Wait for the user to authenticate and try again.

@@ -83,6 +83,15 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 
 async def _handle_boost(arguments: dict) -> list[TextContent]:
+    # Check authentication
+    if not is_authenticated():
+        open_login_page()
+        return [TextContent(type="text", text=json.dumps({
+            "error": "auth_required",
+            "message": get_login_message(),
+            "login_url": "http://localhost:3000/auth/cli-login"
+        }))]
+
     original = arguments["prompt"]
     settings = load_settings()
     level = settings.get("boost_level", "medium")
@@ -122,6 +131,14 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
 
 
 async def _handle_settings(arguments: dict) -> list[TextContent]:
+    if not is_authenticated():
+        open_login_page()
+        return [TextContent(type="text", text=json.dumps({
+            "error": "auth_required",
+            "message": get_login_message(),
+            "login_url": "http://localhost:3000/auth/cli-login"
+        }))]
+
     action = arguments.get("action", "get")
     settings = load_settings()
 
