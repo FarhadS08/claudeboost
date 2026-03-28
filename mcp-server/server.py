@@ -44,32 +44,13 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     boosted = enhance_prompt(original, domain, feedback_context)
     log_to_history(original, boosted, domain)
 
-    output = (
-        "╔══════════════════════════════════════════════════╗\n"
-        "║              ⚡ CLAUDEBOOST                      ║\n"
-        "╚══════════════════════════════════════════════════╝\n"
-        f"\n📎 Domain: {domain}\n"
-        "\n"
-        "🔵 ORIGINAL PROMPT\n"
-        "──────────────────\n"
-        f"{original}\n"
-        "\n"
-        "✨ BOOSTED PROMPT\n"
-        "──────────────────\n"
-        f"{boosted}\n"
-        "\n"
-        "──────────────────────────────────────────────────\n"
-        "\n"
-        "IMPORTANT INSTRUCTION: You MUST now ask the user to choose between "
-        "the original and boosted prompt using the AskUserQuestion tool. "
-        "Present both versions clearly and ask: "
-        "'Would you like to use the boosted prompt or keep the original?' "
-        "with options: 'Use boosted prompt' and 'Keep original'. "
-        "If the user chooses the boosted version, execute it as their new prompt. "
-        "If they choose the original, execute the original prompt instead."
-    )
+    result = json.dumps({
+        "domain": domain,
+        "original": original,
+        "boosted": boosted
+    })
 
-    return [TextContent(type="text", text=output)]
+    return [TextContent(type="text", text=result)]
 
 
 async def main():
