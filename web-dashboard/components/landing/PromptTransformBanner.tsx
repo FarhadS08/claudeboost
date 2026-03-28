@@ -77,8 +77,8 @@ const DIM_LABELS: Record<string, string> = {
 
 const DOMAIN_COLORS: Record<string, string> = {
   general_coding: "text-primary",
-  data_science: "text-secondary",
-  devops: "text-orange-400",
+  data_science: "text-violet-400",
+  devops: "text-fuchsia-400",
 };
 
 const DOMAIN_LABELS: Record<string, string> = {
@@ -168,7 +168,7 @@ export function PromptTransformBanner() {
   return (
     <section className="py-24 px-6 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-secondary/[0.03] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-primary/[0.02] pointer-events-none" />
 
       <div className="max-w-5xl mx-auto relative">
         {/* Section header */}
@@ -178,7 +178,7 @@ export function PromptTransformBanner() {
           </p>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Watch prompts{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">
               transform
             </span>
           </h2>
@@ -207,7 +207,7 @@ export function PromptTransformBanner() {
           <div
             className={`absolute -inset-2 rounded-3xl blur-2xl transition-all duration-1000 ${
               isAfterTransform
-                ? "bg-gradient-to-r from-primary/20 via-emerald-500/15 to-secondary/20"
+                ? "bg-gradient-to-r from-primary/20 via-primary/10 to-violet-500/15"
                 : "bg-gradient-to-r from-zinc-500/10 via-transparent to-zinc-500/10"
             }`}
           />
@@ -228,7 +228,7 @@ export function PromptTransformBanner() {
                   {DOMAIN_LABELS[example.domain]}
                 </span>
                 <div className={`flex items-center gap-1.5 text-xs font-mono transition-all duration-500 ${
-                  isAfterTransform ? "text-emerald-400" : "text-zinc-500"
+                  isAfterTransform ? "text-primary" : "text-zinc-500"
                 }`}>
                   <span>{isAfterTransform && scoreProgress > 0 ? totalAfter : totalBefore}</span>
                   <span className="text-muted-foreground">/30</span>
@@ -299,12 +299,12 @@ export function PromptTransformBanner() {
               <div className="p-6 relative">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`text-[10px] font-semibold uppercase tracking-widest transition-colors duration-500 ${
-                    isAfterTransform ? "text-emerald-500" : "text-zinc-700"
+                    isAfterTransform ? "text-primary" : "text-zinc-700"
                   }`}>
                     After
                   </span>
                   {isAfterTransform && (
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/10 text-primary">
                       {Math.round(totalBefore + (totalAfter - totalBefore) * (scoreProgress / 100))}/30
                     </span>
                   )}
@@ -327,12 +327,12 @@ export function PromptTransformBanner() {
                         style={{ animationDelay: `${i * 30}ms` }}
                       >
                         {line.startsWith("##") ? (
-                          <span className="text-emerald-300 font-bold">{line}</span>
+                          <span className="text-violet-300 font-bold">{line}</span>
                         ) : line.startsWith("**") ? (
-                          <span className="text-emerald-400/90">
+                          <span className="text-primary/90">
                             {line.split("**").map((part, j) =>
                               j % 2 === 1 ? (
-                                <span key={j} className="text-emerald-300 font-semibold">{part}</span>
+                                <span key={j} className="text-violet-300 font-semibold">{part}</span>
                               ) : (
                                 <span key={j} className="text-zinc-400">{part}</span>
                               )
@@ -379,11 +379,11 @@ export function PromptTransformBanner() {
                         <span className="text-[9px] text-zinc-500 w-16 text-right truncate">{DIM_LABELS[dim]}</span>
                         <div className="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-emerald-500 to-emerald-400"
+                            className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-primary to-violet-400"
                             style={{ width: `${(example.scoreAfter[dim] / 5) * (scoreProgress / 100) * 100}%` }}
                           />
                         </div>
-                        <span className="text-[9px] text-emerald-400 w-3 tabular-nums">{example.scoreAfter[dim]}</span>
+                        <span className="text-[9px] text-primary w-3 tabular-nums">{example.scoreAfter[dim]}</span>
                       </div>
                     ))}
                   </div>
@@ -419,7 +419,7 @@ export function PromptTransformBanner() {
                 </span>
               </div>
               {(phase === "scores" || phase === "hold") && (
-                <span className="text-[10px] font-mono font-semibold text-emerald-400">
+                <span className="text-[10px] font-mono font-semibold text-primary">
                   +{totalAfter - totalBefore} points
                 </span>
               )}

@@ -17,15 +17,15 @@ const LEVEL_BAR_COLORS: Record<number, string> = {
   1: "bg-red-400",
   2: "bg-orange-400",
   3: "bg-yellow-400",
-  4: "bg-emerald-400",
-  5: "bg-cyan-400",
+  4: "bg-primary",
+  5: "bg-violet-400",
 };
 
 function HowItWorksSection() {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 rounded-lg overflow-hidden animate-fade-slide-up">
+    <div className="bg-gradient-to-br from-primary/5 to-primary/3 border border-primary/20 rounded-lg overflow-hidden animate-fade-slide-up">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full p-6 text-left flex items-center justify-between hover:bg-primary/5 transition-colors"
@@ -45,7 +45,7 @@ function HowItWorksSection() {
         <div className="px-6 pb-6 space-y-6">
           {/* RLHF Loop Diagram */}
           <div className="bg-card/50 rounded-lg p-5 border border-border">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary mb-4">
               The Feedback Loop (RLHF)
             </h3>
             <div className="flex items-center justify-between gap-2 text-center">
@@ -56,7 +56,7 @@ function HowItWorksSection() {
                 { icon: "→", label: "", color: "text-zinc-600" },
                 { icon: "⭐", label: "You rate &\ngive feedback", color: "text-amber-400" },
                 { icon: "→", label: "", color: "text-zinc-600" },
-                { icon: "🧠", label: "Feedback shapes\nnext boost", color: "text-secondary" },
+                { icon: "🧠", label: "Feedback shapes\nnext boost", color: "text-primary" },
               ].map((step, i) => (
                 <div key={i} className={`${step.color} ${step.label ? "flex-1" : "shrink-0"}`}>
                   <div className="text-2xl">{step.icon}</div>
@@ -67,7 +67,7 @@ function HowItWorksSection() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
-              This is <span className="text-secondary font-medium">Reinforcement Learning from Human Feedback (RLHF)</span>.
+              This is <span className="text-primary font-medium">Reinforcement Learning from Human Feedback (RLHF)</span>.
               Every time you rate a boost or leave feedback like &quot;always use PyTorch&quot; or &quot;keep it shorter&quot;,
               ClaudeBoost stores your preferences. On the next boost in that domain, your last 5 feedback entries
               + your domain constraints are injected into the enhancement prompt. The AI learns your style over time.
@@ -76,7 +76,7 @@ function HowItWorksSection() {
 
           {/* How Each Metric Is Calculated */}
           <div className="bg-card/50 rounded-lg p-5 border border-border">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary mb-4">
               How Each Metric Is Calculated
             </h3>
             <div className="space-y-4 text-xs text-zinc-300 leading-relaxed">
@@ -150,7 +150,7 @@ function HowItWorksSection() {
 
           {/* Boost Levels Explanation */}
           <div className="bg-card/50 rounded-lg p-5 border border-border">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
               Boost Levels & Scoring Targets
             </h3>
             <div className="grid grid-cols-3 gap-3">
@@ -364,7 +364,7 @@ export default function StatsPage() {
                       <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                     </div>
                     <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-secondary rounded-full" style={{ width: `${(count / maxDomainCount) * 100}%` }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${(count / maxDomainCount) * 100}%` }} />
                     </div>
                     <span className="text-xs tabular-nums text-muted-foreground w-10 text-right">
                       {count}
@@ -427,7 +427,7 @@ export default function StatsPage() {
             <span className="text-xs text-muted-foreground">
               <span className="inline-block w-3 h-3 rounded bg-zinc-500/40 mr-1 align-middle" />
               Before ·{" "}
-              <span className="inline-block w-3 h-3 rounded bg-emerald-500 mr-1 align-middle" />
+              <span className="inline-block w-3 h-3 rounded bg-primary mr-1 align-middle" />
               After
             </span>
           </div>
@@ -463,7 +463,7 @@ export default function StatsPage() {
               {/* Card 1: Avg Score Lift */}
               <div className="bg-muted/40 rounded-lg p-4">
                 <p className="text-xs text-muted-foreground mb-1">Avg Score Lift</p>
-                <p className="text-3xl font-bold text-emerald-400 tabular-nums">
+                <p className="text-3xl font-bold text-primary tabular-nums">
                   {avgScoreLift !== null
                     ? `${avgScoreLift >= 0 ? "+" : ""}${avgScoreLift.toFixed(1)}`
                     : "—"}
@@ -512,7 +512,7 @@ export default function StatsPage() {
               {/* Card 4: Avg Dimensions Improved */}
               <div className="bg-muted/40 rounded-lg p-4">
                 <p className="text-xs text-muted-foreground mb-1">Avg Dimensions Improved</p>
-                <p className="text-3xl font-bold text-secondary tabular-nums">
+                <p className="text-3xl font-bold text-violet-400 tabular-nums">
                   {avgDimsImproved !== null ? avgDimsImproved.toFixed(1) : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">

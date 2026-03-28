@@ -6,6 +6,7 @@ import { DOMAIN_LABELS, DOMAINS, DOMAIN_COLORS } from "@/lib/constants";
 import { HistoryCard } from "@/components/HistoryCard";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { Zap, TrendingUp, Crown } from "lucide-react";
 
 function HistoryContent() {
   const { data: history, loading, refetch } = usePolling<HistoryEntry[]>("/api/history");
@@ -59,7 +60,10 @@ function HistoryContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground text-sm animate-pulse">Loading history...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-muted-foreground text-sm">Loading history...</p>
+        </div>
       </div>
     );
   }
@@ -67,57 +71,76 @@ function HistoryContent() {
   const hasFilter = filterDomain || filterLevel;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
+    <div className="max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
         <h1 className="font-bold text-2xl">History</h1>
         <p className="text-muted-foreground text-sm mt-1">Your prompt boost history</p>
       </div>
 
+      {/* Stats cards */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-card border border-border rounded-lg p-5">
-          <p className="text-3xl font-bold text-primary">{totalBoosts}</p>
-          <p className="text-xs text-muted-foreground mt-1">Total Boosts</p>
+        <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-foreground tabular-nums">{totalBoosts}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Total Boosts</p>
+          </div>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-5">
-          <p className="text-3xl font-bold text-emerald-400">
-            {avgScoreLift !== null ? `+${avgScoreLift.toFixed(1)}` : "\u2014"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">Avg Score Lift</p>
+        <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-foreground tabular-nums">
+              {avgScoreLift !== null ? `+${avgScoreLift.toFixed(1)}` : "\u2014"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">Avg Score Lift</p>
+          </div>
         </div>
 
         <div
-          className="bg-card border border-border rounded-lg p-5 cursor-pointer hover:border-primary/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-5 flex items-start gap-4 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => topDomain && setFilter("domain", topDomain)}
         >
-          <p className="text-3xl font-bold text-primary">
-            {topDomain ? DOMAIN_LABELS[topDomain] : "\u2014"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">Top Domain &middot; click to filter</p>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Crown className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-xl font-bold text-foreground">
+              {topDomain ? DOMAIN_LABELS[topDomain] : "\u2014"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">Top Domain</p>
+          </div>
         </div>
       </div>
 
+      {/* Active filter bar */}
       {hasFilter && (
-        <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg">
+        <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-primary/5 border border-primary/15 rounded-xl">
           <span className="text-sm text-primary">
             Filtering by: {filterDomain && `domain = ${DOMAIN_LABELS[filterDomain]}`}
             {filterLevel && `level = ${filterLevel}`}
           </span>
           <button
             onClick={clearFilter}
-            className="ml-auto text-xs text-zinc-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-zinc-700"
+            className="ml-auto text-xs text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1 rounded-lg hover:bg-muted"
           >
             &#10005; Clear
           </button>
         </div>
       )}
 
+      {/* Domain quick filters */}
       <div className="flex flex-wrap gap-2 mb-6">
         {DOMAINS.map((d) => (
           <button
             key={d}
             onClick={() => filterDomain === d ? clearFilter() : setFilter("domain", d)}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
               filterDomain === d
                 ? "bg-primary text-primary-foreground border-primary"
                 : `${DOMAIN_COLORS[d]} hover:opacity-80`
@@ -128,12 +151,18 @@ function HistoryContent() {
         ))}
       </div>
 
+      {/* History list */}
       {filtered.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center py-12">
-          {hasFilter
-            ? "No boosts match this filter"
-            : "No boosts yet \u2014 use /boost in Claude Code to get started"}
-        </p>
+        <div className="text-center py-20">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+            <Zap className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {hasFilter
+              ? "No boosts match this filter"
+              : "No boosts yet \u2014 use /boost in Claude Code to get started"}
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground mb-2">
@@ -156,7 +185,7 @@ function HistoryContent() {
 
 export default function HistoryPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-muted-foreground text-sm animate-pulse">Loading...</p></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
       <HistoryContent />
     </Suspense>
   );

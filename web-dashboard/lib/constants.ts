@@ -3,13 +3,13 @@ import { Domain } from "./types";
 export const DOMAINS: Domain[] = ["data_science", "data_engineering", "business_analytics", "general_coding", "documentation", "devops", "other"];
 
 export const DOMAIN_COLORS: Record<Domain, string> = {
-  data_science: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  data_engineering: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  business_analytics: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  general_coding: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  documentation: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  devops: "bg-rose-500/20 text-rose-400 border-rose-500/30",
-  other: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+  data_science: "bg-primary/15 text-primary border-primary/25",
+  data_engineering: "bg-violet-500/15 text-violet-400 border-violet-500/25",
+  business_analytics: "bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25",
+  general_coding: "bg-purple-400/15 text-purple-300 border-purple-400/25",
+  documentation: "bg-indigo-500/15 text-indigo-400 border-indigo-500/25",
+  devops: "bg-pink-500/15 text-pink-400 border-pink-500/25",
+  other: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
 };
 
 export const DOMAIN_LABELS: Record<Domain, string> = {
@@ -43,6 +43,6 @@ export const LEVEL_COLORS: Record<number, string> = {
   1: "text-red-400",
   2: "text-orange-400",
   3: "text-yellow-400",
-  4: "text-emerald-400",
-  5: "text-cyan-400",
+  4: "text-primary",
+  5: "text-violet-400",
 };

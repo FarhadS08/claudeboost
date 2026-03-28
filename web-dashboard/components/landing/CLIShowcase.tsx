@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Terminal, Sparkles, Settings, BarChart3, MessageSquare } from "lucide-react";
+import { Terminal, Sparkles, Settings as SettingsIcon, BarChart3, MessageSquare } from "lucide-react";
 
 const CLI_STEPS = [
   {
@@ -91,8 +91,8 @@ function CLITerminal() {
 
   return (
     <div className="relative w-full max-w-2xl">
-      <div className="absolute -inset-1 bg-gradient-to-r from-primary/15 via-secondary/10 to-primary/15 rounded-2xl blur-xl" />
-      <div className="relative bg-[hsl(233,53%,4%)] border border-border rounded-xl overflow-hidden">
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary/15 via-primary/5 to-primary/15 rounded-2xl blur-xl" />
+      <div className="relative bg-[hsl(240,15%,3%)] border border-border rounded-xl overflow-hidden">
         {/* Title bar */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/20">
           <div className="flex gap-1.5">
@@ -163,7 +163,7 @@ const CLI_FEATURES = [
     description: "Manually boost any prompt with full comparison UI",
   },
   {
-    icon: Settings,
+    icon: SettingsIcon,
     title: "/boost-settings",
     description: "Toggle auto-boost, set level (light / medium / full)",
   },
@@ -182,17 +182,17 @@ const CLI_FEATURES = [
 export function CLIShowcase() {
   return (
     <section className="py-32 px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/30 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative">
         {/* Section header */}
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold uppercase tracking-wider text-secondary mb-3">
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary mb-3">
             Built for the CLI
           </p>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Lives inside{" "}
-            <span className="text-secondary">Claude Code</span>
+            <span className="text-primary">Claude Code</span>
           </h2>
           <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
             ClaudeBoost runs as an MCP plugin directly in your Claude Code terminal.
@@ -210,7 +210,7 @@ export function CLIShowcase() {
           {/* Feature cards */}
           <div className="flex-1 space-y-4 w-full max-w-md">
             {/* Install command */}
-            <div className="bg-card/80 border border-border rounded-xl p-5">
+            <div className="bg-card border border-border rounded-xl p-5">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">
                 Install in 30 seconds
               </p>
@@ -234,10 +234,10 @@ export function CLIShowcase() {
             {CLI_FEATURES.map((feat) => (
               <div
                 key={feat.title}
-                className="group flex items-start gap-4 bg-card/50 border border-border rounded-xl p-4 hover:border-secondary/30 transition-colors"
+                className="group flex items-start gap-4 bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors"
               >
-                <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                  <feat.icon className="w-4 h-4 text-secondary" />
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <feat.icon className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold font-mono">{feat.title}</p>

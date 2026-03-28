@@ -7,6 +7,7 @@ import { DomainBadge } from "./DomainBadge";
 import { StarRating } from "./StarRating";
 import { ScoreBar } from "./ScoreBar";
 import { FeedbackForm } from "./FeedbackForm";
+import { ChevronDown } from "lucide-react";
 
 interface HistoryCardProps {
   entry: HistoryEntry;
@@ -23,63 +24,65 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
       : entry.original;
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      {/* Collapsed header — always visible, click toggles */}
+    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/20 transition-colors">
       <div
-        className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
         onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="flex items-center justify-between gap-3">
-          {/* Left side */}
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <DomainBadge domain={entry.domain} />
-            <span className="text-sm text-zinc-400 truncate">{truncatedOriginal}</span>
+            <span className="text-sm text-muted-foreground truncate">{truncatedOriginal}</span>
           </div>
 
-          {/* Right side */}
           <div className="flex items-center gap-3 shrink-0">
             {hasScores && entry.original_score && entry.boosted_score && (
-              <span className="text-xs font-mono text-zinc-400 whitespace-nowrap">
-                {entry.original_score.total}→{entry.boosted_score.total}
+              <span className="text-xs font-mono text-muted-foreground whitespace-nowrap px-2 py-0.5 rounded-md bg-muted">
+                {entry.original_score.total} &#8594; {entry.boosted_score.total}
               </span>
             )}
             {entry.rating !== null && entry.rating > 0 && (
               <StarRating value={entry.rating} readonly />
             )}
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-muted-foreground">
               {new Date(entry.timestamp).toLocaleDateString()}
             </span>
-            <span className="text-zinc-500 text-sm">{expanded ? "▾" : "▸"}</span>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
           </div>
         </div>
       </div>
 
-      {/* Expanded content */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
-          {/* Two-column prompt view */}
+        <div className="px-4 pb-5 border-t border-border pt-5 space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Original
               </p>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap">{entry.original}</p>
+              <div className="bg-muted/30 rounded-xl p-4 border border-border">
+                <p className="text-sm text-foreground/70 whitespace-pre-wrap font-mono leading-relaxed">
+                  {entry.original}
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                 Boosted
               </p>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap">{entry.boosted}</p>
+              <div className="bg-primary/5 rounded-xl p-4 border border-primary/15">
+                <p className="text-sm text-foreground/80 whitespace-pre-wrap font-mono leading-relaxed">
+                  {entry.boosted}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Score bars for each dimension */}
           {hasScores && entry.original_score && entry.boosted_score && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+            <div className="space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Score Breakdown
               </p>
-              <div className="space-y-2">
+              <div className="bg-muted/20 rounded-xl p-4 border border-border space-y-2.5">
                 {(
                   Object.keys(
                     entry.original_score.dimensions
@@ -96,9 +99,8 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
             </div>
           )}
 
-          {/* Feedback form */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Feedback
             </p>
             <FeedbackForm entry={entry} onSubmit={onFeedback} />

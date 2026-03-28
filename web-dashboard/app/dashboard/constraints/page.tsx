@@ -6,9 +6,9 @@ import { Settings, Constraints, Domain } from "@/lib/types";
 import { DOMAINS } from "@/lib/constants";
 import { DomainBadge } from "@/components/DomainBadge";
 import { Textarea } from "@/components/ui/textarea";
+import { Check } from "lucide-react";
 
 export default function ConstraintsPage() {
-  // ── Section 1: Boost Settings ─────────────────────────────────────────────
   const { data: settings, refetch: refetchSettings } =
     usePolling<Settings>("/api/settings");
 
@@ -23,7 +23,6 @@ export default function ConstraintsPage() {
     await refetchSettings();
   }
 
-  // ── Section 2: Domain Constraints ────────────────────────────────────────
   const { data: remoteConstraints } = usePolling<Constraints>("/api/constraints");
 
   const emptyConstraints = (): Constraints =>
@@ -34,7 +33,6 @@ export default function ConstraintsPage() {
   );
   const [saved, setSaved] = useState(false);
 
-  // Sync remote → local on first load (don't overwrite user edits on poll)
   useEffect(() => {
     if (remoteConstraints) {
       setLocalConstraints(remoteConstraints);
@@ -58,8 +56,7 @@ export default function ConstraintsPage() {
   const BOOST_LEVELS: Settings["boost_level"][] = ["light", "medium", "full"];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto">
       <div className="mb-8">
         <h1 className="font-bold text-2xl">Constraints</h1>
         <p className="text-muted-foreground text-sm mt-1">
@@ -67,15 +64,14 @@ export default function ConstraintsPage() {
         </p>
       </div>
 
-      {/* ── Section 1: Boost Settings ──────────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-lg p-6 mb-8">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-5">
+      {/* Boost Settings */}
+      <div className="bg-card border border-border rounded-xl p-6 mb-8">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-5">
           Boost Settings
         </h2>
 
-        {/* Boost Level */}
-        <div className="mb-5">
-          <p className="text-sm font-medium mb-2">Boost Level</p>
+        <div className="mb-6">
+          <p className="text-sm font-medium mb-3">Boost Level</p>
           <div className="flex gap-2">
             {BOOST_LEVELS.map((level) => {
               const isActive = settings?.boost_level === level;
@@ -83,10 +79,10 @@ export default function ConstraintsPage() {
                 <button
                   key={level}
                   onClick={() => updateSettings({ boost_level: level })}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${
+                  className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all capitalize ${
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-accent"
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
                   }`}
                 >
                   {level}
@@ -96,17 +92,16 @@ export default function ConstraintsPage() {
           </div>
         </div>
 
-        {/* Auto-Boost toggle */}
         <div>
-          <p className="text-sm font-medium mb-2">Auto-Boost</p>
+          <p className="text-sm font-medium mb-3">Auto-Boost</p>
           <button
             onClick={() =>
               updateSettings({ auto_boost: !settings?.auto_boost })
             }
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
               settings?.auto_boost
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30"
-                : "bg-muted text-muted-foreground hover:bg-accent"
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             Auto-Boost: {settings?.auto_boost ? "ON" : "OFF"}
@@ -114,10 +109,10 @@ export default function ConstraintsPage() {
         </div>
       </div>
 
-      {/* ── Section 2: Domain Constraints ──────────────────────────────────── */}
+      {/* Domain Constraints */}
       <div>
         <div className="mb-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Domain Constraints
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -130,7 +125,7 @@ export default function ConstraintsPage() {
           {DOMAINS.map((domain) => (
             <div
               key={domain}
-              className="bg-card border border-border rounded-lg p-4"
+              className="bg-card border border-border rounded-xl p-5"
             >
               <div className="mb-3">
                 <DomainBadge domain={domain} />
@@ -139,22 +134,22 @@ export default function ConstraintsPage() {
                 value={localConstraints[domain] ?? ""}
                 onChange={(e) => handleConstraintChange(domain, e.target.value)}
                 placeholder="e.g. Always use Python. Never use pandas. Output as markdown table."
-                className="min-h-[80px] bg-background"
+                className="min-h-[80px] bg-muted/30 border-border rounded-xl focus:ring-primary/50 focus:border-primary/30"
               />
             </div>
           ))}
         </div>
 
-        {/* Save button */}
         <div className="mt-6 flex items-center gap-4">
           <button
             onClick={saveConstraints}
-            className="bg-primary text-primary-foreground hover:bg-primary/80 px-6 py-2.5 rounded-md text-sm font-medium transition-colors"
+            className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2.5 rounded-xl text-sm font-medium transition-opacity shadow-lg shadow-primary/20"
           >
             Save All Constraints
           </button>
           {saved && (
-            <span className="text-sm text-emerald-400 font-medium">
+            <span className="flex items-center gap-1.5 text-sm text-primary font-medium">
+              <Check className="w-4 h-4" />
               Saved!
             </span>
           )}
