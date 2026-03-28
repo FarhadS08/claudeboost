@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "claudeboost": {
+      "command": "/opt/anaconda3/bin/python3",
+      "args": ["/Users/ferhadsuleymanzade/Documents/claudeboost/mcp-server/server.py"],
+      "env": {
+        "ANTHROPIC_API_KEY": "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"
+      }
+    }
+  }
+}
