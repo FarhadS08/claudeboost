@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { DomainBadge } from "@/components/DomainBadge";
 import { ScoreBar } from "@/components/ScoreBar";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import { useRouter } from "next/navigation";
 
 const LEVEL_BAR_COLORS: Record<number, string> = {
@@ -156,8 +157,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "0ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             Boost Acceptance Rate
+            <InfoTooltip text="How often you chose the boosted version over your original prompt. Only counts prompts where you made an explicit choice (Use boosted or Keep original)." />
           </h2>
           {decidedEntries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
@@ -187,8 +189,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "40ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             Boosts by Domain
+            <InfoTooltip text="Total number of prompts boosted in each domain. ClaudeBoost auto-classifies prompts into 7 domains. Click a bar to filter History by that domain." />
           </h2>
           {entries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
@@ -222,8 +225,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "80ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             Average Rating by Domain
+            <InfoTooltip text="Average star rating (1-5) you gave to boosted prompts, grouped by domain. Rate boosts in the History page by expanding a card and using the feedback form." />
           </h2>
           {domainAvgRatings.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
@@ -256,8 +260,9 @@ export default function StatsPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center">
                 Score Improvement — Before vs After
+                <InfoTooltip text="Each prompt is scored across 6 dimensions (1-5 each): Specificity, Verification, Context, Constraints, Structure, and Output. Gray bars show the average original score, green bars show the average boosted score. Higher is better." />
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Based on {scoredEntries.length} of {entries.length} boosts with scoring data
@@ -291,8 +296,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "180ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             ROI Metrics
+            <InfoTooltip text="Return on Investment metrics. Avg Score Lift = how many points the boost adds (out of 30). Quality Level Distribution = how many boosts reach each quality tier (L1=Unacceptable to L5=Enterprise). Success Rate = % of boosts that improved the score. Dims Improved = how many of the 6 dimensions got better per boost." />
           </h2>
           {scoredEntries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
@@ -366,8 +372,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "240ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             Feedback Coverage
+            <InfoTooltip text="Percentage of boosted prompts where you left a star rating or text feedback. Higher coverage means ClaudeBoost learns your preferences better and tailors future boosts to your style." />
           </h2>
           {entries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
@@ -424,8 +431,9 @@ export default function StatsPage() {
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
           style={{ animationDelay: "300ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
             Daily Activity — Last 7 Days
+            <InfoTooltip text="Number of prompts boosted each day over the past week. Tracks your ClaudeBoost usage pattern." />
           </h2>
           {entries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
