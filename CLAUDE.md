@@ -50,7 +50,7 @@ Examples:
 ClaudeBoost is a Claude Code MCP plugin that enhances user prompts before sending them to Claude. Two parts:
 
 1. **MCP Server** (Python, `mcp-server/`) — registers a `boost_prompt` tool that classifies prompt domain, rewrites the prompt using Claude API with enterprise playbook rules, and logs results. Uses Haiku for classification, Sonnet for enhancement.
-2. **Web Dashboard** (to be migrated to Next.js) — displays boost history, ratings/feedback, domain stats, and per-domain constraint management.
+2. **Web Dashboard** (Next.js 14, `web-dashboard/`) — displays boost history, ratings/feedback, score histograms, ROI metrics, and per-domain constraint management. Reads live data from `~/.claudeboost/` with 5s auto-polling.
 
 Full build specification: `.claude/docs/CLAUDEBOOST_EXPLANATION.md`
 Workflow preferences: `.claude/docs/workflow_orchestration.md`
@@ -67,11 +67,11 @@ python3 -m pytest tests/test_feedback.py -v   # run single test file
 
 ### Web Dashboard
 ```bash
+cd web-dashboard
 npm install            # install dependencies
-npm run dev            # dev server at localhost:8080
+npm run dev            # dev server at localhost:3000
 npm run build          # production build
 npm run lint           # ESLint
-npm run test           # Vitest (single run)
 npm run test:watch     # Vitest (watch mode)
 ```
 
