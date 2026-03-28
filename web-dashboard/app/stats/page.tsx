@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { DomainBadge } from "@/components/DomainBadge";
 import { ScoreBar } from "@/components/ScoreBar";
+import { useRouter } from "next/navigation";
 
 const LEVEL_BAR_COLORS: Record<number, string> = {
   1: "bg-red-400",
@@ -20,6 +21,7 @@ const LEVEL_BAR_COLORS: Record<number, string> = {
 
 export default function StatsPage() {
   const { data: history, loading } = usePolling<HistoryEntry[]>("/api/history");
+  const router = useRouter();
 
   const entries = history ?? [];
 
@@ -193,7 +195,7 @@ export default function StatsPage() {
           ) : (
             <div className="space-y-3">
               {domainAvgRatings.map(({ domain, avg }) => (
-                <div key={domain} className="flex items-center gap-3">
+                <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/?domain=${domain}`)}>
                   <div className="w-36 shrink-0">
                     <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                   </div>
@@ -272,7 +274,7 @@ export default function StatsPage() {
                 <p className="text-xs text-muted-foreground mb-2">Quality Level Distribution</p>
                 <div className="space-y-1.5">
                   {[5, 4, 3, 2, 1].map((lvl) => (
-                    <div key={lvl} className="flex items-center gap-2">
+                    <div key={lvl} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => levelCounts[lvl] > 0 && router.push(`/?level=${lvl}`)}>
                       <span
                         className={`text-xs w-20 shrink-0 ${LEVEL_COLORS[lvl]}`}
                       >

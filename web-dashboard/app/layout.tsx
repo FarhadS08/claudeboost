@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <Navbar />
         <main className="max-w-5xl mx-auto px-6 pt-20 pb-12">{children}</main>
       </body>
