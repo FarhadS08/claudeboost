@@ -24,8 +24,9 @@ def _supabase_request(method: str, path: str, body: dict | None = None) -> dict 
         return None
 
     url = f"{auth['supabase_url']}/rest/v1/{path}"
+    anon_key = auth.get("anon_key", "")
     headers = {
-        "apikey": _get_anon_key(auth["supabase_url"]),
+        "apikey": anon_key,
         "Authorization": f"Bearer {auth['access_token']}",
         "Content-Type": "application/json",
         "Prefer": "return=representation",
@@ -37,9 +38,13 @@ def _supabase_request(method: str, path: str, body: dict | None = None) -> dict 
     try:
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read().decode())
-    except urllib.error.HTTPError:
+    except urllib.error.HTTPError as e:
+        import sys
+        print(f"[ClaudeBoost DB] HTTP {e.code}: {e.read().decode()[:200]}", file=sys.stderr)
         return None
-    except Exception:
+    except Exception as e:
+        import sys
+        print(f"[ClaudeBoost DB] Error: {e}", file=sys.stderr)
         return None
 
 

@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     refresh_token,
     user_id,
     supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    anon_key: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
     created_at: new Date().toISOString(),
   };
 
