@@ -21,7 +21,7 @@ export function CTASection() {
 
         <p className="text-muted-foreground mt-6 text-lg max-w-xl mx-auto">
           Join developers who use ClaudeBoost to turn every prompt into a
-          production-grade instruction. Free tier available.
+          production-grade instruction. From $1.90/user/month. Free tier available.
         </p>
 
         <div className="flex items-center justify-center gap-4 mt-10">
@@ -40,7 +40,7 @@ export function CTASection() {
         </div>
 
         <p className="text-xs text-muted-foreground mt-6">
-          No credit card required &middot; Install in 30 seconds &middot; Works with Claude Code
+          No credit card required &middot; Install in 30 seconds &middot; $2.49/mo individual &middot; $1.90/user enterprise
         </p>
       </div>
     </section>
