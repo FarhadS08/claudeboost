@@ -154,7 +154,7 @@ LEVEL_INSTRUCTIONS = {
 }
 
 
-def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: str = "medium") -> str:
+def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: str = "medium", weak_dimensions: list = None) -> str:
     """Enhance a prompt using domain-specific playbook rules via Claude API."""
     try:
         client = anthropic.Anthropic()
@@ -168,9 +168,19 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
                 f"— apply these preferences: {feedback_context}"
             )
 
+        dimension_focus = ""
+        if weak_dimensions:
+            dim_names = ", ".join(d.replace("_", " ") for d in weak_dimensions)
+            dimension_focus = (
+                f"\n\nFOCUS AREAS: The original prompt scores lowest on: {dim_names}. "
+                "Prioritize improving these dimensions. Do not over-engineer dimensions "
+                "that are already adequate."
+            )
+
         system = (
             f"{rules}{feedback_instruction}\n\n"
-            f"BOOST LEVEL: {level.upper()}\n{level_instruction}\n\n"
+            f"BOOST LEVEL: {level.upper()}\n{level_instruction}"
+            f"{dimension_focus}\n\n"
             "Rewrite the user's prompt to be significantly better. "
             "Return ONLY the improved prompt. No preamble, no explanation, "
             "no quotes around the result."

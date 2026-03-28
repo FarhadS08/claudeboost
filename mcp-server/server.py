@@ -6,6 +6,7 @@ import json
 from classifier import classify_domain
 from enhancer import enhance_prompt
 from feedback import load_feedback_context, log_to_history, load_settings, save_settings
+from scorer import score_prompt, get_weighted_weakest
 
 app = Server("claudeboost")
 
@@ -85,16 +86,35 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     settings = load_settings()
     level = settings.get("boost_level", "medium")
 
+    # Score the original prompt
+    original_score = score_prompt(original)
+
+    # Classify domain and get feedback
     domain = classify_domain(original)
     feedback_context = load_feedback_context(domain)
-    boosted = enhance_prompt(original, domain, feedback_context, level=level)
-    log_to_history(original, boosted, domain)
+
+    # Get weakest dimensions weighted by domain importance
+    level_thresholds = {"light": 2, "medium": 3, "full": 5}
+    threshold = level_thresholds.get(level, 3)
+    weak_dims = get_weighted_weakest(original_score["dimensions"], domain, threshold)
+
+    # Enhance with dimension focus
+    boosted = enhance_prompt(original, domain, feedback_context, level=level, weak_dimensions=weak_dims)
+
+    # Score the boosted prompt
+    boosted_score = score_prompt(boosted)
+
+    # Log with scores
+    log_to_history(original, boosted, domain, original_score=original_score, boosted_score=boosted_score)
 
     result = json.dumps({
         "domain": domain,
         "original": original,
         "boosted": boosted,
         "level": level,
+        "original_score": original_score,
+        "boosted_score": boosted_score,
+        "improvement": boosted_score["total"] - original_score["total"],
     })
 
     return [TextContent(type="text", text=result)]

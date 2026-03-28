@@ -11,12 +11,12 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
 
-2. Parse the JSON output to extract: `domain`, `original`, `boosted`, and `level`
+2. Parse the JSON output to extract: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, and `improvement`
 
 3. Display the FULL comparison using this EXACT markdown format. Show EVERYTHING — do not truncate or summarize:
 
 ```
-⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
+⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}` · Score: **{original_score.total}/30 → {boosted_score.total}/30** (+{improvement})
 
 ---
 
@@ -27,6 +27,19 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 ### ✨ Boosted Prompt
 
 {paste the COMPLETE boosted prompt here — every single line, no truncation}
+
+---
+
+📊 **Score Breakdown:**
+
+| Dimension | Before | After |
+|-----------|--------|-------|
+| Specificity | {original_score.dimensions.specificity} | {boosted_score.dimensions.specificity} |
+| Verification | {original_score.dimensions.verification} | {boosted_score.dimensions.verification} |
+| Context | {original_score.dimensions.context} | {boosted_score.dimensions.context} |
+| Constraints | {original_score.dimensions.constraints} | {boosted_score.dimensions.constraints} |
+| Structure | {original_score.dimensions.structure} | {boosted_score.dimensions.structure} |
+| Output | {original_score.dimensions.output_definition} | {boosted_score.dimensions.output_definition} |
 
 ---
 ```

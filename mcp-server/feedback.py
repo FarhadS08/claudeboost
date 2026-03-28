@@ -31,7 +31,7 @@ def ensure_files():
             json.dump(DEFAULT_CONFIG, f, indent=2)
 
 
-def log_to_history(original: str, boosted: str, domain: str) -> None:
+def log_to_history(original: str, boosted: str, domain: str, original_score: dict = None, boosted_score: dict = None) -> None:
     """Append a new prompt-boost entry to history.json."""
     ensure_files()
 
@@ -51,6 +51,8 @@ def log_to_history(original: str, boosted: str, domain: str) -> None:
         "chosen": None,
         "rating": None,
         "feedback": "",
+        "original_score": original_score,
+        "boosted_score": boosted_score,
     }
     history.append(entry)
 
