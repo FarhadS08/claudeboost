@@ -5,8 +5,9 @@ import asyncio
 import json
 from classifier import classify_domain
 from enhancer import enhance_prompt
-from feedback import load_feedback_context, log_to_history, load_settings, save_settings
+from db import load_feedback_context, log_to_history, load_settings, save_settings
 from scorer import score_prompt, get_weighted_weakest
+from auth import is_authenticated, get_login_message, open_login_page
 
 app = Server("claudeboost")
 
