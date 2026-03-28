@@ -21,13 +21,13 @@ export default function HistoryPage() {
   const totalBoosts = history?.length ?? 0;
 
   const scoredEntries = history?.filter(
-    (e) => e.original_score !== null && e.boosted_score !== null
+    (e) => e.original_score?.total != null && e.boosted_score?.total != null
   ) ?? [];
 
   const avgScoreLift =
     scoredEntries.length > 0
       ? scoredEntries.reduce(
-          (sum, e) => sum + (e.boosted_score!.total - e.original_score!.total),
+          (sum, e) => sum + ((e.boosted_score?.total ?? 0) - (e.original_score?.total ?? 0)),
           0
         ) / scoredEntries.length
       : null;

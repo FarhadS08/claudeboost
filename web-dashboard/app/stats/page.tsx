@@ -46,14 +46,14 @@ export default function StatsPage() {
 
   // ── Section 3: Score Improvement Histogram ───────────────────────────────
   const scoredEntries = entries.filter(
-    (e) => e.original_score !== null && e.boosted_score !== null
+    (e) => e.original_score?.total != null && e.boosted_score?.total != null
   );
   const dimensions = Object.keys(DIMENSION_NAMES);
   type DimKey = keyof ScoreBreakdown["dimensions"];
   const dimAverages = dimensions.map((dim) => {
     const key = dim as DimKey;
-    const beforeValues = scoredEntries.map((e) => e.original_score!.dimensions[key] ?? 0);
-    const afterValues = scoredEntries.map((e) => e.boosted_score!.dimensions[key] ?? 0);
+    const beforeValues = scoredEntries.map((e) => e.original_score?.dimensions?.[key] ?? 0);
+    const afterValues = scoredEntries.map((e) => e.boosted_score?.dimensions?.[key] ?? 0);
     const avgBefore =
       beforeValues.length > 0
         ? beforeValues.reduce((a, b) => a + b, 0) / beforeValues.length
@@ -69,14 +69,14 @@ export default function StatsPage() {
   const avgScoreLift =
     scoredEntries.length > 0
       ? scoredEntries.reduce(
-          (sum, e) => sum + (e.boosted_score!.total - e.original_score!.total),
+          (sum, e) => sum + ((e.boosted_score?.total ?? 0) - (e.original_score?.total ?? 0)),
           0
         ) / scoredEntries.length
       : null;
 
   const levelCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   for (const e of scoredEntries) {
-    const lvl = e.boosted_score!.level;
+    const lvl = e.boosted_score?.level ?? 0;
     if (lvl >= 1 && lvl <= 5) levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
   }
   const maxLevelCount = Math.max(...Object.values(levelCounts), 1);
@@ -84,7 +84,7 @@ export default function StatsPage() {
   const boostSuccessRate =
     scoredEntries.length > 0
       ? (scoredEntries.filter(
-          (e) => e.boosted_score!.total > e.original_score!.total
+          (e) => (e.boosted_score?.total ?? 0) > (e.original_score?.total ?? 0)
         ).length /
           scoredEntries.length) *
         100
@@ -95,8 +95,8 @@ export default function StatsPage() {
       ? scoredEntries.reduce((sum, e) => {
           const improved = dimensions.filter(
             (dim) =>
-              e.boosted_score!.dimensions[dim as DimKey] >
-              e.original_score!.dimensions[dim as DimKey]
+              (e.boosted_score?.dimensions?.[dim as DimKey] ?? 0) >
+              (e.original_score?.dimensions?.[dim as DimKey] ?? 0)
           ).length;
           return sum + improved;
         }, 0) / scoredEntries.length

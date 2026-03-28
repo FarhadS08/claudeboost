@@ -38,9 +38,9 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
 
           {/* Right side */}
           <div className="flex items-center gap-3 shrink-0">
-            {hasScores && (
+            {hasScores && entry.original_score && entry.boosted_score && (
               <span className="text-xs font-mono text-zinc-400 whitespace-nowrap">
-                {entry.original_score!.total}→{entry.boosted_score!.total}
+                {entry.original_score.total}→{entry.boosted_score.total}
               </span>
             )}
             {entry.rating !== null && entry.rating > 0 && (
@@ -74,7 +74,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
           </div>
 
           {/* Score bars for each dimension */}
-          {hasScores && (
+          {hasScores && entry.original_score && entry.boosted_score && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                 Score Breakdown
@@ -82,7 +82,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
               <div className="space-y-2">
                 {(
                   Object.keys(
-                    entry.original_score!.dimensions
+                    entry.original_score.dimensions
                   ) as (keyof ScoreBreakdown["dimensions"])[]
                 ).map((key) => (
                   <ScoreBar
