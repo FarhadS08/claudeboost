@@ -1,6 +1,7 @@
 "use client";
 
 import { HeroSection } from "@/components/landing/HeroSection";
+import { PromptTransformBanner } from "@/components/landing/PromptTransformBanner";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { MetricsSection } from "@/components/landing/MetricsSection";
@@ -14,6 +15,7 @@ export default function LandingPage() {
       <LandingNavbar />
       <main>
         <HeroSection />
+        <PromptTransformBanner />
         <div id="features">
           <FeaturesSection />
         </div>
