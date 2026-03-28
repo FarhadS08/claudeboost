@@ -99,7 +99,7 @@ export default function CliLoginPage() {
         <form onSubmit={handleLogin} className="space-y-4" suppressHydrationWarning>
           <div>
             <label className="text-sm text-zinc-400 block mb-1.5">Email</label>
-            <input
+            <input suppressHydrationWarning
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -111,7 +111,7 @@ export default function CliLoginPage() {
 
           <div>
             <label className="text-sm text-zinc-400 block mb-1.5">Password</label>
-            <input
+            <input suppressHydrationWarning
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
