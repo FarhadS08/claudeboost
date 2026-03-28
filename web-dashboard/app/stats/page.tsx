@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePolling } from "@/hooks/usePolling";
 import { HistoryEntry, ScoreBreakdown } from "@/lib/types";
 import {
@@ -19,6 +20,158 @@ const LEVEL_BAR_COLORS: Record<number, string> = {
   4: "bg-emerald-400",
   5: "bg-cyan-400",
 };
+
+function HowItWorksSection() {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 rounded-lg overflow-hidden animate-fade-slide-up">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-6 text-left flex items-center justify-between hover:bg-primary/5 transition-colors"
+      >
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-primary flex items-center gap-2">
+            🧠 How ClaudeBoost Learns From You
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Your feedback creates a reinforcement loop that improves future boosts
+          </p>
+        </div>
+        <span className="text-muted-foreground text-sm">{expanded ? "▾" : "▸"}</span>
+      </button>
+
+      {expanded && (
+        <div className="px-6 pb-6 space-y-6">
+          {/* RLHF Loop Diagram */}
+          <div className="bg-card/50 rounded-lg p-5 border border-border">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-4">
+              The Feedback Loop (RLHF)
+            </h3>
+            <div className="flex items-center justify-between gap-2 text-center">
+              {[
+                { icon: "📝", label: "You write\na prompt", color: "text-zinc-300" },
+                { icon: "→", label: "", color: "text-zinc-600" },
+                { icon: "⚡", label: "ClaudeBoost\nenhances it", color: "text-primary" },
+                { icon: "→", label: "", color: "text-zinc-600" },
+                { icon: "⭐", label: "You rate &\ngive feedback", color: "text-amber-400" },
+                { icon: "→", label: "", color: "text-zinc-600" },
+                { icon: "🧠", label: "Feedback shapes\nnext boost", color: "text-secondary" },
+              ].map((step, i) => (
+                <div key={i} className={`${step.color} ${step.label ? "flex-1" : "shrink-0"}`}>
+                  <div className="text-2xl">{step.icon}</div>
+                  {step.label && (
+                    <p className="text-[10px] mt-1 whitespace-pre-line leading-tight">{step.label}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+              This is <span className="text-secondary font-medium">Reinforcement Learning from Human Feedback (RLHF)</span>.
+              Every time you rate a boost or leave feedback like &quot;always use PyTorch&quot; or &quot;keep it shorter&quot;,
+              ClaudeBoost stores your preferences. On the next boost in that domain, your last 5 feedback entries
+              + your domain constraints are injected into the enhancement prompt. The AI learns your style over time.
+            </p>
+          </div>
+
+          {/* How Each Metric Is Calculated */}
+          <div className="bg-card/50 rounded-lg p-5 border border-border">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-4">
+              How Each Metric Is Calculated
+            </h3>
+            <div className="space-y-4 text-xs text-zinc-300 leading-relaxed">
+              <div>
+                <p className="font-medium text-zinc-200 mb-1">📊 Boost Acceptance Rate</p>
+                <p className="text-muted-foreground">
+                  <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px]">
+                    (boosts where you chose &quot;Use boosted&quot;) ÷ (boosts where you made any choice) × 100
+                  </code>
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  High acceptance = boosts are useful. Low acceptance = adjust your boost level or add domain constraints.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium text-zinc-200 mb-1">🎯 Score Improvement (6 Dimensions)</p>
+                <p className="text-muted-foreground">
+                  Each prompt is automatically scored 1-5 on six dimensions before and after boosting:
+                </p>
+                <ul className="text-muted-foreground mt-1 space-y-0.5 ml-3">
+                  <li>• <span className="text-zinc-300">Specificity</span> — Are files, functions, and behaviors named?</li>
+                  <li>• <span className="text-zinc-300">Verification</span> — Are tests, checks, or success criteria defined?</li>
+                  <li>• <span className="text-zinc-300">Context</span> — Are relevant files, patterns, and history referenced?</li>
+                  <li>• <span className="text-zinc-300">Constraints</span> — Are boundaries and non-goals stated?</li>
+                  <li>• <span className="text-zinc-300">Structure</span> — Is it organized with sections and numbered steps?</li>
+                  <li>• <span className="text-zinc-300">Output</span> — Are deliverables, formats, and artifacts specified?</li>
+                </ul>
+                <p className="text-muted-foreground mt-1">
+                  <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px]">
+                    Total score = sum of all 6 dimensions (max 30)
+                  </code>
+                  {" "}Scoring is automated — no API calls, pure text analysis.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium text-zinc-200 mb-1">📈 ROI Metrics</p>
+                <ul className="text-muted-foreground space-y-1 ml-3">
+                  <li>• <span className="text-zinc-300">Avg Score Lift</span> — <code className="bg-zinc-800 px-1 py-0.5 rounded text-[10px]">avg(boosted_score - original_score)</code> across all scored boosts</li>
+                  <li>• <span className="text-zinc-300">Quality Levels</span> — L1 (&lt;1.5 avg) = Unacceptable, L2 = Needs Work, L3 = Acceptable, L4 = Production, L5 (&gt;4.5) = Enterprise</li>
+                  <li>• <span className="text-zinc-300">Success Rate</span> — <code className="bg-zinc-800 px-1 py-0.5 rounded text-[10px]">% of boosts where boosted_total &gt; original_total</code></li>
+                  <li>• <span className="text-zinc-300">Dims Improved</span> — avg count of dimensions that scored higher after boosting</li>
+                </ul>
+              </div>
+
+              <div>
+                <p className="font-medium text-zinc-200 mb-1">⭐ Ratings & Feedback</p>
+                <p className="text-muted-foreground">
+                  When you rate a boost (1-5 stars) or add text feedback in the History page, that data is stored in
+                  <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] mx-1">~/.claudeboost/history.json</code>.
+                  Next time ClaudeBoost enhances a prompt in the same domain, it loads your <span className="text-zinc-300">last 5 feedback entries</span> +
+                  your <span className="text-zinc-300">domain constraints</span> (set in the Constraints page) and injects them into the AI prompt.
+                  This means: the more feedback you give, the more personalized your boosts become.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium text-zinc-200 mb-1">🔄 Feedback Coverage</p>
+                <p className="text-muted-foreground">
+                  <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px]">
+                    (boosts with rating or text feedback) ÷ (total boosts) × 100
+                  </code>
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  Aim for &gt;50% coverage. The more you rate, the better ClaudeBoost understands your preferences.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Boost Levels Explanation */}
+          <div className="bg-card/50 rounded-lg p-5 border border-border">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary mb-3">
+              Boost Levels & Scoring Targets
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { level: "Light", target: "Level 3 (15+/30)", desc: "Fixes dimensions scoring 1-2 only. Clarifies and structures. Stays close to your original." },
+                { level: "Medium", target: "Level 4 (21+/30)", desc: "Fixes dimensions below 3. Adds verification, constraints, and structure. Balanced default." },
+                { level: "Full", target: "Level 5 (27+/30)", desc: "Pushes all dimensions to max. Full enterprise playbook with anti-patterns, metrics, and criteria." },
+              ].map((l) => (
+                <div key={l.level} className="bg-zinc-800/50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-zinc-200">{l.level}</p>
+                  <p className="text-[10px] text-primary mt-0.5">{l.target}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{l.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function StatsPage() {
   const { data: history, loading } = usePolling<HistoryEntry[]>("/api/history");
@@ -152,6 +305,9 @@ export default function StatsPage() {
       </div>
 
       <div className="space-y-6">
+        {/* ── How ClaudeBoost Learns ──────────────────────────────────────── */}
+        <HowItWorksSection />
+
         {/* ── Section 1: Boost Acceptance Rate ─────────────────────────────── */}
         <div
           className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
