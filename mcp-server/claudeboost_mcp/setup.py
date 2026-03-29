@@ -83,6 +83,14 @@ rm -f ~/.claudeboost/auth.json
 Then display: `✅ **Logged out of ClaudeBoost.** Run /boost --login to sign in again.`
 STOP here.
 
+**If `$ARGUMENTS` is `--status` or `status`:**
+Call the `boost_status` MCP tool. Display the account email, user ID, settings, and streak.
+STOP here.
+
+**If `$ARGUMENTS` is `--help` or `help`:**
+Invoke the `/boost-help` skill instead.
+STOP here.
+
 **Otherwise (normal boost):**
 
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
@@ -208,6 +216,7 @@ description: Show ClaudeBoost help with available commands, settings, and usage 
 | `/boost <prompt>` | Manually boost a specific prompt |
 | `/boost --login` | Sign in to ClaudeBoost (opens browser) |
 | `/boost --logout` | Sign out of ClaudeBoost |
+| `/boost --status` | Show connected account and sync state |
 | `/boost-settings` | View current settings |
 | `/boost-settings --level <light\\|medium\\|full>` | Change boost intensity |
 | `/boost-settings --auto <true\\|false>` | Toggle auto-boost |
