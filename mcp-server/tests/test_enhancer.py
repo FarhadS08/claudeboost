@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from enhancer import DOMAIN_RULES, enhance_prompt
+from claudeboost_mcp.enhancer import DOMAIN_RULES, enhance_prompt
 
 
 class TestDomainRules(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestDomainRules(unittest.TestCase):
 
 
 class TestEnhancePrompt(unittest.TestCase):
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_returns_enhanced_prompt(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
@@ -34,7 +34,7 @@ class TestEnhancePrompt(unittest.TestCase):
         result = enhance_prompt("original prompt", "general_coding")
         self.assertEqual(result, "Enhanced version")
 
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_passes_domain_rules_in_system_prompt(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
@@ -50,7 +50,7 @@ class TestEnhancePrompt(unittest.TestCase):
         self.assertIn("holdout set", system_prompt)
         self.assertIn("SHAP values", system_prompt)
 
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_injects_feedback_context(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
@@ -65,7 +65,7 @@ class TestEnhancePrompt(unittest.TestCase):
         self.assertIn("Always use TypeScript", system_prompt)
         self.assertIn("User feedback", system_prompt)
 
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_no_feedback_context_omits_feedback_section(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
@@ -79,7 +79,7 @@ class TestEnhancePrompt(unittest.TestCase):
         system_prompt = call_kwargs.kwargs.get("system") or call_kwargs[1].get("system")
         self.assertNotIn("User feedback", system_prompt)
 
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_returns_original_on_api_failure(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
@@ -89,7 +89,7 @@ class TestEnhancePrompt(unittest.TestCase):
         self.assertIn("my original prompt", result)
         self.assertIn("[ClaudeBoost: enhancement failed, original prompt returned]", result)
 
-    @patch("enhancer.anthropic")
+    @patch("claudeboost_mcp.enhancer.anthropic")
     def test_uses_fallback_rules_for_unknown_domain(self, mock_anthropic):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client

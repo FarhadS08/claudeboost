@@ -8,8 +8,8 @@ import json
 import os
 import urllib.request
 import urllib.error
-from auth import load_auth
-from feedback import (
+from .auth import load_auth
+from .feedback import (
     log_to_history as local_log_to_history,
     load_feedback_context as local_load_feedback_context,
     load_settings as local_load_settings,
