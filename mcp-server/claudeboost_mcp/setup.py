@@ -387,4 +387,18 @@ def run_setup():
     print("  /boost-settings         View/change settings")
     print("  /boost-settings -l light  Change boost intensity")
     print()
+
+    # 7. Offer to log in
+    print("─" * 50)
+    print("SIGN IN (optional — enables sync)")
+    print("─" * 50)
+    choice = input("Sign in to ClaudeBoost now? (Y/n): ").strip().lower()
+    if choice != "n":
+        from .cli_login import run_login
+        print()
+        run_login()
+    else:
+        print("Skipped. Run 'claudeboost-mcp --login' later to sign in.")
+
+    print()
     print("Next: Restart Claude Code and start typing!")

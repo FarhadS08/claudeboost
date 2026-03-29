@@ -9,6 +9,25 @@ def run():
     if len(sys.argv) > 1 and sys.argv[1] in ("--setup", "setup"):
         from .setup import run_setup
         run_setup()
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--login", "login"):
+        from .cli_login import run_login
+        run_login()
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--logout", "logout"):
+        import os
+        auth_file = os.path.expanduser("~/.claudeboost/auth.json")
+        if os.path.exists(auth_file):
+            os.remove(auth_file)
+            print("✅ Logged out of ClaudeBoost.")
+        else:
+            print("Not logged in.")
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--status", "status"):
+        from .auth import get_auth_status
+        status = get_auth_status()
+        if status["authenticated"]:
+            print(f"✅ Logged in as: {status['email']}")
+            print(f"   User ID: {status['user_id']}")
+        else:
+            print("❌ Not logged in. Run: claudeboost-mcp --login")
     elif len(sys.argv) > 1 and sys.argv[1] in ("--version", "-v"):
         from . import __version__
         print(f"claudeboost-mcp v{__version__}")
@@ -18,6 +37,9 @@ def run():
         print("Usage:")
         print("  claudeboost-mcp              Start the MCP server (used by Claude Code)")
         print("  claudeboost-mcp --setup      Set up ClaudeBoost (MCP config + skills)")
+        print("  claudeboost-mcp --login      Sign in to ClaudeBoost")
+        print("  claudeboost-mcp --logout     Sign out")
+        print("  claudeboost-mcp --status     Show current auth status")
         print("  claudeboost-mcp --version    Show version")
         print()
         print("After setup, restart Claude Code and use /boost")
