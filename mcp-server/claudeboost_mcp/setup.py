@@ -12,7 +12,6 @@ import sys
 CLAUDE_DIR = os.path.expanduser("~/.claude")
 MCP_SETTINGS_FILE = os.path.join(CLAUDE_DIR, "mcp_settings.json")
 SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
-
 BOOST_SKILL = """---
 name: boost
 description: Enhance a prompt using ClaudeBoost before executing it. Classifies domain, rewrites with enterprise playbook rules, shows comparison, and lets user choose.
@@ -24,6 +23,30 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 ## Instructions
 
+**If `$ARGUMENTS` is empty (user just typed `/boost` with nothing after):**
+Display this welcome message:
+```
+⚡ **ClaudeBoost** — Prompt Enhancement for Claude Code
+
+**Quick Start:**
+  /boost <your prompt>          Boost a prompt
+  /boost --login                Sign in to sync history & settings
+  /boost --help                 Show all commands
+
+**Examples:**
+  /boost build me a REST API for user management
+  /boost fix the login bug in the auth service
+  /boost analyze customer churn data
+
+**Settings:**
+  /boost-settings               View current settings
+  /boost-settings -l light       Change to light boost mode
+  /boost-help                   Full command reference
+
+Just type /boost followed by what you want to do.
+```
+STOP here. Do NOT call any MCP tools.
+
 **If `$ARGUMENTS` is `--login` or `login`:**
 Open the browser to `http://localhost:3000/auth/cli-login` using the Bash tool:
 ```bash
@@ -34,9 +57,20 @@ Then display:
 🔐 **Opening browser for ClaudeBoost login...**
 
 Sign in or create an account at: http://localhost:3000/auth/cli-login
-After signing in, your CLI session will be authenticated. Run `/boost` again to start boosting.
+After signing in, your CLI session will be authenticated.
+
+**Why sign in?**
+- Sync boost history across devices
+- View analytics at claudeboost.com/dashboard
+- Save domain constraints that persist
+
+Run `/boost` again after signing in.
 ```
 Do NOT call any MCP tools. STOP here.
+
+**If `$ARGUMENTS` is `--help` or `help`:**
+Invoke the `/boost-help` skill instead.
+STOP here.
 
 **If `$ARGUMENTS` is `--logout` or `logout`:**
 Delete the auth file using Bash:
@@ -121,13 +155,17 @@ If the MCP tool returns a JSON response with `"error": "auth_required"`, display
 ```
 🔐 **ClaudeBoost requires authentication.**
 
-A browser window has been opened to sign in. If it didn't open automatically, visit:
+A browser window has been opened to sign in. If it didn't open, visit:
 → http://localhost:3000/auth/cli-login
+
+**Commands:**
+  /boost --login       Open login page
+  /boost --help        Show all commands
 
 After signing in, run your `/boost` command again.
 ```
 
-Do NOT attempt to enhance the prompt manually. Do NOT retry automatically. Wait for the user to authenticate and try again.
+Do NOT enhance manually. Do NOT retry. Wait for the user.
 """
 
 BOOST_HELP_SKILL = """---
@@ -293,8 +331,14 @@ def run_setup():
     print()
     print("Next steps:")
     print("  1. Restart Claude Code")
-    print("  2. Type /boost followed by any prompt")
-    print("  3. Run /boost-help for all commands")
+    print("  2. Type /boost to see all commands")
+    print("  3. Type /boost --login to sign in (sync history & settings)")
+    print()
+    print("Commands:")
+    print("  /boost <prompt>        Boost a prompt")
+    print("  /boost --login         Sign in to ClaudeBoost")
+    print("  /boost --help          Show all commands")
+    print("  /boost-settings        View/change settings")
     print()
     print("Example:")
     print('  /boost build me a REST API for user management')

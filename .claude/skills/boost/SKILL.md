@@ -9,6 +9,30 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 ## Instructions
 
+**If `$ARGUMENTS` is empty (user just typed `/boost` with nothing after):**
+Display this welcome message:
+```
+⚡ **ClaudeBoost** — Prompt Enhancement for Claude Code
+
+**Quick Start:**
+  /boost <your prompt>          Boost a prompt
+  /boost --login                Sign in to sync history & settings
+  /boost --help                 Show all commands
+
+**Examples:**
+  /boost build me a REST API for user management
+  /boost fix the login bug in the auth service
+  /boost analyze customer churn data
+
+**Settings:**
+  /boost-settings               View current settings
+  /boost-settings -l light       Change to light boost mode
+  /boost-help                   Full command reference
+
+Just type /boost followed by what you want to do.
+```
+STOP here. Do NOT call any MCP tools.
+
 **If `$ARGUMENTS` is `--login` or `login`:**
 Open the browser to `http://localhost:3000/auth/cli-login` using the Bash tool:
 ```bash
@@ -19,9 +43,16 @@ Then display:
 🔐 **Opening browser for ClaudeBoost login...**
 
 Sign in or create an account at: http://localhost:3000/auth/cli-login
-After signing in, your CLI session will be authenticated. Run `/boost` again to start boosting.
+After signing in, your CLI session will be authenticated.
+
+**Why sign in?**
+- Sync boost history across devices
+- View analytics at claudeboost.com/dashboard
+- Save domain constraints that persist
+
+Run `/boost` again after signing in.
 ```
-Do NOT call any MCP tools. STOP here.
+STOP here. Do NOT call any MCP tools.
 
 **If `$ARGUMENTS` is `--logout` or `logout`:**
 Delete the auth file using Bash:
@@ -29,6 +60,10 @@ Delete the auth file using Bash:
 rm -f ~/.claudeboost/auth.json
 ```
 Then display: `✅ **Logged out of ClaudeBoost.** Run /boost --login to sign in again.`
+STOP here.
+
+**If `$ARGUMENTS` is `--help` or `help`:**
+Invoke the `/boost-help` skill instead.
 STOP here.
 
 **Otherwise (normal boost):**
@@ -86,30 +121,34 @@ STOP here.
    - If "Use boosted prompt": Execute the boosted prompt as the user's new task. Do NOT mention ClaudeBoost again — just do the work.
    - If "Add notes & refine": Output ONLY this text and then STOP and wait for the user to type:
      `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "remove the model card section", "add error handling")`
-     Do NOT use AskUserQuestion here. Do NOT ask any follow-up questions. Just print that line and STOP.
-     When the user replies with their notes, take the current boosted prompt + their notes and refine the prompt yourself inline. Then display the refined version using the same full markdown format (step 3) and present the choice modal again (step 4). Repeat this loop until the user picks "Use boosted prompt" or "Keep original".
+     Do NOT use AskUserQuestion here. Just print that line and STOP.
+     When the user replies, refine the prompt inline, display again (step 3), and present the choice again (step 4).
    - If "Keep original": Execute the original prompt as the user's task.
    - If "Other": Execute whatever the user typed.
 
 ## Important
 
 - Do NOT skip the AskUserQuestion step. Always show the modal.
-- Do NOT truncate or summarize the boosted prompt. Show the COMPLETE text in the markdown section.
+- Do NOT truncate or summarize the boosted prompt.
 - Do NOT add extra commentary between the comparison and the modal.
 - If the MCP tool is unavailable, tell the user: "ClaudeBoost MCP server is not connected. Run `/mcp` to check status."
-  Do NOT fall back to manual enhancement — that defeats the purpose of the tool.
+  Do NOT fall back to manual enhancement.
 
 ## Authentication
 
-If the MCP tool returns a JSON response with `"error": "auth_required"`, display this message:
+If the MCP tool returns a JSON response with `"error": "auth_required"`, display this:
 
 ```
 🔐 **ClaudeBoost requires authentication.**
 
-A browser window has been opened to sign in. If it didn't open automatically, visit:
+A browser window has been opened to sign in. If it didn't open, visit:
 → http://localhost:3000/auth/cli-login
+
+**Commands:**
+  /boost --login       Open login page
+  /boost --help        Show all commands
 
 After signing in, run your `/boost` command again.
 ```
 
-Do NOT attempt to enhance the prompt manually. Do NOT retry automatically. Wait for the user to authenticate and try again.
+Do NOT enhance manually. Do NOT retry. Wait for the user.
