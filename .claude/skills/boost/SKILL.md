@@ -37,25 +37,12 @@ Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose t
 STOP here. Do NOT call any MCP tools.
 
 **If `$ARGUMENTS` is `--login` or `login`:**
-Open the browser to `https://claudeboost.vercel.app/auth/cli-login` using the Bash tool:
+Run the login command using Bash:
 ```bash
-open "https://claudeboost.vercel.app/auth/cli-login"
+claudeboost-mcp --login
 ```
-Then display:
-```
-🔐 **Opening browser for ClaudeBoost login...**
-
-Sign in or create an account at: https://claudeboost.vercel.app/auth/cli-login
-After signing in, your CLI session will be authenticated.
-
-**Why sign in?**
-- Sync boost history across devices
-- View analytics at claudeboost.com/dashboard
-- Save domain constraints that persist
-
-Run `/boost` again after signing in.
-```
-STOP here. Do NOT call any MCP tools.
+This will prompt for email and password directly in the terminal. No browser needed.
+STOP here after the command completes. Do NOT call any MCP tools.
 
 **If `$ARGUMENTS` is `--logout` or `logout`:**
 Delete the auth file using Bash:
@@ -188,19 +175,9 @@ Then execute the original prompt directly. Call `log_boost` with `{"original": o
 
 ## Authentication
 
-If the MCP tool returns a JSON response with `"error": "auth_required"`, display this:
-
+If the MCP tool returns a JSON response with `"error": "auth_required"`, run:
+```bash
+claudeboost-mcp --login
 ```
-🔐 **ClaudeBoost requires authentication.**
-
-A browser window has been opened to sign in. If it didn't open, visit:
-→ https://claudeboost.vercel.app/auth/cli-login
-
-**Commands:**
-  /boost --login       Open login page
-  /boost --help        Show all commands
-
-After signing in, run your `/boost` command again.
-```
-
+Then display: `Run /boost again after signing in.`
 Do NOT enhance manually. Do NOT retry. Wait for the user.
