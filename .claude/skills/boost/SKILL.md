@@ -14,22 +14,25 @@ Display this welcome message:
 ```
 ⚡ **ClaudeBoost** — Prompt Enhancement for Claude Code
 
-**Quick Start:**
-  /boost <your prompt>          Boost a prompt
-  /boost --login                Sign in to sync history & settings
-  /boost --help                 Show all commands
+---
 
-**Examples:**
-  /boost build me a REST API for user management
-  /boost fix the login bug in the auth service
-  /boost analyze customer churn data
+💡 **Auto-boost is ON** — every task prompt you type is automatically enhanced. You don't need to type `/boost` every time — just type normally!
 
-**Settings:**
-  /boost-settings               View current settings
-  /boost-settings -l light       Change to light boost mode
-  /boost-help                   Full command reference
+Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose the version you want.
 
-Just type /boost followed by what you want to do.
+---
+
+**Commands:**
+| Command | What it does |
+|---------|-------------|
+| Just type normally | Auto-boosts your prompt |
+| `<prompt> --raw` | Skip boost for one prompt |
+| `/boost <prompt>` | Manually boost a specific prompt |
+| `/boost --login` | Sign in to sync history |
+| `/boost --help` | Show full command reference |
+| `/boost-settings` | View/change settings |
+| `/boost-settings -l light` | Switch to light boost |
+| `/boost-settings --auto false` | Turn off auto-boost |
 ```
 STOP here. Do NOT call any MCP tools.
 

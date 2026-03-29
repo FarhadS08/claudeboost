@@ -28,22 +28,25 @@ Display this welcome message:
 ```
 ⚡ **ClaudeBoost** — Prompt Enhancement for Claude Code
 
-**Quick Start:**
-  /boost <your prompt>          Boost a prompt
-  /boost --login                Sign in to sync history & settings
-  /boost --help                 Show all commands
+---
 
-**Examples:**
-  /boost build me a REST API for user management
-  /boost fix the login bug in the auth service
-  /boost analyze customer churn data
+💡 **Auto-boost is ON** — every task prompt you type is automatically enhanced. You don't need to type `/boost` every time — just type normally!
 
-**Settings:**
-  /boost-settings               View current settings
-  /boost-settings -l light       Change to light boost mode
-  /boost-help                   Full command reference
+Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose the version you want.
 
-Just type /boost followed by what you want to do.
+---
+
+**Commands:**
+| Command | What it does |
+|---------|-------------|
+| Just type normally | Auto-boosts your prompt |
+| `<prompt> --raw` | Skip boost for one prompt |
+| `/boost <prompt>` | Manually boost a specific prompt |
+| `/boost --login` | Sign in to sync history |
+| `/boost --help` | Show full command reference |
+| `/boost-settings` | View/change settings |
+| `/boost-settings -l light` | Switch to light boost |
+| `/boost-settings --auto false` | Turn off auto-boost |
 ```
 STOP here. Do NOT call any MCP tools.
 
@@ -339,19 +342,33 @@ def run_setup():
 
     # 6. Done
     print()
-    print("=" * 40)
+    print("=" * 50)
     print("✅ ClaudeBoost setup complete!")
+    print("=" * 50)
     print()
-    print("Next steps:")
-    print("  1. Restart Claude Code")
-    print("  2. Type /boost to see all commands")
-    print("  3. Type /boost --login to sign in (sync history & settings)")
+    print("⚡ AUTO-BOOST IS ON BY DEFAULT")
+    print("─" * 50)
+    print("Every task prompt you type in Claude Code will")
+    print("be automatically enhanced. You DON'T need to")
+    print("type /boost every time — just type normally.")
     print()
-    print("Commands:")
-    print("  /boost <prompt>        Boost a prompt")
-    print("  /boost --login         Sign in to ClaudeBoost")
-    print("  /boost --help          Show all commands")
-    print("  /boost-settings        View/change settings")
+    print("  You type:  fix the login bug")
+    print("  Claude:    → auto-enhances → shows comparison")
+    print("             → you choose: Use / Refine / Keep")
     print()
-    print("Example:")
-    print('  /boost build me a REST API for user management')
+    print("To skip auto-boost for one prompt, add --raw:")
+    print("  fix the login bug --raw")
+    print()
+    print("To turn off auto-boost entirely:")
+    print("  /boost-settings --auto false")
+    print()
+    print("─" * 50)
+    print("OTHER COMMANDS")
+    print("─" * 50)
+    print("  /boost <prompt>         Manually boost a prompt")
+    print("  /boost --login          Sign in (sync history)")
+    print("  /boost --help           Show all commands")
+    print("  /boost-settings         View/change settings")
+    print("  /boost-settings -l light  Change boost intensity")
+    print()
+    print("Next: Restart Claude Code and start typing!")
