@@ -49,7 +49,7 @@ export function HeroSection() {
       <div className="mt-8 animate-fade-slide-up" style={{ animationDelay: "300ms" }}>
         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-muted/50 border border-border font-mono text-sm">
           <span className="text-primary">&#10095;</span>
-          <span className="text-muted-foreground">claude mcp add claudeboost</span>
+          <span className="text-muted-foreground">pip install claudeboost-mcp</span>
         </div>
       </div>
     </section>

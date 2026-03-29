@@ -26,7 +26,7 @@ export function CTASection() {
         <div className="flex flex-col items-center gap-6 mt-10">
           <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-card border border-border font-mono text-sm">
             <span className="text-primary">&#10095;</span>
-            <span className="text-foreground">claude mcp add claudeboost</span>
+            <span className="text-foreground">pip install claudeboost-mcp</span>
           </div>
 
           <div className="flex items-center gap-4">
