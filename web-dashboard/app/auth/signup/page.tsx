@@ -43,11 +43,14 @@ export default function SignupPage() {
       return;
     }
 
-    setSuccess(true);
+    // Signup successful — redirect to dashboard
+    router.push("/dashboard");
+    router.refresh();
     setLoading(false);
   };
 
-  if (success) {
+  if (false) {
+    // Placeholder — kept for when email confirmation is re-enabled
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="w-full max-w-sm text-center">
