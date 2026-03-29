@@ -6,12 +6,13 @@ Run with: claudeboost-mcp --setup
 
 import json
 import os
-import shutil
 import sys
 
 CLAUDE_DIR = os.path.expanduser("~/.claude")
 MCP_SETTINGS_FILE = os.path.join(CLAUDE_DIR, "mcp_settings.json")
 SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
+
+
 BOOST_SKILL = """---
 name: boost
 description: Enhance a prompt using ClaudeBoost before executing it. Classifies domain, rewrites with enterprise playbook rules, shows comparison, and lets user choose.
@@ -49,6 +50,19 @@ Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose t
 | `/boost-settings --auto false` | Turn off auto-boost |
 ```
 STOP here. Do NOT call any MCP tools.
+
+**If `$ARGUMENTS` is `--setup` or `setup`:**
+Get the Python path and API key, then register the MCP server:
+```bash
+PYTHON_PATH=$(python3 -c "from claudeboost_mcp.setup import get_python_path; print(get_python_path())")
+API_KEY=$(cat ~/.claudeboost/config.env 2>/dev/null | grep ANTHROPIC_API_KEY | cut -d= -f2)
+```
+Then run:
+```bash
+claude mcp remove claudeboost 2>/dev/null; claude mcp add claudeboost -e "ANTHROPIC_API_KEY=$API_KEY" -- $PYTHON_PATH -m claudeboost_mcp
+```
+Display: `✅ MCP server registered. Restart Claude Code to activate.`
+STOP here.
 
 **If `$ARGUMENTS` is `--login` or `login`:**
 Run the login command using Bash:
@@ -258,125 +272,73 @@ description: "View or change ClaudeBoost settings. Usage: /boost-settings, /boos
 """
 
 
+def get_python_path() -> str:
+    """Return the Python executable path for MCP config."""
+    return sys.executable
+
+
 def run_setup():
-    """Set up ClaudeBoost: install MCP config and skills."""
+    """Set up ClaudeBoost: API key, skills, and login. Simple."""
     print("⚡ ClaudeBoost Setup")
-    print("=" * 40)
+    print("=" * 50)
     print()
 
-    # 1. Check for Anthropic API key
+    # 1. API key
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         api_key = input("Enter your Anthropic API key (sk-ant-...): ").strip()
         if not api_key:
-            print("❌ API key is required. Set ANTHROPIC_API_KEY env var or enter it here.")
+            print("❌ API key required.")
             sys.exit(1)
 
-    # 2. Find the best way to invoke claudeboost-mcp
-    # Use sys.executable (current Python) + module invocation — most reliable
-    python_path = sys.executable
-    cmd_path = shutil.which("claudeboost-mcp")
-
-    # 3. Create/update MCP settings
-    print("📝 Configuring MCP server...")
-    os.makedirs(CLAUDE_DIR, exist_ok=True)
-
-    mcp_settings = {}
-    if os.path.exists(MCP_SETTINGS_FILE):
-        try:
-            with open(MCP_SETTINGS_FILE) as f:
-                mcp_settings = json.load(f)
-        except (json.JSONDecodeError, ValueError):
-            mcp_settings = {}
-
-    if "mcpServers" not in mcp_settings:
-        mcp_settings["mcpServers"] = {}
-
-    # Use python -m claudeboost_mcp as the command — works on every system
-    # because sys.executable is the exact Python that has the package installed
-    mcp_settings["mcpServers"]["claudeboost"] = {
-        "command": python_path,
-        "args": ["-m", "claudeboost_mcp"],
-        "env": {"ANTHROPIC_API_KEY": api_key},
-    }
-
-    print(f"   Python: {python_path}")
-    if cmd_path:
-        print(f"   Command: {cmd_path}")
-
-    with open(MCP_SETTINGS_FILE, "w") as f:
-        json.dump(mcp_settings, f, indent=2)
-    print(f"   ✅ MCP server added to {MCP_SETTINGS_FILE}")
-
-    # 4. Install skills
-    print("📝 Installing skills...")
-
-    skills = {
-        "boost": BOOST_SKILL,
-        "boost-help": BOOST_HELP_SKILL,
-        "boost-settings": BOOST_SETTINGS_SKILL,
-    }
-
-    for name, content in skills.items():
-        skill_dir = os.path.join(SKILLS_DIR, name)
-        os.makedirs(skill_dir, exist_ok=True)
-        with open(os.path.join(skill_dir, "SKILL.md"), "w") as f:
-            f.write(content)
-        print(f"   ✅ /{ name} skill installed")
-
-    # 5. Save API key to config file (fallback for MCP server)
+    # 2. Save API key
     print("📝 Saving API key...")
     claudeboost_dir = os.path.expanduser("~/.claudeboost")
     os.makedirs(claudeboost_dir, exist_ok=True)
     config_env_path = os.path.join(claudeboost_dir, "config.env")
     with open(config_env_path, "w") as f:
         f.write(f"ANTHROPIC_API_KEY={api_key}\n")
-    os.chmod(config_env_path, 0o600)  # Only owner can read
-    print(f"   ✅ API key saved to {config_env_path}")
+    os.chmod(config_env_path, 0o600)
+    print("   ✅ API key saved")
 
-    # 6. Done
-    print()
-    print("=" * 50)
-    print("✅ ClaudeBoost setup complete!")
-    print("=" * 50)
-    print()
-    print("⚡ AUTO-BOOST IS ON BY DEFAULT")
-    print("─" * 50)
-    print("Every task prompt you type in Claude Code will")
-    print("be automatically enhanced. You DON'T need to")
-    print("type /boost every time — just type normally.")
-    print()
-    print("  You type:  fix the login bug")
-    print("  Claude:    → auto-enhances → shows comparison")
-    print("             → you choose: Use / Refine / Keep")
-    print()
-    print("To skip auto-boost for one prompt, add --raw:")
-    print("  fix the login bug --raw")
-    print()
-    print("To turn off auto-boost entirely:")
-    print("  /boost-settings --auto false")
-    print()
-    print("─" * 50)
-    print("OTHER COMMANDS")
-    print("─" * 50)
-    print("  /boost <prompt>         Manually boost a prompt")
-    print("  /boost --login          Sign in (sync history)")
-    print("  /boost --help           Show all commands")
-    print("  /boost-settings         View/change settings")
-    print("  /boost-settings -l light  Change boost intensity")
-    print()
+    # 3. Install skills
+    print("📝 Installing skills...")
+    skills = {
+        "boost": BOOST_SKILL,
+        "boost-help": BOOST_HELP_SKILL,
+        "boost-settings": BOOST_SETTINGS_SKILL,
+    }
+    for name, content in skills.items():
+        skill_dir = os.path.join(SKILLS_DIR, name)
+        os.makedirs(skill_dir, exist_ok=True)
+        with open(os.path.join(skill_dir, "SKILL.md"), "w") as f:
+            f.write(content)
+        print(f"   ✅ /{name}")
 
-    # 7. Offer to log in
-    print("─" * 50)
-    print("SIGN IN (optional — enables sync)")
-    print("─" * 50)
-    choice = input("Sign in to ClaudeBoost now? (Y/n): ").strip().lower()
+    # 4. Login
+    print()
+    choice = input("Sign in to ClaudeBoost? (Y/n): ").strip().lower()
     if choice != "n":
         from .cli_login import run_login
         print()
         run_login()
-    else:
-        print("Skipped. Run 'claudeboost-mcp --login' later to sign in.")
+
+    # 5. Generate the MCP add command
+    python_path = sys.executable
+    mcp_cmd = f'claude mcp add claudeboost -e "ANTHROPIC_API_KEY={api_key}" -- {python_path} -m claudeboost_mcp'
 
     print()
-    print("Next: Restart Claude Code and start typing!")
+    print("=" * 50)
+    print("✅ Almost done! One last step:")
+    print("=" * 50)
+    print()
+    print("Open Claude Code and paste this command:")
+    print()
+    print(f"  {mcp_cmd}")
+    print()
+    print("Then restart Claude Code. That's it!")
+    print()
+    print("After that, just type normally — auto-boost")
+    print("enhances every prompt. Or use /boost manually.")
+    print()
+    print("Commands: /boost, /boost-help, /boost-settings")

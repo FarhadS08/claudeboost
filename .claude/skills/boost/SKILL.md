@@ -36,6 +36,19 @@ Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose t
 ```
 STOP here. Do NOT call any MCP tools.
 
+**If `$ARGUMENTS` is `--setup` or `setup`:**
+Get the Python path and API key, then register the MCP server:
+```bash
+PYTHON_PATH=$(python3 -c "from claudeboost_mcp.setup import get_python_path; print(get_python_path())")
+API_KEY=$(cat ~/.claudeboost/config.env 2>/dev/null | grep ANTHROPIC_API_KEY | cut -d= -f2)
+```
+Then run:
+```bash
+claude mcp remove claudeboost 2>/dev/null; claude mcp add claudeboost -e "ANTHROPIC_API_KEY=$API_KEY" -- $PYTHON_PATH -m claudeboost_mcp
+```
+Display: `✅ MCP server registered. Restart Claude Code to activate.`
+STOP here.
+
 **If `$ARGUMENTS` is `--login` or `login`:**
 Run the login command using Bash:
 ```bash
