@@ -38,7 +38,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link
-          href="/"
+          href="/dashboard"
           className="text-lg font-bold tracking-tight flex items-center gap-1.5 hover:opacity-80 transition-opacity"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >

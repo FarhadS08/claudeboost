@@ -20,7 +20,7 @@ export function Footer() {
           <Link href="/dashboard" className="hover:text-foreground transition-colors">
             Dashboard
           </Link>
-          <Link href="https://github.com" className="hover:text-foreground transition-colors">
+          <Link href="https://github.com/FarhadS08/claudeboost" className="hover:text-foreground transition-colors">
             GitHub
           </Link>
           <Link href="/docs" className="hover:text-foreground transition-colors">
