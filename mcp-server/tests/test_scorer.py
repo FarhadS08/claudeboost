@@ -6,7 +6,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from scorer import (
+from claudeboost_mcp.scorer import (
     score_prompt,
     get_weakest_dimensions,
     get_weighted_weakest,

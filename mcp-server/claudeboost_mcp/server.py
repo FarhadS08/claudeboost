@@ -3,11 +3,12 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 import asyncio
 import json
-from classifier import classify_domain
-from enhancer import enhance_prompt
-from db import load_feedback_context, log_to_history, load_settings, save_settings
-from scorer import score_prompt, get_weighted_weakest
-from auth import is_authenticated, get_login_message, open_login_page
+from .classifier import classify_domain
+from .enhancer import enhance_prompt
+from .db import load_feedback_context, log_to_history, load_settings, save_settings
+from .feedback import get_streak
+from .scorer import score_prompt, get_weighted_weakest
+from .auth import is_authenticated, get_login_message, open_login_page
 
 app = Server("claudeboost")
 
@@ -60,6 +61,23 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="log_boost",
+            description=(
+                "Log a completed boost to history. Call this AFTER the user has made their final choice "
+                "(use boosted, keep original, or refined version). Do NOT call during generation."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "original": {"type": "string", "description": "The original user prompt"},
+                    "boosted": {"type": "string", "description": "The final prompt version the user chose (after all refinements)"},
+                    "domain": {"type": "string", "description": "The classified domain"},
+                    "chosen": {"type": "string", "enum": ["boosted", "original", "refined"], "description": "What the user chose: boosted=accepted, original=kept original, refined=edited then accepted"},
+                },
+                "required": ["original", "boosted", "domain", "chosen"],
+            },
+        ),
+        Tool(
             name="boost_help",
             description="Show ClaudeBoost help: available commands, settings, and usage instructions.",
             inputSchema={
@@ -74,6 +92,8 @@ async def list_tools() -> list[Tool]:
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     if name == "boost_prompt":
         return await _handle_boost(arguments)
+    elif name == "log_boost":
+        return await _handle_log_boost(arguments)
     elif name == "boost_settings":
         return await _handle_settings(arguments)
     elif name == "boost_help":
@@ -99,6 +119,21 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     # Score the original prompt
     original_score = score_prompt(original)
 
+    # Smart skip: if prompt already scores well, don't waste time boosting
+    SKIP_THRESHOLD = 20  # out of 30
+    if original_score["total"] >= SKIP_THRESHOLD:
+        # Identify what's already strong
+        strong_dims = [k for k, v in original_score["dimensions"].items() if v >= 4]
+        return [TextContent(type="text", text=json.dumps({
+            "skipped": True,
+            "reason": "already_good",
+            "domain": classify_domain(original),
+            "original": original,
+            "original_score": original_score,
+            "strong_dimensions": strong_dims,
+            "streak": get_streak(),
+        }))]
+
     # Classify domain and get feedback
     domain = classify_domain(original)
     feedback_context = load_feedback_context(domain)
@@ -108,14 +143,22 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     threshold = level_thresholds.get(level, 3)
     weak_dims = get_weighted_weakest(original_score["dimensions"], domain, threshold)
 
+    # Identify what the boost will add (for messaging)
+    weak_labels = {
+        "specificity": "file references & specific behavior",
+        "verification": "tests & success criteria",
+        "context": "codebase references & patterns",
+        "constraints": "boundaries & non-goals",
+        "structure": "organized sections & steps",
+        "output_definition": "deliverables & output format",
+    }
+    improvements_added = [weak_labels.get(d, d) for d in weak_dims[:3]]
+
     # Enhance with dimension focus
     boosted = enhance_prompt(original, domain, feedback_context, level=level, weak_dimensions=weak_dims)
 
     # Score the boosted prompt
     boosted_score = score_prompt(boosted)
-
-    # Log with scores
-    log_to_history(original, boosted, domain, original_score=original_score, boosted_score=boosted_score)
 
     result = json.dumps({
         "domain": domain,
@@ -125,9 +168,45 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
         "original_score": original_score,
         "boosted_score": boosted_score,
         "improvement": boosted_score["total"] - original_score["total"],
+        "improvements_added": improvements_added,
+        "streak": get_streak(),
     })
 
     return [TextContent(type="text", text=result)]
+
+
+async def _handle_log_boost(arguments: dict) -> list[TextContent]:
+    if not is_authenticated():
+        return [TextContent(type="text", text=json.dumps({"ok": False, "error": "not authenticated"}))]
+
+    original = arguments["original"]
+    boosted = arguments["boosted"]
+    domain = arguments["domain"]
+    chosen = arguments.get("chosen", "boosted")
+
+    # Parse scores if passed as strings (Claude sometimes serializes them)
+    original_score = arguments.get("original_score")
+    boosted_score = arguments.get("boosted_score")
+    if isinstance(original_score, str):
+        try:
+            original_score = json.loads(original_score)
+        except (json.JSONDecodeError, TypeError):
+            original_score = None
+    if isinstance(boosted_score, str):
+        try:
+            boosted_score = json.loads(boosted_score)
+        except (json.JSONDecodeError, TypeError):
+            boosted_score = None
+
+    # Always re-score the final versions for accuracy
+    boosted_score = score_prompt(boosted)
+    original_score = score_prompt(original)
+
+    log_to_history(original, boosted, domain,
+                   original_score=original_score, boosted_score=boosted_score,
+                   chosen=chosen)
+
+    return [TextContent(type="text", text=json.dumps({"ok": True, "chosen": chosen}))]
 
 
 async def _handle_settings(arguments: dict) -> list[TextContent]:

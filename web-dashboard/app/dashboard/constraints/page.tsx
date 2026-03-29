@@ -6,6 +6,8 @@ import { Settings, Constraints, Domain } from "@/lib/types";
 import { DOMAINS } from "@/lib/constants";
 import { DomainBadge } from "@/components/DomainBadge";
 import { Textarea } from "@/components/ui/textarea";
+import { PRESETS } from "@/lib/presets";
+import { DOMAIN_LABELS } from "@/lib/constants";
 
 export default function ConstraintsPage() {
   // ── Section 1: Boost Settings ─────────────────────────────────────────────
@@ -114,7 +116,44 @@ export default function ConstraintsPage() {
         </div>
       </div>
 
-      {/* ── Section 2: Domain Constraints ──────────────────────────────────── */}
+      {/* ── Section 2: Quick Presets ──────────────────────────────────────── */}
+      <div className="bg-card border border-border rounded-lg p-6 mb-8">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          Quick Presets
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          One-click presets for common stacks. Applies constraints to the matching domain.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => {
+                setLocalConstraints((prev) => ({
+                  ...prev,
+                  [preset.domain]: preset.constraints,
+                }));
+              }}
+              className="text-left p-3 rounded-lg border border-zinc-700/30 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-zinc-200 group-hover:text-primary transition-colors">
+                  {preset.name}
+                </span>
+                <span className="text-[10px] text-zinc-600">
+                  {DOMAIN_LABELS[preset.domain]}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500">{preset.description}</p>
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-zinc-600 mt-3">
+          Click a preset to fill in constraints below. Remember to click &quot;Save All Constraints&quot; after.
+        </p>
+      </div>
+
+      {/* ── Section 3: Domain Constraints ──────────────────────────────────── */}
       <div>
         <div className="mb-5">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">

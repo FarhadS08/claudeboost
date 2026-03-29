@@ -9,6 +9,33 @@ Enhance the user's prompt using the ClaudeBoost MCP server, then present a choic
 
 ## Instructions
 
+**If `$ARGUMENTS` is empty (user just typed `/boost` with nothing after):**
+Display this welcome message:
+```
+⚡ **ClaudeBoost** — Prompt Enhancement for Claude Code
+
+---
+
+💡 **Auto-boost is ON** — every task prompt you type is automatically enhanced. You don't need to type `/boost` every time — just type normally!
+
+Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose the version you want.
+
+---
+
+**Commands:**
+| Command | What it does |
+|---------|-------------|
+| Just type normally | Auto-boosts your prompt |
+| `<prompt> --raw` | Skip boost for one prompt |
+| `/boost <prompt>` | Manually boost a specific prompt |
+| `/boost --login` | Sign in to sync history |
+| `/boost --help` | Show full command reference |
+| `/boost-settings` | View/change settings |
+| `/boost-settings -l light` | Switch to light boost |
+| `/boost-settings --auto false` | Turn off auto-boost |
+```
+STOP here. Do NOT call any MCP tools.
+
 **If `$ARGUMENTS` is `--login` or `login`:**
 Open the browser to `http://localhost:3000/auth/cli-login` using the Bash tool:
 ```bash
@@ -19,9 +46,16 @@ Then display:
 🔐 **Opening browser for ClaudeBoost login...**
 
 Sign in or create an account at: http://localhost:3000/auth/cli-login
-After signing in, your CLI session will be authenticated. Run `/boost` again to start boosting.
+After signing in, your CLI session will be authenticated.
+
+**Why sign in?**
+- Sync boost history across devices
+- View analytics at claudeboost.com/dashboard
+- Save domain constraints that persist
+
+Run `/boost` again after signing in.
 ```
-Do NOT call any MCP tools. STOP here.
+STOP here. Do NOT call any MCP tools.
 
 **If `$ARGUMENTS` is `--logout` or `logout`:**
 Delete the auth file using Bash:
@@ -31,16 +65,33 @@ rm -f ~/.claudeboost/auth.json
 Then display: `✅ **Logged out of ClaudeBoost.** Run /boost --login to sign in again.`
 STOP here.
 
+**If `$ARGUMENTS` is `--help` or `help`:**
+Invoke the `/boost-help` skill instead.
+STOP here.
+
 **Otherwise (normal boost):**
 
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
 
-2. Parse the JSON output to extract: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, and `improvement`
+2. Check if the response has `"skipped": true`. If so, display:
+```
+✅ **Your prompt scores {original_score.total}/30 — already well-structured!**
 
-3. Display the FULL comparison using this EXACT markdown format. Show EVERYTHING — do not truncate or summarize:
+No boost needed. Strong dimensions: {list strong_dimensions as comma-separated labels}.
+
+Proceeding with your original prompt.
+```
+Then execute the original prompt directly. Call `log_boost` with `{"original": original, "boosted": original, "domain": domain, "chosen": "skipped"}`. STOP.
+
+3. If NOT skipped, parse: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, `improvement`, and `improvements_added`
+
+4. Display the FULL comparison using this EXACT markdown format:
 
 ```
-⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}` · Score: **{original_score.total}/30 → {boosted_score.total}/30** (+{improvement})
+⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
+
+📈 **Score: {original_score.total}/30 → {boosted_score.total}/30** (+{improvement})
+🔧 **Boost added:** {join improvements_added with ", "}
 
 ---
 
@@ -66,9 +117,11 @@ STOP here.
 | Output | {original_score.dimensions.output_definition} | {boosted_score.dimensions.output_definition} |
 
 ---
+
+{if streak.streak > 0: show "🔥 **{streak.streak}-day streak** · {streak.total_boosts} total boosts · {streak.today_boosts} today"}
 ```
 
-4. AFTER displaying the full comparison above, present the choice using `AskUserQuestion` with these EXACT settings:
+5. AFTER displaying the full comparison above, present the choice using `AskUserQuestion` with these EXACT settings:
    - question: "What would you like to do?"
    - header: "ClaudeBoost"
    - Option 1:
@@ -82,34 +135,54 @@ STOP here.
      - description: "Ignore the boost and use your original prompt"
    - Do NOT use previews on any option — the full prompts are already displayed above
 
-5. Based on the user's choice:
-   - If "Use boosted prompt": Execute the boosted prompt as the user's new task. Do NOT mention ClaudeBoost again — just do the work.
-   - If "Add notes & refine": Output ONLY this text and then STOP and wait for the user to type:
-     `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "remove the model card section", "add error handling")`
-     Do NOT use AskUserQuestion here. Do NOT ask any follow-up questions. Just print that line and STOP.
-     When the user replies with their notes, take the current boosted prompt + their notes and refine the prompt yourself inline. Then display the refined version using the same full markdown format (step 3) and present the choice modal again (step 4). Repeat this loop until the user picks "Use boosted prompt" or "Keep original".
-   - If "Keep original": Execute the original prompt as the user's task.
-   - If "Other": Execute whatever the user typed.
+5. **IMPORTANT: Track the "current_boosted" variable.** Initially it equals the boosted prompt from step 2. If the user refines it, update current_boosted to the refined version each time.
+
+6. Based on the user's choice:
+   - If "Use boosted prompt":
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": current_boosted, "domain": domain, "chosen": "boosted"}`
+        — `current_boosted` is the LATEST version (may have been refined multiple times)
+        — Do NOT pass the first generated version if it was refined
+        — Do NOT pass original_score/boosted_score — `log_boost` will re-score the final text
+     2. Then execute current_boosted as the user's new task. Do NOT mention ClaudeBoost again.
+   - If "Add notes & refine":
+     1. Output ONLY: `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "change 95% to 90%")`
+     2. STOP and wait for user input.
+     3. When the user replies, apply their notes to current_boosted to create a new refined version.
+     4. **Update current_boosted** to this new refined version.
+     5. Display the refined version using the same markdown format (step 3) and present the choice modal again (step 4).
+     6. Repeat until user picks "Use boosted" or "Keep original".
+   - If "Keep original":
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": original, "domain": domain, "chosen": "original"}`
+     2. Execute the original prompt as the user's task.
+   - If "Other":
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": user_typed_text, "domain": domain, "chosen": "refined"}`
+     2. Execute whatever the user typed.
+
+**CRITICAL: Only call `log_boost` ONCE, after the user's FINAL choice. The `boosted` field in `log_boost` must be the FINAL text the user accepted — after ALL refinements, not the first generated version.**
 
 ## Important
 
 - Do NOT skip the AskUserQuestion step. Always show the modal.
-- Do NOT truncate or summarize the boosted prompt. Show the COMPLETE text in the markdown section.
+- Do NOT truncate or summarize the boosted prompt.
 - Do NOT add extra commentary between the comparison and the modal.
 - If the MCP tool is unavailable, tell the user: "ClaudeBoost MCP server is not connected. Run `/mcp` to check status."
-  Do NOT fall back to manual enhancement — that defeats the purpose of the tool.
+  Do NOT fall back to manual enhancement.
 
 ## Authentication
 
-If the MCP tool returns a JSON response with `"error": "auth_required"`, display this message:
+If the MCP tool returns a JSON response with `"error": "auth_required"`, display this:
 
 ```
 🔐 **ClaudeBoost requires authentication.**
 
-A browser window has been opened to sign in. If it didn't open automatically, visit:
+A browser window has been opened to sign in. If it didn't open, visit:
 → http://localhost:3000/auth/cli-login
+
+**Commands:**
+  /boost --login       Open login page
+  /boost --help        Show all commands
 
 After signing in, run your `/boost` command again.
 ```
 
-Do NOT attempt to enhance the prompt manually. Do NOT retry automatically. Wait for the user to authenticate and try again.
+Do NOT enhance manually. Do NOT retry. Wait for the user.

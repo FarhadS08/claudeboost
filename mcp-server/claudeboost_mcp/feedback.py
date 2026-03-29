@@ -31,7 +31,7 @@ def ensure_files():
             json.dump(DEFAULT_CONFIG, f, indent=2)
 
 
-def log_to_history(original: str, boosted: str, domain: str, original_score: dict = None, boosted_score: dict = None) -> None:
+def log_to_history(original: str, boosted: str, domain: str, original_score: dict = None, boosted_score: dict = None, chosen: str = None) -> None:
     """Append a new prompt-boost entry to history.json."""
     ensure_files()
 
@@ -48,7 +48,7 @@ def log_to_history(original: str, boosted: str, domain: str, original_score: dic
         "domain": domain,
         "original": original,
         "boosted": boosted,
-        "chosen": None,
+        "chosen": chosen,
         "rating": None,
         "feedback": "",
         "original_score": original_score,
@@ -122,3 +122,49 @@ def save_settings(settings: dict) -> None:
     ensure_files()
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f, indent=2)
+
+
+def get_streak() -> dict:
+    """Calculate the current boost streak (consecutive days with boosts)."""
+    ensure_files()
+    try:
+        with open(HISTORY_FILE, "r") as f:
+            history = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        return {"streak": 0, "total_boosts": 0, "today_boosts": 0}
+
+    if not history:
+        return {"streak": 0, "total_boosts": 0, "today_boosts": 0}
+
+    # Get unique boost dates
+    dates = set()
+    for entry in history:
+        ts = entry.get("timestamp", "")
+        if ts:
+            dates.add(ts[:10])  # YYYY-MM-DD
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_boosts = sum(1 for e in history if e.get("timestamp", "")[:10] == today)
+
+    # Calculate streak
+    sorted_dates = sorted(dates, reverse=True)
+    streak = 0
+    check_date = datetime.now(timezone.utc).date()
+
+    for date_str in sorted_dates:
+        try:
+            d = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+
+        if d == check_date:
+            streak += 1
+            check_date -= __import__("datetime").timedelta(days=1)
+        elif d == check_date - __import__("datetime").timedelta(days=1):
+            # Allow for "yesterday counts if today hasn't boosted yet"
+            streak += 1
+            check_date = d - __import__("datetime").timedelta(days=1)
+        else:
+            break
+
+    return {"streak": streak, "total_boosts": len(history), "today_boosts": today_boosts}

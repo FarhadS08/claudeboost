@@ -8,8 +8,8 @@ import json
 import os
 import urllib.request
 import urllib.error
-from auth import load_auth
-from feedback import (
+from .auth import load_auth
+from .feedback import (
     log_to_history as local_log_to_history,
     load_feedback_context as local_load_feedback_context,
     load_settings as local_load_settings,
@@ -60,11 +60,11 @@ def _get_anon_key(supabase_url: str) -> str:
 
 
 def log_to_history(original: str, boosted: str, domain: str,
-                   original_score: dict = None, boosted_score: dict = None):
+                   original_score: dict = None, boosted_score: dict = None, chosen: str = None):
     """Log a boost to Supabase (or local fallback)."""
     auth = load_auth()
     if not auth:
-        local_log_to_history(original, boosted, domain, original_score, boosted_score)
+        local_log_to_history(original, boosted, domain, original_score, boosted_score, chosen)
         return
 
     body = {
@@ -72,6 +72,7 @@ def log_to_history(original: str, boosted: str, domain: str,
         "domain": domain,
         "original": original,
         "boosted": boosted,
+        "chosen": chosen,
         "original_score": original_score,
         "boosted_score": boosted_score,
     }

@@ -54,8 +54,7 @@ ClaudeBoost is a Claude Code MCP plugin that enhances user prompts before sendin
 1. **MCP Server** (Python, `mcp-server/`) — registers a `boost_prompt` tool that classifies prompt domain, rewrites the prompt using Claude API with enterprise playbook rules, and logs results. Uses Haiku for classification, Sonnet for enhancement.
 2. **Web Dashboard** (Next.js 14, `web-dashboard/`) — displays boost history, ratings/feedback, score histograms, ROI metrics, and per-domain constraint management. Reads live data from `~/.claudeboost/` with 5s auto-polling.
 
-Full build specification: `.claude/docs/CLAUDEBOOST_EXPLANATION.md`
-Workflow preferences: `.claude/docs/workflow_orchestration.md`
+Documentation: `.claude/docs/README.md` (index of all docs)
 
 ## Commands
 

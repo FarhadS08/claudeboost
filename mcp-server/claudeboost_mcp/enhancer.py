@@ -154,10 +154,27 @@ LEVEL_INSTRUCTIONS = {
 }
 
 
+def _get_api_key() -> str | None:
+    """Get API key from env or ~/.claudeboost/auth.json."""
+    import os
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    # Try reading from config file
+    config_path = os.path.expanduser("~/.claudeboost/config.env")
+    if os.path.exists(config_path):
+        with open(config_path) as f:
+            for line in f:
+                if line.startswith("ANTHROPIC_API_KEY="):
+                    return line.split("=", 1)[1].strip()
+    return None
+
+
 def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: str = "medium", weak_dimensions: list = None) -> str:
     """Enhance a prompt using domain-specific playbook rules via Claude API."""
     try:
-        client = anthropic.Anthropic()
+        api_key = _get_api_key()
+        client = anthropic.Anthropic(api_key=api_key, timeout=30.0) if api_key else anthropic.Anthropic(timeout=30.0)
         rules = DOMAIN_RULES.get(domain, DOMAIN_RULES["other"])
         level_instruction = LEVEL_INSTRUCTIONS.get(level, LEVEL_INSTRUCTIONS["medium"])
 
@@ -177,6 +194,14 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
                 "that are already adequate."
             )
 
+        # Light/medium use Haiku (fast, ~1s), full uses Sonnet (thorough, ~10-15s)
+        model_map = {
+            "light": ("claude-haiku-4-5-20251001", 200),
+            "medium": ("claude-haiku-4-5-20251001", 400),
+            "full": ("claude-sonnet-4-20250514", 600),
+        }
+        model, max_tokens = model_map.get(level, model_map["medium"])
+
         system = (
             f"{rules}{feedback_instruction}\n\n"
             f"BOOST LEVEL: {level.upper()}\n{level_instruction}"
@@ -187,13 +212,15 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
         )
 
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=600,
+            model=model,
+            max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
 
         return response.content[0].text.strip()
 
-    except Exception:
-        return f"{prompt}\n\n[ClaudeBoost: enhancement failed, original prompt returned]"
+    except Exception as e:
+        import sys
+        print(f"[ClaudeBoost] Enhancement error: {type(e).__name__}: {e}", file=sys.stderr)
+        return f"{prompt}\n\n[ClaudeBoost: enhancement failed — {type(e).__name__}: {e}]"
