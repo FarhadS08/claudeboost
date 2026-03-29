@@ -294,10 +294,10 @@ def run_setup():
             print("❌ API key is required. Set ANTHROPIC_API_KEY env var or enter it here.")
             sys.exit(1)
 
-    # 2. Find claudeboost-mcp command path
+    # 2. Find the best way to invoke claudeboost-mcp
+    # Use sys.executable (current Python) + module invocation — most reliable
+    python_path = sys.executable
     cmd_path = shutil.which("claudeboost-mcp")
-    if not cmd_path:
-        cmd_path = "claudeboost-mcp"
 
     # 3. Create/update MCP settings
     print("📝 Configuring MCP server...")
@@ -314,10 +314,17 @@ def run_setup():
     if "mcpServers" not in mcp_settings:
         mcp_settings["mcpServers"] = {}
 
+    # Use python -m claudeboost_mcp as the command — works on every system
+    # because sys.executable is the exact Python that has the package installed
     mcp_settings["mcpServers"]["claudeboost"] = {
-        "command": cmd_path,
+        "command": python_path,
+        "args": ["-m", "claudeboost_mcp"],
         "env": {"ANTHROPIC_API_KEY": api_key},
     }
+
+    print(f"   Python: {python_path}")
+    if cmd_path:
+        print(f"   Command: {cmd_path}")
 
     with open(MCP_SETTINGS_FILE, "w") as f:
         json.dump(mcp_settings, f, indent=2)
