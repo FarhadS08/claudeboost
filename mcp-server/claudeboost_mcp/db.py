@@ -6,6 +6,7 @@ Falls back to local JSON files when not authenticated.
 """
 import json
 import os
+import sys
 import urllib.request
 import urllib.error
 from .auth import load_auth
@@ -16,9 +17,45 @@ from .feedback import (
     save_settings as local_save_settings,
 )
 
+AUTH_FILE = os.path.expanduser("~/.claudeboost/auth.json")
 
-def _supabase_request(method: str, path: str, body: dict | None = None) -> dict | list | None:
-    """Make an authenticated request to Supabase REST API."""
+
+def _refresh_token() -> bool:
+    """Refresh the Supabase access token using the refresh token."""
+    auth = load_auth()
+    if not auth or not auth.get("refresh_token") or not auth.get("supabase_url"):
+        return False
+
+    url = f"{auth['supabase_url']}/auth/v1/token?grant_type=refresh_token"
+    anon_key = auth.get("anon_key", "")
+    headers = {
+        "apikey": anon_key,
+        "Content-Type": "application/json",
+    }
+    body = json.dumps({"refresh_token": auth["refresh_token"]}).encode()
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode())
+
+        # Update auth.json with new tokens
+        auth["access_token"] = data["access_token"]
+        auth["refresh_token"] = data["refresh_token"]
+        with open(AUTH_FILE, "w") as f:
+            json.dump(auth, f, indent=2)
+
+        print("[ClaudeBoost DB] Token refreshed successfully", file=sys.stderr)
+        return True
+    except Exception as e:
+        print(f"[ClaudeBoost DB] Token refresh failed: {e}", file=sys.stderr)
+        return False
+
+
+def _supabase_request(method: str, path: str, body: dict | None = None, _retried: bool = False) -> dict | list | None:
+    """Make an authenticated request to Supabase REST API.
+    Auto-refreshes token on 401 JWT expired errors.
+    """
     auth = load_auth()
     if not auth:
         return None
@@ -39,24 +76,19 @@ def _supabase_request(method: str, path: str, body: dict | None = None) -> dict 
         with urllib.request.urlopen(req) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
-        import sys
-        print(f"[ClaudeBoost DB] HTTP {e.code}: {e.read().decode()[:200]}", file=sys.stderr)
+        error_body = e.read().decode()[:200]
+
+        # Auto-refresh on JWT expired (401)
+        if e.code == 401 and "JWT expired" in error_body and not _retried:
+            print("[ClaudeBoost DB] Token expired, refreshing...", file=sys.stderr)
+            if _refresh_token():
+                return _supabase_request(method, path, body, _retried=True)
+
+        print(f"[ClaudeBoost DB] HTTP {e.code}: {error_body}", file=sys.stderr)
         return None
     except Exception as e:
-        import sys
         print(f"[ClaudeBoost DB] Error: {e}", file=sys.stderr)
         return None
-
-
-def _get_anon_key(supabase_url: str) -> str:
-    """Read the anon key from ~/.claudeboost/auth.json or env."""
-    # Try env first
-    key = os.environ.get("SUPABASE_ANON_KEY", "")
-    if key:
-        return key
-    # Read from auth file
-    auth = load_auth()
-    return auth.get("anon_key", "") if auth else ""
 
 
 def log_to_history(original: str, boosted: str, domain: str,
@@ -80,7 +112,7 @@ def log_to_history(original: str, boosted: str, domain: str,
     result = _supabase_request("POST", "boost_history", body)
     if result is None:
         # Fallback to local
-        local_log_to_history(original, boosted, domain, original_score, boosted_score)
+        local_log_to_history(original, boosted, domain, original_score, boosted_score, chosen)
 
 
 def load_feedback_context(domain: str) -> str:
