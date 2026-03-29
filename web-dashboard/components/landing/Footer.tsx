@@ -23,7 +23,7 @@ export function Footer() {
           <Link href="https://github.com" className="hover:text-foreground transition-colors">
             GitHub
           </Link>
-          <Link href="#" className="hover:text-foreground transition-colors">
+          <Link href="/docs" className="hover:text-foreground transition-colors">
             Docs
           </Link>
         </div>
