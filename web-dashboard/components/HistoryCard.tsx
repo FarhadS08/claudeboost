@@ -7,6 +7,7 @@ import { DomainBadge } from "./DomainBadge";
 import { StarRating } from "./StarRating";
 import { ScoreBar } from "./ScoreBar";
 import { FeedbackForm } from "./FeedbackForm";
+import { ChevronDown } from "lucide-react";
 
 interface HistoryCardProps {
   entry: HistoryEntry;
@@ -89,22 +90,21 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
     : null;
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: "compare", label: "Compare", icon: "📝" },
-    { key: "scores", label: "Scores", icon: "📊" },
-    { key: "feedback", label: "Feedback", icon: "⭐" },
+    { key: "compare", label: "Compare", icon: "\ud83d\udcdd" },
+    { key: "scores", label: "Scores", icon: "\ud83d\udcca" },
+    { key: "feedback", label: "Feedback", icon: "\u2b50" },
   ];
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      {/* Collapsed header */}
+    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/20 transition-colors">
       <div
-        className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
         onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <DomainBadge domain={entry.domain} />
-            <span className="text-sm text-zinc-400 truncate">{truncatedOriginal}</span>
+            <span className="text-sm text-muted-foreground truncate">{truncatedOriginal}</span>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
@@ -114,7 +114,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                 entry.chosen === "refined" ? "bg-amber-500/20 text-amber-400" :
                 "bg-zinc-500/20 text-zinc-400"
               }`}>
-                {entry.chosen === "boosted" ? "✓ Used" : entry.chosen === "refined" ? "✏ Edited" : "○ Skipped"}
+                {entry.chosen === "boosted" ? "\u2713 Used" : entry.chosen === "refined" ? "\u270f Edited" : "\u25cb Skipped"}
               </span>
             )}
             {scoreDelta !== null && (
@@ -127,10 +127,10 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
             {entry.rating !== null && entry.rating > 0 && (
               <StarRating value={entry.rating} readonly />
             )}
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-muted-foreground">
               {new Date(entry.timestamp).toLocaleDateString()}
             </span>
-            <span className="text-zinc-500 text-sm">{expanded ? "▾" : "▸"}</span>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
           </div>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
             {tab === "compare" && (
               <div className="space-y-4">
                 {/* Original */}
-                <div className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-700/30">
+                <div className="bg-zinc-800/30 rounded-xl p-3 border border-zinc-700/30">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">Original</span>
                     {entry.original_score && (
@@ -172,10 +172,10 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                 </div>
 
                 {/* Boosted — final version */}
-                <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
+                <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
-                      {entry.chosen === "boosted" ? "✨ Accepted" : entry.chosen === "refined" ? "✏️ Refined" : entry.chosen === "original" ? "📝 Kept Original" : "✨ Boosted"}
+                      {entry.chosen === "boosted" ? "\u2728 Accepted" : entry.chosen === "refined" ? "\u270f\ufe0f Refined" : entry.chosen === "original" ? "\ud83d\udcdd Kept Original" : "\u2728 Boosted"}
                     </span>
                     {entry.boosted_score && (
                       <span className="text-[10px] text-primary/60 font-mono">{entry.boosted_score.total}/30</span>
@@ -207,12 +207,12 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
               <div className="space-y-4">
                 {hasScores && entry.original_score && entry.boosted_score ? (
                   <>
-                    <div className="flex items-center gap-4 p-3 bg-zinc-800/30 rounded-lg border border-zinc-700/30">
+                    <div className="flex items-center gap-4 p-3 bg-zinc-800/30 rounded-xl border border-zinc-700/30">
                       <div className="text-center flex-1">
                         <p className="text-2xl font-bold text-zinc-500">{entry.original_score.total}</p>
                         <p className="text-[10px] text-zinc-600 uppercase">Before</p>
                       </div>
-                      <div className="text-2xl text-zinc-600">→</div>
+                      <div className="text-2xl text-zinc-600">{"\u2192"}</div>
                       <div className="text-center flex-1">
                         <p className="text-2xl font-bold text-emerald-400">{entry.boosted_score.total}</p>
                         <p className="text-[10px] text-zinc-600 uppercase">After</p>

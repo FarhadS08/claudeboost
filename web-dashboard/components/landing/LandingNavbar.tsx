@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
 const links = [
+  { href: "#use-cases", label: "Use Cases" },
   { href: "#features", label: "Features" },
   { href: "#how-it-works", label: "How it Works" },
-  { href: "/pricing", label: "Pricing" },
 ];
 
 export function LandingNavbar() {
@@ -56,16 +56,22 @@ export function LandingNavbar() {
             </Link>
           ))}
           <Link
+            href="/docs"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Docs
+          </Link>
+          <Link
             href="/dashboard"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Dashboard
           </Link>
           <Link
-            href="/pricing"
+            href="/dashboard"
             className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            Get Started
+            Get Started Free
           </Link>
         </div>
       </div>

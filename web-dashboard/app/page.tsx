@@ -1,6 +1,9 @@
 "use client";
 
 import { HeroSection } from "@/components/landing/HeroSection";
+import { PromptTransformBanner } from "@/components/landing/PromptTransformBanner";
+import { UseCasesSection } from "@/components/landing/UseCasesSection";
+import { CLIShowcase } from "@/components/landing/CLIShowcase";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { MetricsSection } from "@/components/landing/MetricsSection";
@@ -14,6 +17,9 @@ export default function LandingPage() {
       <LandingNavbar />
       <main>
         <HeroSection />
+        <PromptTransformBanner />
+        <UseCasesSection />
+        <CLIShowcase />
         <div id="features">
           <FeaturesSection />
         </div>

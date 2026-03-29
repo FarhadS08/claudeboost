@@ -58,52 +58,48 @@ const metrics = [
     suffix: "%",
     label: "Boost acceptance rate",
     sublabel: "Users prefer the boosted version",
-    color: "text-primary",
   },
   {
     value: 12,
     prefix: "+",
     label: "Avg score improvement",
     sublabel: "Points gained out of 30",
-    color: "text-emerald-400",
   },
   {
     value: 6,
     suffix: "x",
     label: "More specific prompts",
     sublabel: "Dimension score increase",
-    color: "text-secondary",
   },
   {
     value: 50,
     suffix: "ms",
     label: "Enhancement latency",
     sublabel: "Near-instant prompt rewriting",
-    color: "text-amber-400",
   },
 ];
 
 export function MetricsSection() {
   return (
-    <section className="py-32 px-6">
+    <section className="py-24 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold uppercase tracking-wider text-emerald-400 mb-3">
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary mb-3">
             Results
           </p>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Numbers that{" "}
-            <span className="text-emerald-400">speak for themselves</span>
+            <span className="text-primary">speak for themselves</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {metrics.map((metric) => (
             <div
               key={metric.label}
-              className="text-center space-y-2 p-6 rounded-2xl bg-card/30 border border-border hover:border-primary/20 transition-colors"
+              className="text-center space-y-2 p-6 rounded-2xl bg-card border border-border hover:border-primary/20 transition-colors"
             >
-              <div className={metric.color}>
+              <div className="text-primary">
                 <AnimatedCounter
                   end={metric.value}
                   suffix={metric.suffix}
