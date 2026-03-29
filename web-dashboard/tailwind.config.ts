@@ -59,10 +59,19 @@ const config: Config = {
           "0%": { width: "0%" },
           "100%": { width: "var(--bar-width, 100%)" },
         },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        bounce: {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-6px)" },
+        },
       },
       animation: {
         "fade-slide-up": "fade-slide-up 0.4s ease-out forwards",
         "bar-grow": "bar-grow 0.6s ease-out forwards",
+        shimmer: "shimmer 1.2s ease-in-out infinite",
       },
     },
   },
