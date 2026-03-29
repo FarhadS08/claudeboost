@@ -37,15 +37,15 @@ Example: type `fix the login bug` → ClaudeBoost auto-enhances → you choose t
 STOP here. Do NOT call any MCP tools.
 
 **If `$ARGUMENTS` is `--login` or `login`:**
-Open the browser to `http://localhost:3000/auth/cli-login` using the Bash tool:
+Open the browser to `https://claudeboost.vercel.app/auth/cli-login` using the Bash tool:
 ```bash
-open "http://localhost:3000/auth/cli-login"
+open "https://claudeboost.vercel.app/auth/cli-login"
 ```
 Then display:
 ```
 🔐 **Opening browser for ClaudeBoost login...**
 
-Sign in or create an account at: http://localhost:3000/auth/cli-login
+Sign in or create an account at: https://claudeboost.vercel.app/auth/cli-login
 After signing in, your CLI session will be authenticated.
 
 **Why sign in?**
@@ -176,7 +176,7 @@ If the MCP tool returns a JSON response with `"error": "auth_required"`, display
 🔐 **ClaudeBoost requires authentication.**
 
 A browser window has been opened to sign in. If it didn't open, visit:
-→ http://localhost:3000/auth/cli-login
+→ https://claudeboost.vercel.app/auth/cli-login
 
 **Commands:**
   /boost --login       Open login page

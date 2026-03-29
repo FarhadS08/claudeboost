@@ -38,7 +38,7 @@ export const updateSession = async (request: NextRequest) => {
   const { data: { user } } = await supabase.auth.getUser();
 
   // Public routes — no auth required
-  const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/pricing";
+  const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/pricing" || request.nextUrl.pathname === "/docs";
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 

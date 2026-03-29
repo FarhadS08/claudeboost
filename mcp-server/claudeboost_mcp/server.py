@@ -9,6 +9,7 @@ from .db import load_feedback_context, log_to_history, load_settings, save_setti
 from .feedback import get_streak
 from .scorer import score_prompt, get_weighted_weakest
 from .auth import is_authenticated, get_login_message, open_login_page
+from .config import LOGIN_URL
 
 app = Server("claudeboost")
 
@@ -109,7 +110,7 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps({
             "error": "auth_required",
             "message": get_login_message(),
-            "login_url": "http://localhost:3000/auth/cli-login"
+            "login_url": LOGIN_URL
         }))]
 
     original = arguments["prompt"]
@@ -215,7 +216,7 @@ async def _handle_settings(arguments: dict) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps({
             "error": "auth_required",
             "message": get_login_message(),
-            "login_url": "http://localhost:3000/auth/cli-login"
+            "login_url": LOGIN_URL
         }))]
 
     action = arguments.get("action", "get")

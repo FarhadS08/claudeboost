@@ -37,7 +37,7 @@ export function CTASection() {
               Open Dashboard
             </Link>
             <Link
-              href="https://github.com"
+              href="https://github.com/FarhadS08/claudeboost"
               className="px-10 py-4 rounded-xl border border-border text-foreground font-semibold hover:bg-muted/50 transition-colors text-base"
             >
               View on GitHub
