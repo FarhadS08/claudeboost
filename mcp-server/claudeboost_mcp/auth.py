@@ -42,6 +42,34 @@ def get_user_id() -> str | None:
     return auth["user_id"] if auth else None
 
 
+def get_auth_status() -> dict:
+    """Get the current auth status with details."""
+    auth = load_auth()
+    if not auth:
+        return {"authenticated": False, "user_id": None, "email": None}
+
+    # Decode email from JWT token (access_token is a JWT)
+    email = None
+    try:
+        import base64
+        token = auth["access_token"]
+        # JWT has 3 parts separated by dots, payload is the second
+        payload = token.split(".")[1]
+        # Add padding if needed
+        payload += "=" * (4 - len(payload) % 4)
+        decoded = json.loads(base64.b64decode(payload))
+        email = decoded.get("email")
+    except Exception:
+        pass
+
+    return {
+        "authenticated": True,
+        "user_id": auth.get("user_id"),
+        "email": email,
+        "created_at": auth.get("created_at"),
+    }
+
+
 def get_login_message() -> str:
     """Return a message telling the user to log in."""
     return (
