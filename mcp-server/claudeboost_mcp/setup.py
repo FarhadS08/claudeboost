@@ -131,21 +131,25 @@ STOP here.
      - description: "Ignore the boost and use your original prompt"
    - Do NOT use previews on any option — the full prompts are already displayed above
 
-5. Based on the user's choice:
+5. Track "current_boosted" — starts as the boosted prompt, updates on each refinement.
+
+6. Based on the user's choice:
    - If "Use boosted prompt":
-     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": boosted, "domain": domain, "chosen": "boosted", "original_score": original_score, "boosted_score": boosted_score}`
-     2. Then execute the boosted prompt as the user's new task.
+     1. Call `log_boost` with: `{"original": original, "boosted": current_boosted, "domain": domain, "chosen": "boosted"}`
+        — current_boosted is the LATEST version after ALL refinements
+     2. Execute current_boosted as the user's task.
    - If "Add notes & refine":
-     1. Output ONLY: `📝 **Type your notes below**`
-     2. STOP and wait. When user replies, refine, display again (step 3), present choice again (step 4).
-     3. Repeat until user picks "Use boosted" or "Keep original".
-     4. THEN call `log_boost` with the FINAL version.
+     1. Output: `📝 **Type your notes below**`
+     2. STOP. When user replies, apply notes to current_boosted, update current_boosted.
+     3. Display refined version, present choice again. Repeat.
    - If "Keep original":
-     1. Call `log_boost` with `{"original": original, "boosted": original, "domain": domain, "chosen": "original"}`
-     2. Execute the original prompt.
+     1. Call `log_boost` with: `{"original": original, "boosted": original, "domain": domain, "chosen": "original"}`
+     2. Execute original.
    - If "Other":
-     1. Call `log_boost` with `{"original": original, "boosted": user_text, "domain": domain, "chosen": "refined"}`
-     2. Execute whatever the user typed.
+     1. Call `log_boost` with: `{"original": original, "boosted": user_text, "domain": domain, "chosen": "refined"}`
+     2. Execute user's text.
+
+**CRITICAL: `log_boost` boosted field = the FINAL text after ALL refinements.**
 
 **CRITICAL: Only call `log_boost` ONCE, after the user's FINAL choice.**
 

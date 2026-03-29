@@ -108,6 +108,15 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {entry.chosen && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                entry.chosen === "boosted" ? "bg-emerald-500/20 text-emerald-400" :
+                entry.chosen === "refined" ? "bg-amber-500/20 text-amber-400" :
+                "bg-zinc-500/20 text-zinc-400"
+              }`}>
+                {entry.chosen === "boosted" ? "✓ Used" : entry.chosen === "refined" ? "✏ Edited" : "○ Skipped"}
+              </span>
+            )}
             {scoreDelta !== null && (
               <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
                 scoreDelta > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-400"
@@ -162,12 +171,23 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                   <p className="text-sm text-zinc-400 leading-relaxed">{entry.original}</p>
                 </div>
 
-                {/* Boosted */}
+                {/* Boosted — final version */}
                 <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">✨ Boosted</span>
+                    <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
+                      {entry.chosen === "boosted" ? "✨ Accepted" : entry.chosen === "refined" ? "✏️ Refined" : entry.chosen === "original" ? "📝 Kept Original" : "✨ Boosted"}
+                    </span>
                     {entry.boosted_score && (
                       <span className="text-[10px] text-primary/60 font-mono">{entry.boosted_score.total}/30</span>
+                    )}
+                    {entry.chosen && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 ${
+                        entry.chosen === "boosted" ? "bg-emerald-500/20 text-emerald-400" :
+                        entry.chosen === "refined" ? "bg-amber-500/20 text-amber-400" :
+                        "bg-zinc-500/20 text-zinc-400"
+                      }`}>
+                        {entry.chosen === "boosted" ? "Used" : entry.chosen === "refined" ? "Edited" : entry.chosen === "original" ? "Skipped" : ""}
+                      </span>
                     )}
                     {entry.boosted_score && (
                       <span className={`text-[10px] font-mono ml-auto ${LEVEL_COLORS[entry.boosted_score.level] ?? "text-zinc-400"}`}>

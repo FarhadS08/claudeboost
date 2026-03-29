@@ -117,24 +117,30 @@ STOP here.
      - description: "Ignore the boost and use your original prompt"
    - Do NOT use previews on any option — the full prompts are already displayed above
 
-5. Based on the user's choice:
+5. **IMPORTANT: Track the "current_boosted" variable.** Initially it equals the boosted prompt from step 2. If the user refines it, update current_boosted to the refined version each time.
+
+6. Based on the user's choice:
    - If "Use boosted prompt":
-     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": boosted, "domain": domain, "chosen": "boosted", "original_score": original_score, "boosted_score": boosted_score}`
-     2. Then execute the boosted prompt as the user's new task. Do NOT mention ClaudeBoost again.
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": current_boosted, "domain": domain, "chosen": "boosted"}`
+        — `current_boosted` is the LATEST version (may have been refined multiple times)
+        — Do NOT pass the first generated version if it was refined
+        — Do NOT pass original_score/boosted_score — `log_boost` will re-score the final text
+     2. Then execute current_boosted as the user's new task. Do NOT mention ClaudeBoost again.
    - If "Add notes & refine":
-     1. Output ONLY: `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "remove the model card section")`
+     1. Output ONLY: `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "change 95% to 90%")`
      2. STOP and wait for user input.
-     3. When the user replies, refine the prompt inline, display again (step 3), present choice again (step 4).
-     4. Repeat until user picks "Use boosted" or "Keep original".
-     5. When they finally choose, THEN call `log_boost` with the FINAL version they accepted.
+     3. When the user replies, apply their notes to current_boosted to create a new refined version.
+     4. **Update current_boosted** to this new refined version.
+     5. Display the refined version using the same markdown format (step 3) and present the choice modal again (step 4).
+     6. Repeat until user picks "Use boosted" or "Keep original".
    - If "Keep original":
-     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": original, "domain": domain, "chosen": "original", "original_score": original_score, "boosted_score": original_score}`
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": original, "domain": domain, "chosen": "original"}`
      2. Execute the original prompt as the user's task.
    - If "Other":
      1. Call `log_boost` MCP tool with: `{"original": original, "boosted": user_typed_text, "domain": domain, "chosen": "refined"}`
      2. Execute whatever the user typed.
 
-**CRITICAL: Only call `log_boost` ONCE, after the user's FINAL choice. Never during generation or refinement loops.**
+**CRITICAL: Only call `log_boost` ONCE, after the user's FINAL choice. The `boosted` field in `log_boost` must be the FINAL text the user accepted — after ALL refinements, not the first generated version.**
 
 ## Important
 

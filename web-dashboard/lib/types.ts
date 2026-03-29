@@ -20,7 +20,7 @@ export interface HistoryEntry {
   domain: Domain;
   original: string;
   boosted: string;
-  chosen: "boosted" | "original" | null;
+  chosen: "boosted" | "original" | "refined" | null;
   rating: number | null;
   feedback: string;
   original_score: ScoreBreakdown | null;
