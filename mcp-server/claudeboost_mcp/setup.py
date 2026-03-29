@@ -7,11 +7,53 @@ Run with: claudeboost-mcp --setup
 import json
 import os
 import shutil
+import subprocess
 import sys
 
 CLAUDE_DIR = os.path.expanduser("~/.claude")
 MCP_SETTINGS_FILE = os.path.join(CLAUDE_DIR, "mcp_settings.json")
 SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
+
+
+def _find_claude_cli() -> str | None:
+    """Find the claude CLI binary across common locations."""
+    # 1. Check PATH first
+    path_result = shutil.which("claude")
+    if path_result:
+        return path_result
+
+    # 2. Check common installation locations
+    home = os.path.expanduser("~")
+    candidates = [
+        # npm global installs
+        os.path.join(home, ".npm-global", "bin", "claude"),
+        "/usr/local/bin/claude",
+        "/usr/bin/claude",
+        # nvm installs
+        os.path.join(home, ".nvm", "versions", "node"),  # will glob below
+        # Claude Code specific locations
+        os.path.join(home, ".claude", "local", "bin", "claude"),
+        # Homebrew
+        "/opt/homebrew/bin/claude",
+        # Linux snap
+        "/snap/bin/claude",
+        # Windows (WSL)
+        "/mnt/c/Users",  # will glob below
+    ]
+
+    for candidate in candidates:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+
+    # 3. Search nvm node versions for claude
+    nvm_dir = os.path.join(home, ".nvm", "versions", "node")
+    if os.path.isdir(nvm_dir):
+        for version_dir in sorted(os.listdir(nvm_dir), reverse=True):
+            claude_bin = os.path.join(nvm_dir, version_dir, "bin", "claude")
+            if os.path.isfile(claude_bin):
+                return claude_bin
+
+    return None
 BOOST_SKILL = """---
 name: boost
 description: Enhance a prompt using ClaudeBoost before executing it. Classifies domain, rewrites with enterprise playbook rules, shows comparison, and lets user choose.
@@ -272,41 +314,81 @@ def run_setup():
             print("❌ API key is required. Set ANTHROPIC_API_KEY env var or enter it here.")
             sys.exit(1)
 
-    # 2. Find the best way to invoke claudeboost-mcp
-    # Use sys.executable (current Python) + module invocation — most reliable
+    # 2. Register MCP server
     python_path = sys.executable
-    cmd_path = shutil.which("claudeboost-mcp")
-
-    # 3. Create/update MCP settings
     print("📝 Configuring MCP server...")
-    os.makedirs(CLAUDE_DIR, exist_ok=True)
-
-    mcp_settings = {}
-    if os.path.exists(MCP_SETTINGS_FILE):
-        try:
-            with open(MCP_SETTINGS_FILE) as f:
-                mcp_settings = json.load(f)
-        except (json.JSONDecodeError, ValueError):
-            mcp_settings = {}
-
-    if "mcpServers" not in mcp_settings:
-        mcp_settings["mcpServers"] = {}
-
-    # Use python -m claudeboost_mcp as the command — works on every system
-    # because sys.executable is the exact Python that has the package installed
-    mcp_settings["mcpServers"]["claudeboost"] = {
-        "command": python_path,
-        "args": ["-m", "claudeboost_mcp"],
-        "env": {"ANTHROPIC_API_KEY": api_key},
-    }
-
     print(f"   Python: {python_path}")
-    if cmd_path:
-        print(f"   Command: {cmd_path}")
 
-    with open(MCP_SETTINGS_FILE, "w") as f:
-        json.dump(mcp_settings, f, indent=2)
-    print(f"   ✅ MCP server added to {MCP_SETTINGS_FILE}")
+    # Find the claude CLI — try multiple locations
+    claude_path = _find_claude_cli()
+    mcp_registered = False
+
+    if claude_path:
+        print(f"   Claude CLI: {claude_path}")
+        # Remove existing entry first
+        subprocess.run([claude_path, "mcp", "remove", "claudeboost"],
+                       capture_output=True, text=True)
+        # Add using official command
+        result = subprocess.run(
+            [claude_path, "mcp", "add", "claudeboost",
+             "-e", f"ANTHROPIC_API_KEY={api_key}",
+             "--", python_path, "-m", "claudeboost_mcp"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print("   ✅ MCP server registered via `claude mcp add`")
+            mcp_registered = True
+        else:
+            print(f"   ⚠ `claude mcp add` returned: {result.stderr.strip()[:100]}")
+
+    if not mcp_registered:
+        # Fallback: write JSON config directly
+        print("   Writing MCP config manually...")
+        os.makedirs(CLAUDE_DIR, exist_ok=True)
+
+        mcp_settings = {}
+        if os.path.exists(MCP_SETTINGS_FILE):
+            try:
+                with open(MCP_SETTINGS_FILE) as f:
+                    mcp_settings = json.load(f)
+            except (json.JSONDecodeError, ValueError):
+                mcp_settings = {}
+
+        if "mcpServers" not in mcp_settings:
+            mcp_settings["mcpServers"] = {}
+
+        mcp_settings["mcpServers"]["claudeboost"] = {
+            "command": python_path,
+            "args": ["-m", "claudeboost_mcp"],
+            "env": {"ANTHROPIC_API_KEY": api_key},
+        }
+
+        with open(MCP_SETTINGS_FILE, "w") as f:
+            json.dump(mcp_settings, f, indent=2)
+        print(f"   ✅ MCP config written to {MCP_SETTINGS_FILE}")
+
+    # Verify MCP server can actually start
+    print("   Verifying MCP server...")
+    try:
+        verify = subprocess.run(
+            [python_path, "-m", "claudeboost_mcp", "--version"],
+            capture_output=True, text=True, timeout=10
+        )
+        if verify.returncode == 0:
+            print(f"   ✅ Server works: {verify.stdout.strip()}")
+        else:
+            print(f"   ❌ Server failed: {verify.stderr.strip()[:100]}")
+    except Exception as e:
+        print(f"   ❌ Server verification error: {e}")
+
+    if not mcp_registered:
+        print()
+        print("   ⚠ Could not auto-register MCP. Run this command manually:")
+        print(f"   claude mcp add claudeboost -e \"ANTHROPIC_API_KEY={api_key[:15]}...\" -- {python_path} -m claudeboost_mcp")
+        print()
+        print("   If 'claude' is not found, try:")
+        print("   ~/.claude/local/bin/claude mcp add ...")
+        print("   or find it with: which claude || find / -name claude -type f 2>/dev/null | head -5")
 
     # 4. Install skills
     print("📝 Installing skills...")
