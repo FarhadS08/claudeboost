@@ -154,10 +154,27 @@ LEVEL_INSTRUCTIONS = {
 }
 
 
+def _get_api_key() -> str | None:
+    """Get API key from env or ~/.claudeboost/auth.json."""
+    import os
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    # Try reading from config file
+    config_path = os.path.expanduser("~/.claudeboost/config.env")
+    if os.path.exists(config_path):
+        with open(config_path) as f:
+            for line in f:
+                if line.startswith("ANTHROPIC_API_KEY="):
+                    return line.split("=", 1)[1].strip()
+    return None
+
+
 def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: str = "medium", weak_dimensions: list = None) -> str:
     """Enhance a prompt using domain-specific playbook rules via Claude API."""
     try:
-        client = anthropic.Anthropic()
+        api_key = _get_api_key()
+        client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
         rules = DOMAIN_RULES.get(domain, DOMAIN_RULES["other"])
         level_instruction = LEVEL_INSTRUCTIONS.get(level, LEVEL_INSTRUCTIONS["medium"])
 
@@ -195,5 +212,7 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
 
         return response.content[0].text.strip()
 
-    except Exception:
-        return f"{prompt}\n\n[ClaudeBoost: enhancement failed, original prompt returned]"
+    except Exception as e:
+        import sys
+        print(f"[ClaudeBoost] Enhancement error: {type(e).__name__}: {e}", file=sys.stderr)
+        return f"{prompt}\n\n[ClaudeBoost: enhancement failed — {type(e).__name__}: {e}]"

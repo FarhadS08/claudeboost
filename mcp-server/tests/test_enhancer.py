@@ -87,7 +87,7 @@ class TestEnhancePrompt(unittest.TestCase):
 
         result = enhance_prompt("my original prompt", "general_coding")
         self.assertIn("my original prompt", result)
-        self.assertIn("[ClaudeBoost: enhancement failed, original prompt returned]", result)
+        self.assertIn("[ClaudeBoost: enhancement failed", result)
 
     @patch("claudeboost_mcp.enhancer.anthropic")
     def test_uses_fallback_rules_for_unknown_domain(self, mock_anthropic):

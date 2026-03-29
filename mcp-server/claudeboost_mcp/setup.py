@@ -276,7 +276,17 @@ def run_setup():
             f.write(content)
         print(f"   ✅ /{ name} skill installed")
 
-    # 5. Done
+    # 5. Save API key to config file (fallback for MCP server)
+    print("📝 Saving API key...")
+    claudeboost_dir = os.path.expanduser("~/.claudeboost")
+    os.makedirs(claudeboost_dir, exist_ok=True)
+    config_env_path = os.path.join(claudeboost_dir, "config.env")
+    with open(config_env_path, "w") as f:
+        f.write(f"ANTHROPIC_API_KEY={api_key}\n")
+    os.chmod(config_env_path, 0o600)  # Only owner can read
+    print(f"   ✅ API key saved to {config_env_path}")
+
+    # 6. Done
     print()
     print("=" * 40)
     print("✅ ClaudeBoost setup complete!")

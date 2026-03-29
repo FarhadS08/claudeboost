@@ -18,7 +18,9 @@ def classify_domain(prompt: str) -> str:
     fails or the result is not a recognised domain.
     """
     try:
-        client = anthropic.Anthropic()
+        import os
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=20,
@@ -34,5 +36,7 @@ def classify_domain(prompt: str) -> str:
         if result in DOMAINS:
             return result
         return "other"
-    except Exception:
+    except Exception as e:
+        import sys
+        print(f"[ClaudeBoost] Classification error: {type(e).__name__}: {e}", file=sys.stderr)
         return "other"
