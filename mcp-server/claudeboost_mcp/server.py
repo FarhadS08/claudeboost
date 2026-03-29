@@ -69,11 +69,9 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "original": {"type": "string", "description": "The original user prompt"},
-                    "boosted": {"type": "string", "description": "The final prompt version the user chose"},
+                    "boosted": {"type": "string", "description": "The final prompt version the user chose (after all refinements)"},
                     "domain": {"type": "string", "description": "The classified domain"},
-                    "chosen": {"type": "string", "enum": ["boosted", "original", "refined"], "description": "What the user chose"},
-                    "original_score": {"type": "object", "description": "Score of the original prompt"},
-                    "boosted_score": {"type": "object", "description": "Score of the final prompt"},
+                    "chosen": {"type": "string", "enum": ["boosted", "original", "refined"], "description": "What the user chose: boosted=accepted, original=kept original, refined=edited then accepted"},
                 },
                 "required": ["original", "boosted", "domain", "chosen"],
             },
@@ -159,17 +157,28 @@ async def _handle_log_boost(arguments: dict) -> list[TextContent]:
     boosted = arguments["boosted"]
     domain = arguments["domain"]
     chosen = arguments.get("chosen", "boosted")
+
+    # Parse scores if passed as strings (Claude sometimes serializes them)
     original_score = arguments.get("original_score")
     boosted_score = arguments.get("boosted_score")
+    if isinstance(original_score, str):
+        try:
+            original_score = json.loads(original_score)
+        except (json.JSONDecodeError, TypeError):
+            original_score = None
+    if isinstance(boosted_score, str):
+        try:
+            boosted_score = json.loads(boosted_score)
+        except (json.JSONDecodeError, TypeError):
+            boosted_score = None
 
-    # Re-score the final version if scores not provided
-    if not boosted_score:
-        boosted_score = score_prompt(boosted)
-    if not original_score:
-        original_score = score_prompt(original)
+    # Always re-score the final versions for accuracy
+    boosted_score = score_prompt(boosted)
+    original_score = score_prompt(original)
 
     log_to_history(original, boosted, domain,
-                   original_score=original_score, boosted_score=boosted_score)
+                   original_score=original_score, boosted_score=boosted_score,
+                   chosen=chosen)
 
     return [TextContent(type="text", text=json.dumps({"ok": True, "chosen": chosen}))]
 

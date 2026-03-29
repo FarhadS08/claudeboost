@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "claudeboost-mcp"
-version = "0.4.1"
+version = "0.4.2"
 description = "MCP server that enhances prompts for Claude Code using enterprise playbook rules"
 readme = "README.md"
 license = "MIT"
