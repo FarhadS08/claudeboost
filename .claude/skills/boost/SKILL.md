@@ -73,12 +73,25 @@ STOP here.
 
 1. Call the `boost_prompt` MCP tool with the user's prompt: `$ARGUMENTS`
 
-2. Parse the JSON output to extract: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, and `improvement`
+2. Check if the response has `"skipped": true`. If so, display:
+```
+✅ **Your prompt scores {original_score.total}/30 — already well-structured!**
 
-3. Display the FULL comparison using this EXACT markdown format. Show EVERYTHING — do not truncate or summarize:
+No boost needed. Strong dimensions: {list strong_dimensions as comma-separated labels}.
+
+Proceeding with your original prompt.
+```
+Then execute the original prompt directly. Call `log_boost` with `{"original": original, "boosted": original, "domain": domain, "chosen": "skipped"}`. STOP.
+
+3. If NOT skipped, parse: `domain`, `original`, `boosted`, `level`, `original_score`, `boosted_score`, `improvement`, and `improvements_added`
+
+4. Display the FULL comparison using this EXACT markdown format:
 
 ```
-⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}` · Score: **{original_score.total}/30 → {boosted_score.total}/30** (+{improvement})
+⚡ **CLAUDEBOOST** · `{domain}` · Level: `{level}`
+
+📈 **Score: {original_score.total}/30 → {boosted_score.total}/30** (+{improvement})
+🔧 **Boost added:** {join improvements_added with ", "}
 
 ---
 
@@ -104,9 +117,11 @@ STOP here.
 | Output | {original_score.dimensions.output_definition} | {boosted_score.dimensions.output_definition} |
 
 ---
+
+{if streak.streak > 0: show "🔥 **{streak.streak}-day streak** · {streak.total_boosts} total boosts · {streak.today_boosts} today"}
 ```
 
-4. AFTER displaying the full comparison above, present the choice using `AskUserQuestion` with these EXACT settings:
+5. AFTER displaying the full comparison above, present the choice using `AskUserQuestion` with these EXACT settings:
    - question: "What would you like to do?"
    - header: "ClaudeBoost"
    - Option 1:

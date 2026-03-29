@@ -6,6 +6,7 @@ import json
 from .classifier import classify_domain
 from .enhancer import enhance_prompt
 from .db import load_feedback_context, log_to_history, load_settings, save_settings
+from .feedback import get_streak
 from .scorer import score_prompt, get_weighted_weakest
 from .auth import is_authenticated, get_login_message, open_login_page
 
@@ -118,6 +119,21 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     # Score the original prompt
     original_score = score_prompt(original)
 
+    # Smart skip: if prompt already scores well, don't waste time boosting
+    SKIP_THRESHOLD = 20  # out of 30
+    if original_score["total"] >= SKIP_THRESHOLD:
+        # Identify what's already strong
+        strong_dims = [k for k, v in original_score["dimensions"].items() if v >= 4]
+        return [TextContent(type="text", text=json.dumps({
+            "skipped": True,
+            "reason": "already_good",
+            "domain": classify_domain(original),
+            "original": original,
+            "original_score": original_score,
+            "strong_dimensions": strong_dims,
+            "streak": get_streak(),
+        }))]
+
     # Classify domain and get feedback
     domain = classify_domain(original)
     feedback_context = load_feedback_context(domain)
@@ -127,14 +143,22 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     threshold = level_thresholds.get(level, 3)
     weak_dims = get_weighted_weakest(original_score["dimensions"], domain, threshold)
 
+    # Identify what the boost will add (for messaging)
+    weak_labels = {
+        "specificity": "file references & specific behavior",
+        "verification": "tests & success criteria",
+        "context": "codebase references & patterns",
+        "constraints": "boundaries & non-goals",
+        "structure": "organized sections & steps",
+        "output_definition": "deliverables & output format",
+    }
+    improvements_added = [weak_labels.get(d, d) for d in weak_dims[:3]]
+
     # Enhance with dimension focus
     boosted = enhance_prompt(original, domain, feedback_context, level=level, weak_dimensions=weak_dims)
 
     # Score the boosted prompt
     boosted_score = score_prompt(boosted)
-
-    # NOTE: Do NOT log here. The /boost skill will call log_boost
-    # AFTER the user makes their final choice (use, refine, or keep original).
 
     result = json.dumps({
         "domain": domain,
@@ -144,6 +168,8 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
         "original_score": original_score,
         "boosted_score": boosted_score,
         "improvement": boosted_score["total"] - original_score["total"],
+        "improvements_added": improvements_added,
+        "streak": get_streak(),
     })
 
     return [TextContent(type="text", text=result)]
