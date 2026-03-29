@@ -25,12 +25,12 @@ export function FeedbackForm({ entry, onSubmit }: FeedbackFormProps) {
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
         placeholder="What should be different next time?"
-        className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-500"
+        className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/30 transition-colors"
         rows={3}
       />
       <button
         type="submit"
-        className="bg-primary text-primary-foreground hover:bg-primary/80 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+        className="bg-primary text-primary-foreground hover:opacity-90 px-5 py-2.5 rounded-xl text-sm font-medium transition-opacity"
       >
         Save Feedback
       </button>
