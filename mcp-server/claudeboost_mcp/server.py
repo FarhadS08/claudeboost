@@ -60,6 +60,25 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="log_boost",
+            description=(
+                "Log a completed boost to history. Call this AFTER the user has made their final choice "
+                "(use boosted, keep original, or refined version). Do NOT call during generation."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "original": {"type": "string", "description": "The original user prompt"},
+                    "boosted": {"type": "string", "description": "The final prompt version the user chose"},
+                    "domain": {"type": "string", "description": "The classified domain"},
+                    "chosen": {"type": "string", "enum": ["boosted", "original", "refined"], "description": "What the user chose"},
+                    "original_score": {"type": "object", "description": "Score of the original prompt"},
+                    "boosted_score": {"type": "object", "description": "Score of the final prompt"},
+                },
+                "required": ["original", "boosted", "domain", "chosen"],
+            },
+        ),
+        Tool(
             name="boost_help",
             description="Show ClaudeBoost help: available commands, settings, and usage instructions.",
             inputSchema={
@@ -74,6 +93,8 @@ async def list_tools() -> list[Tool]:
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     if name == "boost_prompt":
         return await _handle_boost(arguments)
+    elif name == "log_boost":
+        return await _handle_log_boost(arguments)
     elif name == "boost_settings":
         return await _handle_settings(arguments)
     elif name == "boost_help":
@@ -114,8 +135,8 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     # Score the boosted prompt
     boosted_score = score_prompt(boosted)
 
-    # Log with scores
-    log_to_history(original, boosted, domain, original_score=original_score, boosted_score=boosted_score)
+    # NOTE: Do NOT log here. The /boost skill will call log_boost
+    # AFTER the user makes their final choice (use, refine, or keep original).
 
     result = json.dumps({
         "domain": domain,
@@ -128,6 +149,29 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     })
 
     return [TextContent(type="text", text=result)]
+
+
+async def _handle_log_boost(arguments: dict) -> list[TextContent]:
+    if not is_authenticated():
+        return [TextContent(type="text", text=json.dumps({"ok": False, "error": "not authenticated"}))]
+
+    original = arguments["original"]
+    boosted = arguments["boosted"]
+    domain = arguments["domain"]
+    chosen = arguments.get("chosen", "boosted")
+    original_score = arguments.get("original_score")
+    boosted_score = arguments.get("boosted_score")
+
+    # Re-score the final version if scores not provided
+    if not boosted_score:
+        boosted_score = score_prompt(boosted)
+    if not original_score:
+        original_score = score_prompt(original)
+
+    log_to_history(original, boosted, domain,
+                   original_score=original_score, boosted_score=boosted_score)
+
+    return [TextContent(type="text", text=json.dumps({"ok": True, "chosen": chosen}))]
 
 
 async def _handle_settings(arguments: dict) -> list[TextContent]:

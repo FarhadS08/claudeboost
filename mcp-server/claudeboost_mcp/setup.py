@@ -132,13 +132,22 @@ STOP here.
    - Do NOT use previews on any option — the full prompts are already displayed above
 
 5. Based on the user's choice:
-   - If "Use boosted prompt": Execute the boosted prompt as the user's new task. Do NOT mention ClaudeBoost again — just do the work.
-   - If "Add notes & refine": Output ONLY this text and then STOP and wait for the user to type:
-     `📝 **Type your notes below** (e.g. "use PyTorch instead of sklearn", "remove the model card section", "add error handling")`
-     Do NOT use AskUserQuestion here. Do NOT ask any follow-up questions. Just print that line and STOP.
-     When the user replies with their notes, take the current boosted prompt + their notes and refine the prompt yourself inline. Then display the refined version using the same full markdown format (step 3) and present the choice modal again (step 4). Repeat this loop until the user picks "Use boosted prompt" or "Keep original".
-   - If "Keep original": Execute the original prompt as the user's task.
-   - If "Other": Execute whatever the user typed.
+   - If "Use boosted prompt":
+     1. Call `log_boost` MCP tool with: `{"original": original, "boosted": boosted, "domain": domain, "chosen": "boosted", "original_score": original_score, "boosted_score": boosted_score}`
+     2. Then execute the boosted prompt as the user's new task.
+   - If "Add notes & refine":
+     1. Output ONLY: `📝 **Type your notes below**`
+     2. STOP and wait. When user replies, refine, display again (step 3), present choice again (step 4).
+     3. Repeat until user picks "Use boosted" or "Keep original".
+     4. THEN call `log_boost` with the FINAL version.
+   - If "Keep original":
+     1. Call `log_boost` with `{"original": original, "boosted": original, "domain": domain, "chosen": "original"}`
+     2. Execute the original prompt.
+   - If "Other":
+     1. Call `log_boost` with `{"original": original, "boosted": user_text, "domain": domain, "chosen": "refined"}`
+     2. Execute whatever the user typed.
+
+**CRITICAL: Only call `log_boost` ONCE, after the user's FINAL choice.**
 
 ## Important
 
