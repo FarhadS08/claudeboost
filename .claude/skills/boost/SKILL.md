@@ -65,6 +65,24 @@ rm -f ~/.claudeboost/auth.json
 Then display: `✅ **Logged out of ClaudeBoost.** Run /boost --login to sign in again.`
 STOP here.
 
+**If `$ARGUMENTS` is `--status` or `status`:**
+Call the `boost_status` MCP tool. Display:
+```
+⚡ **ClaudeBoost Status**
+
+| | |
+|---|---|
+| **Account** | {email or "Not signed in"} |
+| **User ID** | {user_id or "—"} |
+| **Boost Level** | {settings.boost_level} |
+| **Auto-Boost** | {settings.auto_boost ? "ON" : "OFF"} |
+| **Streak** | {streak.streak}-day · {streak.total_boosts} total |
+| **Connected since** | {created_at or "—"} |
+
+{if not authenticated: "Run `/boost --login` to sign in."}
+```
+STOP here.
+
 **If `$ARGUMENTS` is `--help` or `help`:**
 Invoke the `/boost-help` skill instead.
 STOP here.

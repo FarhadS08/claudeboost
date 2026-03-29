@@ -8,7 +8,7 @@ from .enhancer import enhance_prompt
 from .db import load_feedback_context, log_to_history, load_settings, save_settings
 from .feedback import get_streak
 from .scorer import score_prompt, get_weighted_weakest
-from .auth import is_authenticated, get_login_message, open_login_page
+from .auth import is_authenticated, get_login_message, open_login_page, get_auth_status
 from .config import LOGIN_URL
 
 app = Server("claudeboost")
@@ -86,6 +86,14 @@ async def list_tools() -> list[Tool]:
                 "properties": {},
             },
         ),
+        Tool(
+            name="boost_status",
+            description="Show current ClaudeBoost auth status: which account is connected, settings, and sync state.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+            },
+        ),
     ]
 
 
@@ -99,6 +107,8 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         return await _handle_settings(arguments)
     elif name == "boost_help":
         return await _handle_help()
+    elif name == "boost_status":
+        return await _handle_status()
     else:
         raise ValueError(f"Unknown tool: {name}")
 
@@ -262,6 +272,20 @@ async def _handle_help() -> list[TextContent]:
         },
     })
     return [TextContent(type="text", text=help_text)]
+
+
+async def _handle_status() -> list[TextContent]:
+    status = get_auth_status()
+    settings = load_settings() if status["authenticated"] else {"boost_level": "medium", "auto_boost": True}
+    streak = get_streak()
+
+    result = json.dumps({
+        **status,
+        "settings": settings,
+        "streak": streak,
+        "login_url": LOGIN_URL,
+    })
+    return [TextContent(type="text", text=result)]
 
 
 async def main():
