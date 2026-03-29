@@ -150,38 +150,35 @@ export default function DocsPage() {
                 it in 30 seconds.
               </Paragraph>
 
-              <SubHeading>1. Install</SubHeading>
-              <CodeBlock title="Terminal">{`# Add ClaudeBoost as an MCP server
-claude mcp add claudeboost -- python3 /path/to/claudeboost/mcp-server/server.py
+              <SubHeading>1. Install from PyPI</SubHeading>
+              <CodeBlock title="Terminal">{`pip install claudeboost-mcp`}</CodeBlock>
 
-# Or add manually to ~/.claude/mcp_settings.json
-{
-  "mcpServers": {
-    "claudeboost": {
-      "command": "python3",
-      "args": ["/path/to/claudeboost/mcp-server/server.py"]
-    }
-  }
-}`}</CodeBlock>
-
-              <SubHeading>2. Install dependencies</SubHeading>
-              <CodeBlock title="Terminal">{`cd /path/to/claudeboost/mcp-server
-pip3 install -r requirements.txt`}</CodeBlock>
-
-              <SubHeading>3. Set your API key</SubHeading>
+              <SubHeading>2. Run setup</SubHeading>
               <Paragraph>
-                ClaudeBoost uses the Anthropic API for prompt classification and enhancement.
-                Make sure your ANTHROPIC_API_KEY environment variable is set.
+                The setup command configures everything: MCP server, slash commands, and your
+                Anthropic API key. It will prompt you for the key if not already set.
               </Paragraph>
-              <CodeBlock title="Terminal">{`export ANTHROPIC_API_KEY=sk-ant-...`}</CodeBlock>
+              <CodeBlock title="Terminal">{`claudeboost-mcp --setup`}</CodeBlock>
 
-              <SubHeading>4. Start Claude Code</SubHeading>
+              <SubHeading>3. Restart Claude Code</SubHeading>
               <Paragraph>
-                That&apos;s it. Launch Claude Code and ClaudeBoost will automatically enhance
-                every prompt you type. You&apos;ll see the boost comparison before anything executes.
+                That&apos;s it. Two commands and you&apos;re done. Auto-boost is on by default —
+                every task prompt you type is automatically enhanced. You don&apos;t need to type
+                /boost every time, just type normally.
               </Paragraph>
               <CodeBlock title="Terminal">{`claude
-# ⚡ ClaudeBoost active · boost level: medium · auto-boost: on`}</CodeBlock>
+# Just type any prompt — ClaudeBoost enhances it automatically
+> build me a REST API for user management
+# ⚡ CLAUDEBOOST · general_coding · Score: 8/30 → 22/30 (+14)
+# 🔧 Boost added: tests & success criteria, organized sections`}</CodeBlock>
+
+              <SubHeading>4. Sign in (optional)</SubHeading>
+              <Paragraph>
+                Sign in to sync your boost history, settings, and constraints across
+                devices via the web dashboard.
+              </Paragraph>
+              <CodeBlock title="Terminal">{`/boost --login
+# Opens browser → sign in → CLI connected`}</CodeBlock>
 
               {/* How It Works */}
               <SectionHeading id="how-it-works">How It Works</SectionHeading>
@@ -194,23 +191,23 @@ pip3 install -r requirements.txt`}</CodeBlock>
                 {[
                   {
                     step: "1",
-                    title: "Classify",
-                    desc: "Your prompt is sent to Claude Haiku which classifies it into one of 7 domains (data science, DevOps, general coding, etc.).",
+                    title: "Score",
+                    desc: "Your prompt is scored across 6 dimensions (Specificity, Verification, Context, Constraints, Structure, Output). If it scores 20+/30, ClaudeBoost skips the boost — your prompt is already well-structured.",
                   },
                   {
                     step: "2",
-                    title: "Score",
-                    desc: "The original prompt is scored across 6 quality dimensions: Specificity, Verification, Context, Constraints, Structure, and Output Definition.",
+                    title: "Classify",
+                    desc: "Claude Haiku classifies your prompt into one of 7 domains (data science, DevOps, general coding, etc.) to apply domain-specific enhancement rules.",
                   },
                   {
                     step: "3",
                     title: "Enhance",
-                    desc: "Claude Sonnet rewrites your prompt using domain-specific enterprise playbook rules, your past feedback, and your domain constraints.",
+                    desc: "The weakest scoring dimensions are identified and targeted. Light/medium boosts use Haiku (~3s), full boosts use Sonnet (~12s). Your past feedback and domain constraints are injected.",
                   },
                   {
                     step: "4",
                     title: "Present",
-                    desc: "You see the original vs boosted prompt side-by-side with scores. Choose to use the boost, refine it, or keep your original.",
+                    desc: "You see the original vs boosted prompt with scores, what was added, and a breakdown by dimension. Choose to use the boost, add notes to refine it, or keep your original.",
                   },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4 items-start">
@@ -234,20 +231,24 @@ pip3 install -r requirements.txt`}</CodeBlock>
               <Table
                 headers={["Command", "Description"]}
                 rows={[
+                  ["Just type normally", "Auto-boosts every task prompt (when auto-boost is on)"],
                   ["/boost <prompt>", "Manually boost a specific prompt with the full comparison UI"],
+                  ["/boost --login", "Sign in to ClaudeBoost (opens browser for authentication)"],
+                  ["/boost --logout", "Sign out of ClaudeBoost"],
                   ["/boost-settings", "View current boost settings (level and auto-boost status)"],
-                  ["/boost-settings --level <light|medium|full>", "Change the boost intensity level"],
-                  ["/boost-settings --auto <true|false>", "Toggle automatic prompt boosting on/off"],
+                  ["/boost-settings --level <light|medium|full>", "Change boost intensity. Short flag: -l"],
+                  ["/boost-settings --auto <true|false>", "Toggle automatic prompt boosting. Short flag: -a"],
                   ["/boost-help", "Show all available commands and usage guide"],
-                  ["--raw", "Append to any prompt to skip auto-boost for that single prompt"],
+                  ["<prompt> --raw", "Skip auto-boost for that single prompt"],
                 ]}
               />
 
               <SubHeading>Examples</SubHeading>
-              <CodeBlock title="Claude Code">{`# Auto-boost is on by default — just type naturally
+              <CodeBlock title="Claude Code">{`# Auto-boost is on — just type normally
 > build me an API endpoint for user auth
-⚡ CLAUDEBOOST · general_coding · Level: L4
-...
+⚡ CLAUDEBOOST · general_coding · Score: 8/30 → 22/30 (+14)
+🔧 Boost added: tests & success criteria, organized sections
+🔥 3-day streak · 15 total boosts · 4 today
 
 # Manually boost a specific prompt
 > /boost analyze our quarterly churn data
@@ -255,11 +256,18 @@ pip3 install -r requirements.txt`}</CodeBlock>
 # Skip boost for one prompt
 > fix this typo in readme.md --raw
 
+# Sign in to sync across devices
+> /boost --login
+
 # Change boost level
-> /boost-settings --level full
+> /boost-settings -l full
 
 # Turn off auto-boost
-> /boost-settings --auto false`}</CodeBlock>
+> /boost-settings -a false
+
+# Well-structured prompts skip automatically
+> /boost fix the 403 error in src/auth/session.ts by adding token refresh
+✅ Your prompt scores 22/30 — already well-structured!`}</CodeBlock>
 
               {/* Boost Levels */}
               <SectionHeading id="boost-levels">Boost Levels</SectionHeading>
@@ -272,18 +280,18 @@ pip3 install -r requirements.txt`}</CodeBlock>
                 {[
                   {
                     level: "Light",
-                    target: "Level 3 (15+/30)",
-                    desc: "Fixes only dimensions scoring 1-2. Clarifies and structures your prompt while staying close to the original. Best for quick tasks.",
+                    target: "Level 3 · Haiku · ~2-3s",
+                    desc: "Fixes only dimensions scoring 1-2. Clarifies and structures your prompt while staying close to the original. Uses Haiku for speed.",
                   },
                   {
                     level: "Medium",
-                    target: "Level 4 (21+/30)",
-                    desc: "Fixes dimensions below 3. Adds verification criteria, constraints, and structure. The balanced default for everyday use.",
+                    target: "Level 4 · Haiku · ~3-5s",
+                    desc: "Fixes dimensions below 3. Adds verification criteria, constraints, and structure. Fast and balanced — the default.",
                   },
                   {
                     level: "Full",
-                    target: "Level 5 (27+/30)",
-                    desc: "Pushes all 6 dimensions to maximum. Full enterprise playbook with anti-patterns, metrics, and acceptance criteria. For critical tasks.",
+                    target: "Level 5 · Sonnet · ~10-15s",
+                    desc: "Pushes all 6 dimensions to maximum. Full enterprise playbook with anti-patterns, metrics, and acceptance criteria. Uses Sonnet for quality.",
                   },
                 ].map((l) => (
                   <div key={l.level} className="bg-card border border-border rounded-xl p-5">
@@ -386,11 +394,18 @@ pip3 install -r requirements.txt`}</CodeBlock>
               <Paragraph>
                 Domain constraints are persistent rules that ClaudeBoost always applies when
                 enhancing prompts in a specific domain. Set them in the Dashboard under
-                Constraints, or they&apos;re stored in
-                <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-xs font-mono mx-1">~/.claudeboost/config.json</code>.
+                Constraints, or via the CLI settings.
               </Paragraph>
 
-              <SubHeading>Examples</SubHeading>
+              <SubHeading>Quick Presets</SubHeading>
+              <Paragraph>
+                The Dashboard includes 12 one-click presets for common stacks: Python Data Science,
+                PyTorch ML, dbt+BigQuery, Spark Pipeline, React+TypeScript, Next.js App Router,
+                FastAPI, AWS+Terraform, Docker+Kubernetes, GitHub Actions CI/CD, API Documentation,
+                and Executive Reports. Click one to fill in the domain constraints instantly.
+              </Paragraph>
+
+              <SubHeading>Custom Constraints</SubHeading>
               <div className="space-y-3 mb-6">
                 {[
                   { domain: "Data Science", constraint: "Always use Python 3.11+. Prefer scikit-learn over custom implementations. Output as Jupyter notebooks." },
@@ -408,9 +423,9 @@ pip3 install -r requirements.txt`}</CodeBlock>
               {/* Dashboard */}
               <SectionHeading id="dashboard">Dashboard</SectionHeading>
               <Paragraph>
-                ClaudeBoost includes a web dashboard at
-                <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-xs font-mono mx-1">localhost:3000</code>
-                that reads live data from ~/.claudeboost/ with 5-second auto-polling.
+                ClaudeBoost includes a web dashboard with authentication. Sign up at the
+                landing page and your data syncs between CLI and web. The dashboard
+                auto-refreshes every 5 seconds.
               </Paragraph>
 
               <SubHeading>Pages</SubHeading>
@@ -429,7 +444,7 @@ pip3 install -r requirements.txt`}</CodeBlock>
                   {
                     title: "Constraints",
                     path: "/dashboard/constraints",
-                    desc: "Configure boost level (light/medium/full), toggle auto-boost, and set per-domain constraint rules.",
+                    desc: "Configure boost level, toggle auto-boost, choose from 12 quick presets for common stacks, and set custom per-domain constraint rules.",
                   },
                 ].map((page) => (
                   <div key={page.title} className="bg-card border border-border rounded-xl p-5">
@@ -462,7 +477,7 @@ npm run dev
                   },
                   {
                     q: "Where is my data stored?",
-                    a: "All data is local. History, settings, and constraints are stored in ~/.claudeboost/ as JSON files. Nothing is sent to external servers except the prompt text going to Claude API for enhancement.",
+                    a: "If signed in, data syncs to Supabase (our cloud database) so you can access it from the web dashboard and across devices. If not signed in, everything is stored locally in ~/.claudeboost/ as JSON files. Prompt text goes to the Anthropic API for enhancement.",
                   },
                   {
                     q: "Can I use ClaudeBoost with other AI tools?",
@@ -470,11 +485,19 @@ npm run dev
                   },
                   {
                     q: "What models does ClaudeBoost use?",
-                    a: "Claude Haiku for domain classification (fast, cheap) and Claude Sonnet for prompt enhancement (high quality). These are configurable in the server code.",
+                    a: "Claude Haiku 4.5 for classification and light/medium enhancement (~2-5s). Claude Sonnet 4 for full-level enhancement (~10-15s). You provide your own Anthropic API key.",
                   },
                   {
-                    q: "How do I reset my history?",
-                    a: "Delete or empty the file at ~/.claudeboost/history.json. ClaudeBoost will recreate it on the next boost.",
+                    q: "How do I install it?",
+                    a: "Two commands: pip install claudeboost-mcp, then claudeboost-mcp --setup. Restart Claude Code and you're done. Works from any directory.",
+                  },
+                  {
+                    q: "Do I need to type /boost every time?",
+                    a: "No. Auto-boost is on by default — just type your prompt normally and it gets enhanced automatically. Use /boost only when you want to manually boost a specific prompt.",
+                  },
+                  {
+                    q: "What if my prompt is already good?",
+                    a: "ClaudeBoost skips prompts that score 20+/30 automatically. You'll see '✅ Your prompt is already well-structured!' and it proceeds without boosting.",
                   },
                   {
                     q: "Can I disable ClaudeBoost temporarily?",
