@@ -461,7 +461,7 @@ export default function DocsPage() {
               <CodeBlock title="Terminal">{`cd web-dashboard
 npm install
 npm run dev
-# Dashboard available at http://localhost:3000`}</CodeBlock>
+# Dashboard available at https://claudeboost.vercel.app`}</CodeBlock>
 
               {/* FAQ */}
               <SectionHeading id="faq">FAQ</SectionHeading>

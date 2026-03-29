@@ -170,7 +170,7 @@ const CLI_FEATURES = [
   {
     icon: BarChart3,
     title: "Dashboard",
-    description: "Real-time analytics at localhost:3000 with 5s polling",
+    description: "Real-time analytics at claudeboost.vercel.app with 5s polling",
   },
   {
     icon: MessageSquare,

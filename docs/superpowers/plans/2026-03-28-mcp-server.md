@@ -816,7 +816,7 @@ async def call_tool(name: str, arguments: dict):
 
 ──────────────────────────────────────────────────
 Reply YES to use the boosted prompt, or NO to keep your original.
-View history and rate boosts at: http://localhost:3000
+View history and rate boosts at: https://claudeboost.vercel.app
 """
 
     return [TextContent(type="text", text=output)]

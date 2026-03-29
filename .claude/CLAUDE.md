@@ -43,7 +43,7 @@ python server.py                   # start MCP server (stdio mode)
 ```bash
 cd web-dashboard
 npm install
-npm run dev                        # http://localhost:3000
+npm run dev                        # https://claudeboost.vercel.app
 ```
 
 ### MCP Registration

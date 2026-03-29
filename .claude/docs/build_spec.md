@@ -27,7 +27,7 @@ User types YES → boosted prompt is sent | User types NO → original is sent
        ↓
 Both versions + domain + timestamp logged to ~/.claudeboost/history.json
        ↓
-Web dashboard at localhost:3000 shows history, diff, ratings, feedback
+Web dashboard at claudeboost.vercel.app shows history, diff, ratings, feedback
        ↓
 User rates the boost (1–5 stars) and optionally leaves text feedback
        ↓
@@ -203,7 +203,7 @@ The output string must look exactly like this:
 
 ──────────────────────────────────────────────────
 Reply YES to use the boosted prompt, or NO to keep your original.
-View history and rate boosts at: http://localhost:3000
+View history and rate boosts at: https://claudeboost.vercel.app
 ```
 
 Use an f-string. Replace `{original}`, `{boosted}`, and `{domain}` with actual values.
@@ -387,7 +387,7 @@ cd web-dashboard
 npm install
 ```
 
-Start dev server: `npm run dev` → runs at `http://localhost:3000`
+Start dev server: `npm run dev` → runs at `https://claudeboost.vercel.app`
 
 ---
 

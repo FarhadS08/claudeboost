@@ -8,9 +8,10 @@ import json
 import subprocess
 import sys
 
+from .config import LOGIN_URL
+
 CLAUDEBOOST_DIR = os.path.expanduser("~/.claudeboost")
 AUTH_FILE = os.path.join(CLAUDEBOOST_DIR, "auth.json")
-LOGIN_URL = "http://localhost:3000/auth/cli-login"
 
 
 def load_auth() -> dict | None:
