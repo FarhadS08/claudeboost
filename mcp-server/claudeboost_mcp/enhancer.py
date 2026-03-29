@@ -174,7 +174,7 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
     """Enhance a prompt using domain-specific playbook rules via Claude API."""
     try:
         api_key = _get_api_key()
-        client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+        client = anthropic.Anthropic(api_key=api_key, timeout=30.0) if api_key else anthropic.Anthropic(timeout=30.0)
         rules = DOMAIN_RULES.get(domain, DOMAIN_RULES["other"])
         level_instruction = LEVEL_INSTRUCTIONS.get(level, LEVEL_INSTRUCTIONS["medium"])
 
@@ -194,6 +194,14 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
                 "that are already adequate."
             )
 
+        # Light/medium use Haiku (fast, ~1s), full uses Sonnet (thorough, ~10-15s)
+        model_map = {
+            "light": ("claude-haiku-4-5-20251001", 200),
+            "medium": ("claude-haiku-4-5-20251001", 400),
+            "full": ("claude-sonnet-4-20250514", 600),
+        }
+        model, max_tokens = model_map.get(level, model_map["medium"])
+
         system = (
             f"{rules}{feedback_instruction}\n\n"
             f"BOOST LEVEL: {level.upper()}\n{level_instruction}"
@@ -204,8 +212,8 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
         )
 
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=600,
+            model=model,
+            max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
