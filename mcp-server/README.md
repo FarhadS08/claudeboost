@@ -12,31 +12,20 @@ ClaudeBoost is an MCP server that transforms vague prompts into structured, ente
 pip install claudeboost-mcp
 ```
 
-### 2. Add to Claude Code
+### 2. Run setup (asks for API key + optional sign-in)
 
 ```bash
-claude mcp add claudeboost -- claudeboost-mcp
+claudeboost-mcp --setup
 ```
 
-Or add manually to `~/.claude/mcp_settings.json`:
-```json
-{
-  "mcpServers": {
-    "claudeboost": {
-      "command": "claudeboost-mcp",
-      "env": {
-        "ANTHROPIC_API_KEY": "your-key-here"
-      }
-    }
-  }
-}
+### 3. Register MCP server (inside Claude Code)
+
+Open Claude Code and type:
+```
+/boost --setup
 ```
 
-### 3. Set your Anthropic API key
-
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
+Restart Claude Code. Done.
 
 ### 4. Use it
 

@@ -150,35 +150,34 @@ export default function DocsPage() {
                 it in 30 seconds.
               </Paragraph>
 
-              <SubHeading>1. Install from PyPI</SubHeading>
-              <CodeBlock title="Terminal">{`pip install claudeboost-mcp`}</CodeBlock>
-
-              <SubHeading>2. Run setup</SubHeading>
+              <SubHeading>Step 1: Install &amp; configure (regular terminal)</SubHeading>
+              <CodeBlock title="Terminal">{`pip install claudeboost-mcp
+claudeboost-mcp --setup`}</CodeBlock>
               <Paragraph>
-                The setup command configures everything: MCP server, slash commands, and your
-                Anthropic API key. It will prompt you for the key if not already set.
+                Setup asks for your Anthropic API key, installs slash commands,
+                and offers to sign in (for dashboard sync).
               </Paragraph>
-              <CodeBlock title="Terminal">{`claudeboost-mcp --setup`}</CodeBlock>
 
-              <SubHeading>3. Restart Claude Code</SubHeading>
+              <SubHeading>Step 2: Register MCP server (inside Claude Code)</SubHeading>
               <Paragraph>
-                That&apos;s it. Two commands and you&apos;re done. Auto-boost is on by default —
-                every task prompt you type is automatically enhanced. You don&apos;t need to type
-                /boost every time, just type normally.
+                Open Claude Code and type:
               </Paragraph>
-              <CodeBlock title="Terminal">{`claude
-# Just type any prompt — ClaudeBoost enhances it automatically
-> build me a REST API for user management
+              <CodeBlock title="Claude Code">{`/boost --setup`}</CodeBlock>
+              <Paragraph>
+                This registers the MCP server. You only need to do this once.
+                Restart Claude Code after this step.
+              </Paragraph>
+
+              <SubHeading>Step 3: Start using it</SubHeading>
+              <Paragraph>
+                That&apos;s it. Auto-boost is on by default — every task prompt you type
+                is automatically enhanced. You don&apos;t need to type /boost every time,
+                just type normally.
+              </Paragraph>
+              <CodeBlock title="Claude Code">{`> build me a REST API for user management
 # ⚡ CLAUDEBOOST · general_coding · Score: 8/30 → 22/30 (+14)
-# 🔧 Boost added: tests & success criteria, organized sections`}</CodeBlock>
-
-              <SubHeading>4. Sign in (optional)</SubHeading>
-              <Paragraph>
-                Sign in to sync your boost history, settings, and constraints across
-                devices via the web dashboard.
-              </Paragraph>
-              <CodeBlock title="Terminal">{`/boost --login
-# Opens browser → sign in → CLI connected`}</CodeBlock>
+# 🔧 Boost added: tests & success criteria, organized sections
+# Choose: Use boosted / Add notes / Keep original`}</CodeBlock>
 
               {/* How It Works */}
               <SectionHeading id="how-it-works">How It Works</SectionHeading>
@@ -233,8 +232,10 @@ export default function DocsPage() {
                 rows={[
                   ["Just type normally", "Auto-boosts every task prompt (when auto-boost is on)"],
                   ["/boost <prompt>", "Manually boost a specific prompt with the full comparison UI"],
-                  ["/boost --login", "Sign in to ClaudeBoost (opens browser for authentication)"],
+                  ["/boost --setup", "Register the MCP server (run once inside Claude Code)"],
+                  ["/boost --login", "Sign in to ClaudeBoost (email + password in terminal)"],
                   ["/boost --logout", "Sign out of ClaudeBoost"],
+                  ["/boost --status", "Show connected account and sync state"],
                   ["/boost-settings", "View current boost settings (level and auto-boost status)"],
                   ["/boost-settings --level <light|medium|full>", "Change boost intensity. Short flag: -l"],
                   ["/boost-settings --auto <true|false>", "Toggle automatic prompt boosting. Short flag: -a"],
@@ -244,26 +245,26 @@ export default function DocsPage() {
               />
 
               <SubHeading>Examples</SubHeading>
-              <CodeBlock title="Claude Code">{`# Auto-boost is on — just type normally
+              <CodeBlock title="Claude Code">{`# First time only — register the MCP server
+> /boost --setup
+✅ MCP server registered. Restart Claude Code to activate.
+
+# After restart, auto-boost is on — just type normally
 > build me an API endpoint for user auth
 ⚡ CLAUDEBOOST · general_coding · Score: 8/30 → 22/30 (+14)
 🔧 Boost added: tests & success criteria, organized sections
-🔥 3-day streak · 15 total boosts · 4 today
-
-# Manually boost a specific prompt
-> /boost analyze our quarterly churn data
 
 # Skip boost for one prompt
 > fix this typo in readme.md --raw
 
-# Sign in to sync across devices
+# Sign in (email + password in terminal)
 > /boost --login
+
+# Check which account is connected
+> /boost --status
 
 # Change boost level
 > /boost-settings -l full
-
-# Turn off auto-boost
-> /boost-settings -a false
 
 # Well-structured prompts skip automatically
 > /boost fix the 403 error in src/auth/session.ts by adding token refresh
@@ -489,7 +490,7 @@ npm run dev
                   },
                   {
                     q: "How do I install it?",
-                    a: "Two commands: pip install claudeboost-mcp, then claudeboost-mcp --setup. Restart Claude Code and you're done. Works from any directory.",
+                    a: "Three steps: (1) pip install claudeboost-mcp in your terminal, (2) claudeboost-mcp --setup to configure API key and sign in, (3) /boost --setup inside Claude Code to register the MCP server. Restart Claude Code and you're done.",
                   },
                   {
                     q: "Do I need to type /boost every time?",

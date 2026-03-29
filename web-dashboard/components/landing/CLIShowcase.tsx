@@ -216,7 +216,7 @@ export function CLIShowcase() {
               </p>
               <div className="bg-background rounded-lg p-3 font-mono text-sm border border-border">
                 <div className="text-zinc-400">
-                  <span className="text-muted-foreground"># Install from PyPI</span>
+                  <span className="text-muted-foreground"># Terminal</span>
                 </div>
                 <div className="mt-1">
                   <span className="text-emerald-500">&#10095;</span>{" "}
@@ -224,8 +224,15 @@ export function CLIShowcase() {
                 </div>
                 <div className="mt-1">
                   <span className="text-emerald-500">&#10095;</span>{" "}
-                  <span className="text-zinc-300">claudeboost-mcp --setup</span>{" "}
-                  <span className="text-zinc-500"># that&apos;s it, restart Claude Code</span>
+                  <span className="text-zinc-300">claudeboost-mcp --setup</span>
+                </div>
+                <div className="mt-2 text-zinc-400">
+                  <span className="text-muted-foreground"># Inside Claude Code</span>
+                </div>
+                <div className="mt-1">
+                  <span className="text-emerald-500">&#10095;</span>{" "}
+                  <span className="text-zinc-300">/boost --setup</span>{" "}
+                  <span className="text-zinc-500"># done!</span>
                 </div>
               </div>
             </div>
