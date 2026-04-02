@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaudeBoost Pipeline Debugger</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0b14;--card:#12131f;--border:#1e2035;--primary:#7c3aed;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316;--blue:#3b82f6;--purple:#a855f7;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono',monospace}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:20px;font-weight:700}
+.tabs{display:flex;gap:4px;background:var(--card);border-radius:10px;padding:4px}
+.tab{padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s}
+.tab.active{background:var(--primary);color:#fff}
+.tab:hover:not(.active){color:var(--text);background:#ffffff08}
+.main{padding:24px 32px;max-width:1400px;margin:0 auto}
+.flow-bar{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px;overflow-x:auto}
+.flow-row{display:flex;align-items:center;gap:6px;justify-content:center;min-width:900px}
+.flow-node{padding:8px 14px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid transparent;text-align:center;min-width:90px}
+.flow-node:hover{transform:translateY(-2px)}
+.flow-node.ok{background:#22c55e15;border-color:#22c55e40;color:var(--green)}
+.flow-node.err{background:#ef444415;border-color:#ef444440;color:var(--red)}
+.flow-node.warn{background:#eab30815;border-color:#eab30840;color:var(--yellow)}
+.flow-node.idle{background:#64748b15;border-color:#64748b40;color:var(--muted)}
+.flow-arrow{color:#334155;font-size:14px}
+.presets{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.preset-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s}
+.preset-btn:hover{border-color:var(--primary);color:var(--text)}
+.preset-btn.active{background:#7c3aed20;border-color:var(--primary);color:var(--primary)}
+.run-btn{background:var(--primary);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:20px}
+.run-btn:hover{background:#6d28d9}
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.step-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.step-hdr:hover{background:#ffffff04}
+.step-num{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step-num.ok{background:#22c55e20;color:var(--green)}
+.step-num.err{background:#ef444420;color:var(--red)}
+.step-num.warn{background:#eab30820;color:var(--yellow)}
+.step-num.idle{background:#64748b20;color:var(--muted)}
+.step-title{font-weight:600;font-size:13px;flex:1}
+.step-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:6px}
+.step-badge.ok{background:#22c55e15;color:var(--green)}
+.step-badge.err{background:#ef444415;color:var(--red)}
+.step-badge.warn{background:#eab30815;color:var(--yellow)}
+.step-badge.idle{background:#64748b15;color:var(--muted)}
+.step-chev{color:var(--muted);transition:transform .2s;font-size:14px}
+.step.open .step-chev{transform:rotate(90deg)}
+.step-body{padding:0 18px 14px;display:none}
+.step.open .step-body{display:block}
+.check-line{font-size:12px;color:var(--muted);padding:3px 0}
+.fix-box{background:#7c3aed10;border:1px solid #7c3aed30;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px}
+.fix-title{color:var(--primary);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.code-block{font-family:var(--mono);background:#0d0e1a;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;color:#a5b4fc;margin:4px 0;white-space:pre}
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cfg-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.cfg-card h3{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.cfg-ta{width:100%;min-height:160px;background:#0d0e1a;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--mono);font-size:10px;color:var(--text);resize:vertical;line-height:1.5}
+.cfg-ta:focus{outline:none;border-color:var(--primary)}
+.cfg-err{font-size:10px;color:var(--red);margin-top:4px}
+.log-box{background:#0d0e1a;border:1px solid var(--border);border-radius:12px;padding:14px;min-height:400px;max-height:550px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.8}
+.log-l{display:flex;gap:10px}
+.log-t{color:var(--muted);flex-shrink:0}
+.log-c{font-weight:600;flex-shrink:0;min-width:75px}
+.log-c.classifier{color:var(--blue)}.log-c.scorer{color:var(--green)}.log-c.enhancer{color:var(--purple)}.log-c.db{color:var(--orange)}.log-c.auth{color:var(--yellow)}.log-c.mcp{color:#ec4899}.log-c.server{color:#06b6d4}
+.log-m{color:var(--text)}
+.log-m.e{color:var(--red)}.log-m.g{color:var(--green)}
+.hidden{display:none}
+.prompt-out{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:24px}
+.prompt-out h3{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.prompt-txt{font-size:12px;line-height:1.7;white-space:pre-wrap}
+.copy-btn{background:var(--primary);color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:10px;cursor:pointer;font-weight:500}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">&#9889; ClaudeBoost Pipeline Debugger</div>
+  <div class="tabs" id="tabBar"></div>
+</div>
+<div class="main">
+  <div class="presets" id="presetBar"></div>
+  <div class="flow-bar"><div class="flow-row" id="flowRow"></div></div>
+  <button class="run-btn" id="runBtn">&#128269; Run Diagnostics</button>
+  <span id="runStat" style="font-size:12px;color:var(--muted);margin-left:12px"></span>
+  <div id="tab-pipeline"><div class="steps" id="stepsEl"></div></div>
+  <div id="tab-config" class="hidden"><div class="config-grid" id="cfgGrid"></div></div>
+  <div id="tab-log" class="hidden">
+    <div style="display:flex;gap:6px;margin-bottom:10px" id="logFilters"></div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+  <div class="prompt-out">
+    <h3>Diagnostic Summary <button class="copy-btn" id="copyBtn">Copy</button></h3>
+    <div class="prompt-txt" id="promptEl"></div>
+  </div>
+</div>
+<script>
+const TABS=['pipeline','config','log'];
+const FLOW=[{id:'install',l:'pip install'},{id:'setup',l:'--setup'},{id:'mcp',l:'MCP Register'},{id:'auth',l:'Auth/Login'},{id:'classify',l:'Classify'},{id:'score',l:'Score'},{id:'enhance',l:'Enhance'},{id:'logb',l:'log_boost'},{id:'sync',l:'Supabase'},{id:'web',l:'Dashboard'}];
+const STEPS=[
+  {id:'install',n:'1',t:'Package Installation',checks:[{k:'pip',l:'claudeboost-mcp installed'},{k:'ver',l:'Package version'},{k:'py',l:'Python path'},{k:'imp',l:'Module imports'}],fix:'pip install claudeboost-mcp'},
+  {id:'setup',n:'2',t:'Setup Configuration',checks:[{k:'key',l:'ANTHROPIC_API_KEY set'},{k:'cfg',l:'~/.claudeboost/config.env exists'},{k:'sk',l:'Skills in ~/.claude/skills/'},{k:'skc',l:'Skills content up-to-date'}],fix:'claudeboost-mcp --setup'},
+  {id:'mcp',n:'3',t:'MCP Server Registration',checks:[{k:'mj',l:'mcp_settings.json exists'},{k:'me',l:'claudeboost entry present'},{k:'mc',l:'Command path valid'},{k:'ms',l:'Server can start'},{k:'ml',l:'Visible in claude mcp list'}],fix:'/boost --setup  (inside Claude Code)'},
+  {id:'auth',n:'4',t:'Authentication',checks:[{k:'aj',l:'auth.json exists'},{k:'at',l:'access_token present'},{k:'te',l:'Token not expired'},{k:'rt',l:'refresh_token present'},{k:'ak',l:'anon_key present'},{k:'ue',l:'User email decodable'}],fix:'claudeboost-mcp --login'},
+  {id:'boost',n:'5',t:'Boost Pipeline',checks:[{k:'cl',l:'Classifier (Haiku) works'},{k:'sc',l:'Scorer returns 6 dims'},{k:'en',l:'Enhancer returns text'},{k:'ss',l:'Smart skip at 20+/30'},{k:'lr',l:'Level routing correct'}],fix:'Check API key and model access'},
+  {id:'sync',n:'6',t:'Data Sync (Supabase)',checks:[{k:'sr',l:'Supabase API reachable'},{k:'ta',l:'Token authenticates'},{k:'wr',l:'Can write boost_history'},{k:'rd',l:'Can read boost_history'},{k:'ar',l:'Auto-refresh on 401'}],fix:'claudeboost-mcp --login'},
+  {id:'web',n:'7',t:'Web Dashboard',checks:[{k:'wr2',l:'claudeboost.vercel.app reachable'},{k:'lp',l:'/auth/login loads'},{k:'a4',l:'API returns 401 (RLS)'},{k:'dp',l:'/dashboard redirects'},{k:'doc',l:'/docs public'}],fix:'Check Vercel deployment'}
+];
+const CFGS=[
+  {k:'mcp',t:'~/.claude/mcp_settings.json',v:'{\n  "mcpServers": {\n    "claudeboost": {\n      "command": "/usr/bin/python3",\n      "args": ["-m", "claudeboost_mcp"],\n      "env": {"ANTHROPIC_API_KEY": "sk-ant-..."}\n    }\n  }\n}'},
+  {k:'auth',t:'~/.claudeboost/auth.json',v:'{\n  "access_token": "eyJ...",\n  "refresh_token": "abc123",\n  "user_id": "2aa933bd-...",\n  "supabase_url": "https://xxx.supabase.co",\n  "anon_key": "sb_publishable_...",\n  "created_at": "2026-03-29T15:00:00Z"\n}'},
+  {k:'env',t:'~/.claudeboost/config.env',v:'ANTHROPIC_API_KEY=sk-ant-api03-...'},
+  {k:'skill',t:'~/.claude/skills/boost/SKILL.md',v:'---\nname: boost\ndescription: Enhance a prompt...\n---\n# Boost Prompt\n## Instructions\n**If --setup:** run claude mcp add\n**If --login:** run claudeboost-mcp --login\n**Otherwise:** call boost_prompt MCP tool'}
+];
+const PRESETS={
+  healthy:()=>{const s={};STEPS.forEach(st=>st.checks.forEach(c=>s[c.k]='ok'));return s},
+  'no-mcp':()=>{const s=PRESETS.healthy();['mj','me','mc','ms','ml'].forEach(k=>s[k]='err');return s},
+  expired:()=>{const s=PRESETS.healthy();s.te='err';['ta','wr','rd','ar'].forEach(k=>s[k]='warn');return s},
+  'no-auth':()=>{const s=PRESETS.healthy();['aj','at','te','rt','ak','ue','ta','wr','rd','ar'].forEach(k=>s[k]='err');return s},
+  'no-key':()=>{const s=PRESETS.healthy();['key','cfg'].forEach(k=>s[k]='err');['cl','en'].forEach(k=>s[k]='err');return s},
+  fresh:()=>{const s={};STEPS.forEach(st=>st.checks.forEach(c=>s[c.k]='idle'));return s}
+};
+const LOGS={
+  healthy:[
+    {t:'00:00.000',c:'server',m:'MCP server starting...',s:''},
+    {t:'00:00.012',c:'auth',m:'Authenticated as user@example.com',s:'g'},
+    {t:'00:00.050',c:'server',m:'Tools registered: boost_prompt, log_boost, boost_settings, boost_help, boost_status',s:''},
+    {t:'00:02.100',c:'server',m:'Tool call: boost_prompt("build a REST API")',s:''},
+    {t:'00:02.112',c:'scorer',m:'Original score: 9/30',s:'g'},
+    {t:'00:02.115',c:'scorer',m:'Below skip threshold (20). Enhancing.',s:''},
+    {t:'00:02.750',c:'classifier',m:'Domain: general_coding (Haiku, 0.6s)',s:'g'},
+    {t:'00:02.900',c:'db',m:'Loaded 2 feedback entries + constraint from Supabase',s:'g'},
+    {t:'00:02.905',c:'enhancer',m:'Enhancing: level=medium, model=haiku, weak=[verification,constraints,structure]',s:''},
+    {t:'00:05.200',c:'enhancer',m:'Done (2.3s). 380 chars output.',s:'g'},
+    {t:'00:05.212',c:'scorer',m:'Boosted score: 22/30 (+13)',s:'g'},
+    {t:'00:12.000',c:'server',m:'Tool call: log_boost(chosen=boosted)',s:''},
+    {t:'00:12.350',c:'db',m:'Written to Supabase boost_history (id=42)',s:'g'},
+  ],
+  'no-mcp':[
+    {t:'--',c:'mcp',m:'Claude Code: No MCP servers configured',s:'e'},
+    {t:'--',c:'mcp',m:'mcp_settings.json missing or no claudeboost entry',s:'e'},
+    {t:'--',c:'mcp',m:'FIX: Run /boost --setup inside Claude Code',s:''},
+  ],
+  expired:[
+    {t:'00:00.000',c:'server',m:'MCP server starting...',s:''},
+    {t:'00:00.012',c:'auth',m:'Auth loaded from auth.json',s:'g'},
+    {t:'00:02.755',c:'db',m:'Loading feedback from Supabase...',s:''},
+    {t:'00:02.900',c:'db',m:'HTTP 401: JWT expired',s:'e'},
+    {t:'00:02.905',c:'db',m:'Refreshing token...',s:''},
+    {t:'00:03.200',c:'db',m:'Token refreshed successfully',s:'g'},
+    {t:'00:03.500',c:'db',m:'Retry: feedback loaded OK',s:'g'},
+  ],
+  'no-auth':[
+    {t:'00:00.000',c:'server',m:'MCP server starting...',s:''},
+    {t:'00:00.012',c:'auth',m:'auth.json not found',s:'e'},
+    {t:'00:02.100',c:'server',m:'Tool call: boost_prompt',s:''},
+    {t:'00:02.101',c:'server',m:'Returned: auth_required',s:'e'},
+    {t:'00:02.102',c:'server',m:'FIX: claudeboost-mcp --login',s:''},
+  ],
+  'no-key':[
+    {t:'00:02.120',c:'classifier',m:'Calling Haiku...',s:''},
+    {t:'00:02.500',c:'classifier',m:'AuthenticationError: invalid x-api-key',s:'e'},
+    {t:'00:02.510',c:'enhancer',m:'Calling Haiku...',s:''},
+    {t:'00:02.900',c:'enhancer',m:'AuthenticationError: invalid x-api-key',s:'e'},
+    {t:'00:02.901',c:'enhancer',m:'Enhancement failed, original returned',s:'e'},
+  ],
+  fresh:[{t:'--',c:'server',m:'No diagnostics run. Click "Run Diagnostics".',s:''}]
+};
+
+let state={},curPreset='healthy';
+
+function el(id){return document.getElementById(id)}
+function ce(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt)e.textContent=txt;return e}
+
+function init(){
+  // Tabs
+  const tb=el('tabBar');
+  TABS.forEach((t,i)=>{const d=ce('div','tab'+(i===0?' active':''),t.charAt(0).toUpperCase()+t.slice(1)+' View');d.onclick=()=>switchTab(t,d);tb.appendChild(d)});
+  // Presets
+  const pb=el('presetBar');
+  [{k:'healthy',l:'Healthy'},{k:'no-mcp',l:'No MCP'},{k:'expired',l:'Token Expired'},{k:'no-auth',l:'Not Logged In'},{k:'no-key',l:'No API Key'},{k:'fresh',l:'Fresh Install'}].forEach((p,i)=>{
+    const b=ce('div','preset-btn'+(i===0?' active':''),p.l);b.onclick=()=>{pb.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');curPreset=p.k;state=PRESETS[p.k]();renderAll()};pb.appendChild(b)});
+  // Log filters
+  const lf=el('logFilters');
+  ['all','classifier','scorer','enhancer','db','auth','server'].forEach((f,i)=>{
+    const b=ce('div','preset-btn'+(i===0?' active':''),f);b.onclick=()=>{lf.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');el('logBox').querySelectorAll('.log-l').forEach(l=>{l.style.display=f==='all'||l.dataset.c===f?'':'none'})};lf.appendChild(b)});
+  // Run btn
+  el('runBtn').onclick=runDiag;
+  // Copy btn
+  el('copyBtn').onclick=()=>{navigator.clipboard.writeText(el('promptEl').textContent);const b=el('copyBtn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000)};
+  // Config
+  renderCfg();
+  // Load default
+  state=PRESETS.healthy();renderAll();
+}
+
+function switchTab(t,btn){
+  el('tabBar').querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+  TABS.forEach(x=>el('tab-'+x).classList.toggle('hidden',x!==t));
+}
+
+function stepStatus(step){
+  const ss=step.checks.map(c=>state[c.k]||'idle');
+  if(ss.some(s=>s==='err'))return'err';if(ss.some(s=>s==='warn'))return'warn';if(ss.every(s=>s==='ok'))return'ok';return'idle';
+}
+
+function renderFlow(){
+  const r=el('flowRow');r.textContent='';
+  FLOW.forEach((f,i)=>{
+    const step=STEPS.find(s=>s.id===f.id)||STEPS.find(s=>s.id==='boost');
+    const st=step?stepStatus(step):'idle';
+    const n=ce('div','flow-node '+st,f.l);r.appendChild(n);
+    if(i<FLOW.length-1){const a=ce('span','flow-arrow','\u2192');r.appendChild(a)}
+  });
+}
+
+function renderSteps(){
+  const c=el('stepsEl');c.textContent='';
+  STEPS.forEach(step=>{
+    const st=stepStatus(step);
+    const lbl={ok:'\u2713 Pass',err:'\u2717 Fail',warn:'\u26a0 Warn',idle:'\u2014'}[st];
+    const div=ce('div','step');div.dataset.step=step.id;
+
+    const hdr=ce('div','step-hdr');
+    hdr.onclick=()=>div.classList.toggle('open');
+    const num=ce('div','step-num '+st,step.n);hdr.appendChild(num);
+    const ttl=ce('div','step-title',step.t);hdr.appendChild(ttl);
+    const bdg=ce('div','step-badge '+st,lbl);hdr.appendChild(bdg);
+    const chv=ce('div','step-chev','\u25b8');hdr.appendChild(chv);
+    div.appendChild(hdr);
+
+    const body=ce('div','step-body');
+    step.checks.forEach(ch=>{
+      const s=state[ch.k]||'idle';
+      const icon={ok:'\u2705',err:'\u274c',warn:'\u26a0\ufe0f',idle:'\u2b1c'}[s];
+      const ln=ce('div','check-line',icon+' '+ch.l);body.appendChild(ln);
+    });
+    if(st!=='ok'){
+      const fb=ce('div','fix-box');
+      const ft=ce('div','fix-title','Fix');fb.appendChild(ft);
+      const fc=ce('div','code-block',step.fix);fb.appendChild(fc);
+      body.appendChild(fb);
+    }
+    div.appendChild(body);c.appendChild(div);
+  });
+}
+
+function renderCfg(){
+  const g=el('cfgGrid');g.textContent='';
+  CFGS.forEach(cfg=>{
+    const card=ce('div','cfg-card');
+    const h=ce('h3','',cfg.t);card.appendChild(h);
+    const ta=document.createElement('textarea');ta.className='cfg-ta';ta.spellcheck=false;ta.value=cfg.v;
+    ta.oninput=()=>{
+      const errDiv=card.querySelector('.cfg-err');
+      if(cfg.k==='mcp'||cfg.k==='auth'){
+        try{const d=JSON.parse(ta.value);if(cfg.k==='mcp'&&!d.mcpServers?.claudeboost)throw new Error('Missing claudeboost entry');errDiv.textContent=''}
+        catch(e){errDiv.textContent=e.message}
+      }
+    };
+    card.appendChild(ta);
+    const err=ce('div','cfg-err');card.appendChild(err);
+    g.appendChild(card);
+  });
+}
+
+function renderLog(){
+  const b=el('logBox');b.textContent='';
+  (LOGS[curPreset]||LOGS.fresh).forEach(l=>{
+    const div=ce('div','log-l');div.dataset.c=l.c;
+    const t=ce('span','log-t',l.t);div.appendChild(t);
+    const c=ce('span','log-c '+l.c,'['+l.c+']');div.appendChild(c);
+    const m=ce('span','log-m'+(l.s==='e'?' e':l.s==='g'?' g':''),l.m);div.appendChild(m);
+    b.appendChild(div);
+  });
+}
+
+function updatePrompt(){
+  const issues=[];
+  STEPS.forEach(step=>{
+    const st=stepStatus(step);
+    if(st==='err'){
+      const fails=step.checks.filter(c=>state[c.k]==='err').map(c=>c.l);
+      issues.push(step.t+': '+fails.join(', ')+'\nFix: '+step.fix);
+    }else if(st==='warn'){
+      const warns=step.checks.filter(c=>state[c.k]==='warn').map(c=>c.l);
+      issues.push(step.t+' (warning): '+warns.join(', '));
+    }
+  });
+  el('promptEl').textContent=issues.length===0?
+    'All pipeline checks passed. ClaudeBoost is fully operational.\n\nInstall: v1.0.0\nAuth: user@example.com\nSync: Supabase connected\nLevel: medium (Haiku)\nAuto-boost: ON':
+    'ClaudeBoost has '+issues.length+' issue(s):\n\n'+issues.map((x,i)=>(i+1)+'. '+x).join('\n\n')+'\n\nRun: claudeboost-mcp --doctor';
+}
+
+function runDiag(){
+  const btn=el('runBtn'),stat=el('runStat');
+  btn.disabled=true;btn.textContent='Running...';stat.textContent='Checking...';
+  let i=0;const iv=setInterval(()=>{
+    if(i<STEPS.length){stat.textContent='Checking '+STEPS[i].t+'...';i++}
+    else{clearInterval(iv);btn.disabled=false;btn.textContent='\ud83d\udd0d Run Diagnostics';
+      const ok=Object.values(state).filter(v=>v==='ok').length;
+      const err=Object.values(state).filter(v=>v==='err').length;
+      stat.textContent=ok+' passed, '+err+' failed';stat.style.color=err?'var(--red)':'var(--green)'}
+  },250);
+}
+
+function renderAll(){renderFlow();renderSteps();renderLog();updatePrompt()}
+init();
+</script>
+</body>
+</html>

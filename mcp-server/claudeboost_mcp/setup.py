@@ -279,7 +279,10 @@ def get_python_path() -> str:
 
 def run_setup():
     """Set up ClaudeBoost: API key, skills, and login. Simple."""
-    print("⚡ ClaudeBoost Setup")
+    from . import __version__
+    from .version_check import write_version_file
+
+    print(f"⚡ ClaudeBoost Setup (v{__version__})")
     print("=" * 50)
     print()
 
@@ -323,7 +326,11 @@ def run_setup():
         print()
         run_login()
 
-    # 5. Generate the MCP add command
+    # 5. Write version metadata (for version checking)
+    write_version_file()
+    print(f"   ✅ Version {__version__} registered")
+
+    # 6. Generate the MCP add command
     python_path = sys.executable
     mcp_cmd = f'claude mcp add claudeboost -e "ANTHROPIC_API_KEY={api_key}" -- {python_path} -m claudeboost_mcp'
 
