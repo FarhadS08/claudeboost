@@ -10,6 +10,11 @@ from .feedback import get_streak
 from .scorer import score_prompt, get_weighted_weakest
 from .auth import is_authenticated, get_login_message, open_login_page, get_auth_status
 from .config import LOGIN_URL
+from .version_check import check_and_warn
+from . import __version__
+
+# Run version checks on startup
+check_and_warn()
 
 app = Server("claudeboost")
 
@@ -181,6 +186,7 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
         "improvement": boosted_score["total"] - original_score["total"],
         "improvements_added": improvements_added,
         "streak": get_streak(),
+        "server_version": __version__,
     })
 
     return [TextContent(type="text", text=result)]

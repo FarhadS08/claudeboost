@@ -20,6 +20,23 @@ def run():
             print("✅ Logged out of ClaudeBoost.")
         else:
             print("Not logged in.")
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--check", "check"):
+        from .version_check import check_all
+        from . import __version__
+        issues = check_all()
+        if not issues:
+            print(f"✅ ClaudeBoost v{__version__} — all checks passed")
+        else:
+            critical = [i for i in issues if i["severity"] == "critical"]
+            warnings = [i for i in issues if i["severity"] == "warning"]
+            if critical:
+                print(f"❌ ClaudeBoost v{__version__} — {len(critical)} issue(s):")
+                for i in critical:
+                    print(f"   ❌ {i['message']}")
+                    print(f"      Fix: {i['fix']}")
+            if warnings:
+                for i in warnings:
+                    print(f"   ⚠ {i['message']}")
     elif len(sys.argv) > 1 and sys.argv[1] in ("--status", "status"):
         from .auth import get_auth_status
         status = get_auth_status()
@@ -38,11 +55,12 @@ def run():
         print()
         print("Usage:")
         print("  claudeboost-mcp              Start the MCP server (used by Claude Code)")
-        print("  claudeboost-mcp --setup      Set up ClaudeBoost (MCP + skills + login)")
+        print("  claudeboost-mcp --setup      Set up ClaudeBoost (API key + skills + login)")
         print("  claudeboost-mcp --login      Sign in to ClaudeBoost")
         print("  claudeboost-mcp --logout     Sign out")
         print("  claudeboost-mcp --status     Show current auth status")
-        print("  claudeboost-mcp --doctor     Diagnose issues")
+        print("  claudeboost-mcp --check      Quick version/config consistency check")
+        print("  claudeboost-mcp --doctor     Full diagnostics")
         print("  claudeboost-mcp --version    Show version")
         print()
         print("After setup, restart Claude Code and use /boost")
@@ -61,6 +79,17 @@ def _run_doctor():
     print("🔍 ClaudeBoost Doctor")
     print("=" * 50)
     issues = []
+
+    # Version consistency check first
+    from .version_check import check_all
+    ver_issues = check_all()
+    if ver_issues:
+        print("\n⚠ Version/consistency issues:")
+        for vi in ver_issues:
+            icon = "❌" if vi["severity"] == "critical" else "⚠"
+            print(f"  {icon} [{vi['component']}] {vi['message']}")
+            print(f"     Fix: {vi['fix']}")
+        print()
 
     # 1. Package version
     from . import __version__
