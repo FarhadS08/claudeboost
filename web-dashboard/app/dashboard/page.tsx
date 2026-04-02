@@ -405,37 +405,39 @@ function HistoryContent() {
                   </div>
 
                   {/* Content: text + radar */}
-                  <div className="flex gap-4 mb-4">
-                    <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 flex-1 line-clamp-3">
-                      {truncated}
-                    </p>
+                  <div className="flex gap-4 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 line-clamp-2">
+                        {truncated}
+                      </p>
+                      {/* Transformation line: original fades into boosted */}
+                      {entry.boosted && (
+                        <div className="mt-2 flex items-center gap-0 overflow-hidden h-5">
+                          <span className="text-[10px] text-zinc-600 truncate max-w-[40%] shrink-0">
+                            {entry.original.slice(0, 25)}
+                          </span>
+                          <span className="mx-1.5 text-[10px] shrink-0" style={{ color: dc.accent }}>
+                            {"\u2192"}
+                          </span>
+                          <span className="text-[10px] truncate font-medium" style={{ color: dc.accent }}>
+                            {entry.boosted.replace(/\*\*/g, '').slice(0, 40)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={64} />
                   </div>
 
-                  {/* Bottom: arc gauge + delta + status */}
+                  {/* Bottom: score + delta + status */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* Mini arc gauge */}
-                      <svg width="40" height="24" viewBox="0 0 40 24" className="shrink-0">
-                        {/* Track */}
-                        <path d="M 4 22 A 18 18 0 0 1 36 22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" strokeLinecap="round" />
-                        {/* Fill */}
-                        <path
-                          d="M 4 22 A 18 18 0 0 1 36 22"
-                          fill="none"
-                          stroke={dc.accent}
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeDasharray={`${scorePercent * 0.52} 100`}
-                          style={{ filter: `drop-shadow(0 0 4px ${dc.accent}60)` }}
-                        />
-                        {/* Score text */}
-                        <text x="20" y="18" textAnchor="middle" fill="white" fontSize="8" fontWeight="800" fontFamily="ui-monospace, monospace">
-                          {entry.boosted_score?.total ?? '?'}
-                        </text>
-                      </svg>
+                      {entry.original_score && entry.boosted_score && (
+                        <span className="text-[10px] text-zinc-600 font-mono tabular-nums">
+                          {entry.original_score.total}<span className="text-zinc-700 mx-1">{"\u2192"}</span><span className="font-semibold" style={{ color: dc.accent }}>{entry.boosted_score.total}</span><span className="text-zinc-700">/30</span>
+                        </span>
+                      )}
                       {delta !== null && delta > 0 && (
-                        <span className="text-[10px] font-mono font-bold" style={{ color: dc.accent, textShadow: `0 0 6px ${dc.accent}40` }}>+{delta}</span>
+                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ color: dc.accent, backgroundColor: `${dc.accent}12`, textShadow: `0 0 6px ${dc.accent}30` }}>+{delta}</span>
                       )}
                     </div>
 
