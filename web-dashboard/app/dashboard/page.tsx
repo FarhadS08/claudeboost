@@ -326,7 +326,14 @@ function HistoryContent() {
         </div>
       )}
 
-      {/* Domain pills — always show domain colors */}
+      {/* Section divider */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Recent Boosts</span>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
+      </div>
+
+      {/* Domain pills */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
         {DOMAINS.map((d) => {
           const c = DOMAIN_COLORS[d] || DOMAIN_COLORS.other;
@@ -382,8 +389,10 @@ function HistoryContent() {
                   style={{ background: `radial-gradient(ellipse at 20% 20%, ${dc.accent}18, transparent 65%)` }}
                 />
 
-                {/* Top accent strip */}
-                <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${dc.accent}, ${dc.accent}40)` }} />
+                {/* Top accent strip with shimmer */}
+                <div className="relative h-1 w-full overflow-hidden" style={{ background: `linear-gradient(90deg, ${dc.accent}, ${dc.accent}40)` }}>
+                  <div className="absolute inset-0 animate-shimmer" style={{ background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)` }} />
+                </div>
 
                 {/* Card body */}
                 <div className={`relative p-5 transition-colors duration-300 ${
@@ -397,38 +406,37 @@ function HistoryContent() {
 
                   {/* Content: text + radar */}
                   <div className="flex gap-4 mb-4">
-                    {/* Prompt text */}
                     <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 flex-1 line-clamp-3">
                       {truncated}
                     </p>
-                    {/* Radar bloom */}
                     <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={64} />
                   </div>
 
-                  {/* Score bar + metrics */}
-                  <div className="flex items-end justify-between">
-                    <div className="flex-1 mr-4">
-                      {/* Score progress */}
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] text-zinc-600 font-mono">Score</span>
-                        {delta !== null && delta > 0 && (
-                          <span className="text-[10px] font-mono font-bold text-emerald-400" style={{ textShadow: '0 0 6px rgba(16,185,129,0.3)' }}>+{delta}</span>
-                        )}
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700 ease-out"
-                          style={{
-                            width: `${scorePercent}%`,
-                            background: `linear-gradient(90deg, ${dc.accent}, ${dc.accent}90)`,
-                            boxShadow: `0 0 8px ${dc.accent}40`,
-                          }}
+                  {/* Bottom: arc gauge + delta + status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Mini arc gauge */}
+                      <svg width="40" height="24" viewBox="0 0 40 24" className="shrink-0">
+                        {/* Track */}
+                        <path d="M 4 22 A 18 18 0 0 1 36 22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" strokeLinecap="round" />
+                        {/* Fill */}
+                        <path
+                          d="M 4 22 A 18 18 0 0 1 36 22"
+                          fill="none"
+                          stroke={dc.accent}
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeDasharray={`${scorePercent * 0.52} 100`}
+                          style={{ filter: `drop-shadow(0 0 4px ${dc.accent}60)` }}
                         />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-zinc-700 font-mono">{entry.original_score?.total ?? '?'}</span>
-                        <span className="text-[9px] font-mono font-semibold" style={{ color: dc.accent }}>{entry.boosted_score?.total ?? '?'}/30</span>
-                      </div>
+                        {/* Score text */}
+                        <text x="20" y="18" textAnchor="middle" fill="white" fontSize="8" fontWeight="800" fontFamily="ui-monospace, monospace">
+                          {entry.boosted_score?.total ?? '?'}
+                        </text>
+                      </svg>
+                      {delta !== null && delta > 0 && (
+                        <span className="text-[10px] font-mono font-bold" style={{ color: dc.accent, textShadow: `0 0 6px ${dc.accent}40` }}>+{delta}</span>
+                      )}
                     </div>
 
                     {/* Status badge */}
