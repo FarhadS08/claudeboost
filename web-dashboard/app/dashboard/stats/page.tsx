@@ -73,7 +73,7 @@ function HowItWorksSection() {
             <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
               This is <span className="text-primary font-medium">Reinforcement Learning from Human Feedback (RLHF)</span>.
               Every time you rate a boost or leave feedback like &quot;always use PyTorch&quot; or &quot;keep it shorter&quot;,
-              ClaudeBoost stores your preferences. On the next boost in that domain, your last 5 feedback entries
+              ClaudeBoost stores your preferences. On the next boost in that domain, it loads your last 5 feedback entries
               + your domain constraints are injected into the enhancement prompt. The AI learns your style over time.
             </p>
           </div>
@@ -290,449 +290,443 @@ export default function StatsPage() {
   }
   const maxCount = Math.max(...last7.map((d) => d.count), 1);
 
+  // ── Radar data ────────────────────────────────────────────────────────────
+  const avgBeforeBreakdown = {
+    dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgBefore])) as any,
+    total: dimAverages.reduce((s, d) => s + d.avgBefore, 0),
+    average: 0,
+    level: 0,
+  } as ScoreBreakdown;
+
+  const avgAfterBreakdown = {
+    dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgAfter])) as any,
+    total: dimAverages.reduce((s, d) => s + d.avgAfter, 0),
+    average: 0,
+    level: 0,
+  } as ScoreBreakdown;
+
+  // ── Insights ──────────────────────────────────────────────────────────────
+  const strongestDim = dimAverages.length > 0
+    ? dimAverages.reduce((best, d) => d.avgAfter > best.avgAfter ? d : best, dimAverages[0])
+    : null;
+  const weakestDim = dimAverages.length > 0
+    ? dimAverages.reduce((worst, d) => d.avgAfter < worst.avgAfter ? d : worst, dimAverages[0])
+    : null;
+  const mostImprovedDim = dimAverages.length > 0
+    ? dimAverages.reduce((best, d) => (d.avgAfter - d.avgBefore) > (best.avgAfter - best.avgBefore) ? d : best, dimAverages[0])
+    : null;
+
+  // ── Domain counts for donut ───────────────────────────────────────────────
+  const domainCounts: Record<string, number> = {};
+  for (const e of entries) domainCounts[e.domain] = (domainCounts[e.domain] ?? 0) + 1;
+  const sortedDomains = Object.entries(domainCounts).sort((a, b) => b[1] - a[1]);
+
+  // ── Average rating ────────────────────────────────────────────────────────
+  const ratedEntries = entries.filter((e) => e.rating !== null);
+  const avgRating = ratedEntries.length > 0
+    ? ratedEntries.reduce((s, e) => s + (e.rating ?? 0), 0) / ratedEntries.length
+    : null;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground text-sm animate-pulse">Loading stats…</p>
+        <p className="text-muted-foreground text-sm animate-pulse">Loading stats...</p>
       </div>
     );
   }
 
+  // ── Donut SVG helpers ─────────────────────────────────────────────────────
+  const donutR = 52;
+  const donutC = 2 * Math.PI * donutR;
+  const totalDomainEntries = entries.length || 1;
+
+  // Level stacked bar total
+  const totalLevelCounted = Object.values(levelCounts).reduce((a, b) => a + b, 0) || 1;
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
+      {/* ── Section 1: Header ──────────────────────────────────────────── */}
+      <div className="mb-8 animate-fade-slide-up" style={{ animationDelay: "0ms" }}>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Stats</h1>
-        <p className="text-zinc-500 mt-2 text-[15px]">
-          Evaluation metrics for your prompt boosts
-        </p>
+        <p className="text-zinc-500 mt-2 text-[15px]">Your prompt enhancement analytics</p>
       </div>
 
-      {/* ── Hero Stats Row ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2 animate-fade-slide-up" style={{ animationDelay: "0ms" }}>
-        {/* Total Boosts */}
-        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
-          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Total Boosts</p>
-          <AnimatedNumber
-            value={entries.length}
-            className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-white"
-            style={{ textShadow: "0 0 40px rgba(124,58,237,0.35)" }}
-          />
-        </div>
-
-        {/* Avg Score Lift */}
-        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
+      {/* ── Section 2: Hero Score Overview ────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        {/* Card 1 — Score Lift */}
+        <div
+          className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl p-6 hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "60ms" }}
+        >
           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Avg Score Lift</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-3">Score Lift</p>
           {avgScoreLift !== null ? (
             <AnimatedNumber
               value={avgScoreLift}
               decimals={1}
-              prefix={avgScoreLift >= 0 ? "+" : ""}
-              className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
+              prefix="+"
+              className="text-5xl font-black font-mono tabular-nums text-emerald-400"
               style={{ textShadow: "0 0 40px rgba(16,185,129,0.35)" }}
             />
           ) : (
-            <span className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
+            <span className="text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
           )}
+          <p className="text-xs text-zinc-500 mt-2">avg improvement per boost</p>
         </div>
 
-        {/* Success Rate */}
-        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
-          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Success Rate</p>
-          {boostSuccessRate !== null ? (
+        {/* Card 2 — Acceptance Rate */}
+        <div
+          className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl p-6 hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "120ms" }}
+        >
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-3">Acceptance Rate</p>
+          {acceptanceRate !== null ? (
             <AnimatedNumber
-              value={boostSuccessRate}
+              value={acceptanceRate}
               decimals={0}
               suffix="%"
-              className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
-              style={{ textShadow: "0 0 40px rgba(16,185,129,0.35)" }}
+              className="text-5xl font-black font-mono tabular-nums text-purple-400"
+              style={{ textShadow: "0 0 40px rgba(124,58,237,0.35)" }}
             />
           ) : (
-            <span className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
+            <span className="text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
           )}
+          <p className="text-xs text-zinc-500 mt-2">prompts boosted</p>
+        </div>
+
+        {/* Card 3 — Total Boosts */}
+        <div
+          className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl p-6 hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "180ms" }}
+        >
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-3">Total Boosts</p>
+          <AnimatedNumber
+            value={entries.length}
+            className="text-5xl font-black font-mono tabular-nums text-white"
+            style={{ textShadow: "0 0 40px rgba(124,58,237,0.35)" }}
+          />
+          <p className="text-xs text-zinc-500 mt-2">prompts enhanced</p>
         </div>
       </div>
 
-      {/* ── Section Divider ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-4 my-8">
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Detailed Analytics</span>
-        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
-      </div>
-
-      <div className="space-y-6">
-        {/* ── How ClaudeBoost Learns ──────────────────────────────────────── */}
-        <HowItWorksSection />
-
-        {/* ── Section 1: Boost Acceptance Rate ─────────────────────────────── */}
+      {/* ── Section 3: Radar + Insights ──────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        {/* LEFT: Radar + Score Bars */}
         <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "0ms" }}
-        >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            Boost Acceptance Rate
-            <InfoTooltip text="How often you chose the boosted version over your original prompt. Only counts prompts where you made an explicit choice (Use boosted or Keep original)." />
-          </h2>
-          {decidedEntries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
-          ) : (
-            <div className="flex items-center gap-6">
-              <span
-                className="text-5xl sm:text-7xl font-black font-mono tabular-nums text-white"
-                style={{ textShadow: '0 0 40px rgba(124,58,237,0.3)' }}
-              >
-                {acceptanceRate!.toFixed(0)}%
-              </span>
-              <div className="flex-1">
-                <div className="h-2 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all"
-                    style={{ width: `${acceptanceRate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-zinc-500 mt-2">
-                  {boostedEntries.length} of {decidedEntries.length} decided prompts chose the
-                  boosted version
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── Section 1.5: Boosts by Domain (all entries) ─────────────────── */}
-        <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "80ms" }}
-        >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            Boosts by Domain
-            <InfoTooltip text="Total number of prompts boosted in each domain. ClaudeBoost auto-classifies prompts into 7 domains. Click a bar to filter History by that domain." />
-          </h2>
-          {entries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
-          ) : (
-            <div className="space-y-3">
-              {(() => {
-                const counts: Record<string, number> = {};
-                for (const e of entries) counts[e.domain] = (counts[e.domain] ?? 0) + 1;
-                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-                const maxDomainCount = Math.max(...sorted.map(([, c]) => c), 1);
-                return sorted.map(([domain, count]) => {
-                  const dc = DOMAIN_COLORS[domain as Domain] || DOMAIN_COLORS.other;
-                  return (
-                    <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
-                      <div className="w-36 shrink-0">
-                        <DomainBadge domain={domain as Domain} />
-                      </div>
-                      <div className="flex-1 h-3 bg-[rgba(255,255,255,0.04)] rounded overflow-hidden">
-                        <div className="h-full rounded transition-all duration-500" style={{ width: `${(count / maxDomainCount) * 100}%`, backgroundColor: dc.accent }} />
-                      </div>
-                      <span className="text-xs font-mono tabular-nums text-zinc-400 w-8 text-right">
-                        {count}
-                      </span>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          )}
-        </div>
-
-        {/* ── Section 2: Average Rating by Domain ──────────────────────────── */}
-        <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "160ms" }}
-        >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            Average Rating by Domain
-            <InfoTooltip text="Average star rating (1-5) you gave to boosted prompts, grouped by domain. Rate boosts in the History page by expanding a card and using the feedback form." />
-          </h2>
-          {domainAvgRatings.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
-          ) : (
-            <div className="space-y-3">
-              {domainAvgRatings.map(({ domain, avg }) => (
-                <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
-                  <div className="w-36 shrink-0">
-                    <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
-                  </div>
-                  <div className="flex-1 h-3 bg-[rgba(255,255,255,0.04)] rounded overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded"
-                      style={{ width: `${(avg / 5) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-mono tabular-nums text-zinc-400 w-14 text-right">
-                    {avg.toFixed(1)} ★
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Section 3: Score Improvement Histogram ───────────────────────── */}
-        <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          className="flex-[3] bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
           style={{ animationDelay: "240ms" }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 flex items-center">
-                Score Improvement — Before vs After
-                <InfoTooltip text="Each prompt is scored across 6 dimensions (1-5 each): Specificity, Verification, Context, Constraints, Structure, and Output. Gray bars show the average original score, green bars show the average boosted score. Higher is better." />
-              </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                Based on {scoredEntries.length} of {entries.length} boosts with scoring data
-              </p>
-            </div>
-            <span className="text-xs text-zinc-500">
-              <span className="inline-block w-3 h-3 rounded bg-zinc-500/40 mr-1 align-middle" />
-              Before ·{" "}
-              <span className="inline-block w-3 h-3 rounded bg-emerald-500 mr-1 align-middle" />
-              After
-            </span>
-          </div>
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Score Improvement Radar
+          </h2>
           {scoredEntries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
+            <p className="text-muted-foreground text-sm">No scoring data yet</p>
           ) : (
             <>
-            {/* Radar visualization */}
-            {(() => {
-              const avgBeforeBreakdown = { dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgBefore])), total: 0, average: 0, level: 0 } as ScoreBreakdown;
-              const avgAfterBreakdown = { dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgAfter])), total: 0, average: 0, level: 0 } as ScoreBreakdown;
-              return (
-                <div className="flex justify-center mb-6">
-                  <ScoreRadar before={avgBeforeBreakdown} after={avgAfterBreakdown} accent="#7c3aed" size={160} showLabels />
-                </div>
-              );
-            })()}
-            <div className="space-y-3">
-              {dimAverages.map(({ dim, label, avgBefore, avgAfter }) => (
-                <ScoreBar
-                  key={dim}
-                  label={label}
-                  before={parseFloat(avgBefore.toFixed(2))}
-                  after={parseFloat(avgAfter.toFixed(2))}
+              <div className="flex justify-center mb-5">
+                <ScoreRadar
+                  before={avgBeforeBreakdown}
+                  after={avgAfterBreakdown}
+                  size={200}
+                  showLabels
+                  accent="#7c3aed"
                 />
-              ))}
-            </div>
+              </div>
+              <div className="space-y-3">
+                {dimAverages.map(({ dim, label, avgBefore, avgAfter }) => (
+                  <ScoreBar
+                    key={dim}
+                    label={label}
+                    before={parseFloat(avgBefore.toFixed(2))}
+                    after={parseFloat(avgAfter.toFixed(2))}
+                  />
+                ))}
+              </div>
             </>
           )}
         </div>
 
-        {/* ── Section 4: ROI Metrics ────────────────────────────────────────── */}
+        {/* RIGHT: Insights */}
         <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "320ms" }}
+          className="flex-[2] bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "300ms" }}
         >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            ROI Metrics
-            <InfoTooltip text="Return on Investment metrics. Avg Score Lift = how many points the boost adds (out of 30). Quality Level Distribution = how many boosts reach each quality tier (L1=Unacceptable to L5=Enterprise). Success Rate = % of boosts that improved the score. Dims Improved = how many of the 6 dimensions got better per boost." />
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Insights
           </h2>
           {scoredEntries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
+            <p className="text-muted-foreground text-sm">No scoring data yet</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Card 1: Avg Score Lift */}
-              <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Avg Score Lift</p>
-                {avgScoreLift !== null ? (
-                  <AnimatedNumber
-                    value={avgScoreLift}
-                    decimals={1}
-                    prefix={avgScoreLift >= 0 ? "+" : ""}
-                    className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
-                    style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
-                  />
-                ) : (
-                  <span className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400">--</span>
-                )}
-                <p className="text-xs text-zinc-500 mt-1">points (total score)</p>
-              </div>
-
-              {/* Card 2: Quality Level Distribution */}
-              <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Quality Level Distribution</p>
-                <div className="space-y-1.5">
-                  {[5, 4, 3, 2, 1].map((lvl) => (
-                    <div key={lvl} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => levelCounts[lvl] > 0 && router.push(`/dashboard?level=${lvl}`)}>
-                      <span
-                        className={`text-xs w-20 shrink-0 ${LEVEL_COLORS[lvl]}`}
-                      >
-                        L{lvl} {LEVEL_LABELS[lvl]}
-                      </span>
-                      <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.04)] rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${LEVEL_BAR_COLORS[lvl]}`}
-                          style={{
-                            width: `${(levelCounts[lvl] / maxLevelCount) * 100}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-mono tabular-nums text-zinc-400 w-4 text-right">
-                        {levelCounts[lvl]}
-                      </span>
-                    </div>
-                  ))}
+            <div className="space-y-5">
+              {/* Strongest */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-emerald-400 text-sm">&#9650;</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Strongest Dimension</p>
+                  <p className="text-sm font-semibold text-zinc-200 mt-0.5">{strongestDim?.label}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{strongestDim?.avgAfter.toFixed(1)} / 5 avg</p>
                 </div>
               </div>
 
-              {/* Card 3: Boost Success Rate */}
-              <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Boost Success Rate</p>
-                {boostSuccessRate !== null ? (
-                  <AnimatedNumber
-                    value={boostSuccessRate}
-                    decimals={0}
-                    suffix="%"
-                    className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
-                    style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
-                  />
-                ) : (
-                  <span className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400">--</span>
-                )}
-                <p className="text-xs text-zinc-500 mt-1">
-                  of entries where boosted score &gt; original
-                </p>
-              </div>
-
-              {/* Card 4: Avg Dimensions Improved */}
-              <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Avg Dimensions Improved</p>
-                {avgDimsImproved !== null ? (
-                  <AnimatedNumber
-                    value={avgDimsImproved}
-                    decimals={1}
-                    className="text-5xl font-black font-mono tabular-nums text-purple-400"
-                    style={{ textShadow: '0 0 30px rgba(124,58,237,0.3)' }}
-                  />
-                ) : (
-                  <span className="text-5xl font-black font-mono tabular-nums text-purple-400">--</span>
-                )}
-                <p className="text-xs text-zinc-500 mt-1">
-                  of {dimensions.length} dimensions per boost
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── Section 5: Feedback Coverage ─────────────────────────────────── */}
-        <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "400ms" }}
-        >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            Feedback Coverage
-            <InfoTooltip text="Percentage of boosted prompts where you left a star rating or text feedback. Higher coverage means ClaudeBoost learns your preferences better and tailors future boosts to your style." />
-          </h2>
-          {entries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
-          ) : (
-            <div className="flex items-center gap-8">
-              {/* SVG Donut */}
-              <svg width="100" height="100" viewBox="0 0 100 100">
-                <defs>
-                  <filter id="donut-glow">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <circle
-                  cx="50"
-                  cy="50"
-                  r={R}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.06)"
-                  strokeWidth={10}
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r={R}
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={10}
-                  strokeDasharray={`${dash} ${C}`}
-                  strokeLinecap="round"
-                  transform="rotate(-90 50 50)"
-                  filter="url(#donut-glow)"
-                  className="transition-all duration-1000"
-                  style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
-                />
-                <text
-                  x="50"
-                  y="54"
-                  textAnchor="middle"
-                  className="fill-foreground text-2xl font-black font-mono"
-                  fontSize="16"
-                  fontWeight="900"
-                  fill="currentColor"
-                >
-                  {feedbackPct.toFixed(0)}%
-                </text>
-              </svg>
-              <div>
-                <p className="text-2xl font-black font-mono tabular-nums">
-                  {withFeedback}{" "}
-                  <span className="text-base font-normal text-zinc-500">
-                    of {entries.length}
-                  </span>
-                </p>
-                <p className="text-sm text-zinc-500 mt-1">prompts have feedback</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── Section 6: Daily Activity — Last 7 Days ──────────────────────── */}
-        <div
-          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-7 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
-          style={{ animationDelay: "480ms" }}
-        >
-          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-6 flex items-center">
-            Daily Activity — Last 7 Days
-            <InfoTooltip text="Number of prompts boosted each day over the past week. Tracks your ClaudeBoost usage pattern." />
-          </h2>
-          {entries.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No data yet</p>
-          ) : (
-            <div className="flex items-end gap-2 h-28">
-              {last7.map(({ label, count }) => (
-                <div key={label} className="group relative flex-1 flex flex-col items-center gap-1">
-                  {/* Hover tooltip */}
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                    <span className="bg-zinc-800 text-zinc-200 text-[10px] font-mono px-2 py-0.5 rounded-md whitespace-nowrap border border-[rgba(255,255,255,0.08)]">
-                      {count} boost{count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono tabular-nums text-zinc-400">
-                    {count > 0 ? count : ""}
-                  </span>
-                  <div className="w-full flex items-end" style={{ height: "72px" }}>
-                    <div
-                      className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg transition-all duration-300 group-hover:from-purple-500 group-hover:to-purple-300"
-                      style={{
-                        height: `${(count / maxCount) * 100}%`,
-                        minHeight: count > 0 ? "8px" : "0",
-                        boxShadow: count > 0 ? "0 0 12px rgba(124,58,237,0.2)" : undefined,
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-zinc-600 font-mono">{label}</span>
+              {/* Weakest */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-red-400 text-sm">&#9660;</span>
                 </div>
-              ))}
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Weakest Dimension</p>
+                  <p className="text-sm font-semibold text-zinc-200 mt-0.5">{weakestDim?.label}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{weakestDim?.avgAfter.toFixed(1)} / 5 avg</p>
+                </div>
+              </div>
+
+              {/* Most Improved */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-purple-400 text-sm">&#9733;</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Most Improved</p>
+                  <p className="text-sm font-semibold text-zinc-200 mt-0.5">{mostImprovedDim?.label}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    +{((mostImprovedDim?.avgAfter ?? 0) - (mostImprovedDim?.avgBefore ?? 0)).toFixed(1)} improvement
+                  </p>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-[rgba(255,255,255,0.06)]" />
+
+              {/* Quick stats */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-500">Success Rate</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    {boostSuccessRate !== null ? `${boostSuccessRate.toFixed(0)}%` : "--"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-500">Avg Dims Improved</span>
+                  <span className="text-xs font-mono font-bold text-purple-400">
+                    {avgDimsImproved !== null ? `${avgDimsImproved.toFixed(1)} / 6` : "--"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-500">Scored Boosts</span>
+                  <span className="text-xs font-mono font-bold text-zinc-300">
+                    {scoredEntries.length} of {entries.length}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* ── Section 4: Analytics Grid ────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+        {/* Card 1 — Domain Distribution (Donut) */}
+        <div
+          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "360ms" }}
+        >
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Domain Distribution
+          </h2>
+          {entries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No data yet</p>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <svg width="140" height="140" viewBox="0 0 140 140" className="shrink-0">
+                {(() => {
+                  let offset = 0;
+                  return sortedDomains.map(([domain, count]) => {
+                    const dc = DOMAIN_COLORS[domain as Domain] || DOMAIN_COLORS.other;
+                    const pct = count / totalDomainEntries;
+                    const segDash = pct * donutC;
+                    const segOffset = -offset * donutC - donutC * 0.25; // rotate -90deg
+                    offset += pct;
+                    return (
+                      <circle
+                        key={domain}
+                        cx="70"
+                        cy="70"
+                        r={donutR}
+                        fill="none"
+                        stroke={dc.accent}
+                        strokeWidth="14"
+                        strokeDasharray={`${segDash} ${donutC - segDash}`}
+                        strokeDashoffset={-segOffset}
+                        className="transition-all duration-700"
+                        style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+                      />
+                    );
+                  });
+                })()}
+                <text
+                  x="70"
+                  y="74"
+                  textAnchor="middle"
+                  className="fill-foreground"
+                  fontSize="20"
+                  fontWeight="900"
+                  fontFamily="ui-monospace, monospace"
+                  fill="currentColor"
+                >
+                  {entries.length}
+                </text>
+              </svg>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
+                {sortedDomains.map(([domain, count]) => (
+                  <div
+                    key={domain}
+                    className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => router.push(`/dashboard?domain=${domain}`)}
+                  >
+                    <DomainBadge domain={domain as Domain} />
+                    <span className="text-xs font-mono tabular-nums text-zinc-500">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Card 2 — Weekly Activity */}
+        <div
+          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "420ms" }}
+        >
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Weekly Activity
+          </h2>
+          {entries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No data yet</p>
+          ) : (
+            <div className="flex items-end justify-center gap-3 pt-4">
+              {last7.map(({ label, count }) => {
+                const intensity = count / maxCount;
+                return (
+                  <div key={label} className="group relative flex flex-col items-center gap-2">
+                    {/* Hover tooltip */}
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                      <span className="bg-zinc-800 text-zinc-200 text-[10px] font-mono px-2 py-0.5 rounded-md whitespace-nowrap border border-[rgba(255,255,255,0.08)]">
+                        {count} boost{count !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div
+                      className="w-10 h-10 rounded-lg transition-all duration-300 group-hover:scale-110"
+                      style={{
+                        backgroundColor: count === 0
+                          ? "rgba(255,255,255,0.03)"
+                          : `rgba(124,58,237,${0.15 + intensity * 0.65})`,
+                        boxShadow: count > 0
+                          ? `0 0 ${8 + intensity * 16}px rgba(124,58,237,${intensity * 0.3})`
+                          : undefined,
+                      }}
+                    />
+                    <span className="text-[10px] text-zinc-600 font-mono">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Card 3 — Quality Levels */}
+        <div
+          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "480ms" }}
+        >
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Quality Levels
+          </h2>
+          {scoredEntries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No data yet</p>
+          ) : (
+            <div>
+              {/* Stacked bar */}
+              <div className="h-6 rounded-full overflow-hidden flex bg-[rgba(255,255,255,0.04)]">
+                {[1, 2, 3, 4, 5].map((lvl) => {
+                  const pct = (levelCounts[lvl] / totalLevelCounted) * 100;
+                  if (pct === 0) return null;
+                  return (
+                    <div
+                      key={lvl}
+                      className={`${LEVEL_BAR_COLORS[lvl]} transition-all duration-500 cursor-pointer hover:brightness-110`}
+                      style={{ width: `${pct}%` }}
+                      onClick={() => levelCounts[lvl] > 0 && router.push(`/dashboard?level=${lvl}`)}
+                      title={`L${lvl} ${LEVEL_LABELS[lvl]}: ${levelCounts[lvl]}`}
+                    />
+                  );
+                })}
+              </div>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4">
+                {[5, 4, 3, 2, 1].map((lvl) => (
+                  <div
+                    key={lvl}
+                    className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => levelCounts[lvl] > 0 && router.push(`/dashboard?level=${lvl}`)}
+                  >
+                    <div className={`w-2.5 h-2.5 rounded-sm ${LEVEL_BAR_COLORS[lvl]}`} />
+                    <span className={`text-[10px] ${LEVEL_COLORS[lvl]}`}>
+                      L{lvl} {LEVEL_LABELS[lvl]}
+                    </span>
+                    <span className="text-[10px] font-mono tabular-nums text-zinc-500">{levelCounts[lvl]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Card 4 — Feedback & Rating */}
+        <div
+          className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl p-6 backdrop-blur-xl hover:border-[rgba(255,255,255,0.1)] transition-all duration-300 animate-fade-slide-up"
+          style={{ animationDelay: "540ms" }}
+        >
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-4">
+            Feedback & Rating
+          </h2>
+          {entries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No data yet</p>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Feedback Coverage</p>
+                <AnimatedNumber
+                  value={feedbackPct}
+                  decimals={0}
+                  suffix="%"
+                  className="text-4xl font-black font-mono tabular-nums text-purple-400"
+                  style={{ textShadow: "0 0 30px rgba(124,58,237,0.3)" }}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Average Rating</p>
+                {avgRating !== null ? (
+                  <span className="text-4xl font-black font-mono tabular-nums text-amber-400" style={{ textShadow: "0 0 30px rgba(245,158,11,0.3)" }}>
+                    {avgRating.toFixed(1)} <span className="text-lg">&#9733;</span>
+                  </span>
+                ) : (
+                  <span className="text-4xl font-black font-mono tabular-nums text-zinc-600">--</span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-500">
+                {ratedEntries.length} of {entries.length} prompts rated
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Section 5: How ClaudeBoost Learns ────────────────────────── */}
+      <HowItWorksSection />
     </div>
   );
 }
