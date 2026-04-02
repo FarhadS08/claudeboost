@@ -155,7 +155,7 @@ function HowItWorksSection() {
             <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-3">
               Boost Levels & Scoring Targets
             </h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { level: "Light", target: "Level 3 (15+/30)", desc: "Fixes dimensions scoring 1-2 only. Clarifies and structures. Stays close to your original." },
                 { level: "Medium", target: "Level 4 (21+/30)", desc: "Fixes dimensions below 3. Adds verification, constraints, and structure. Balanced default." },
@@ -300,7 +300,7 @@ export default function StatsPage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-black tracking-tight">Stats</h1>
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Stats</h1>
         <p className="text-zinc-500 mt-2 text-[15px]">
           Evaluation metrics for your prompt boosts
         </p>
@@ -324,7 +324,7 @@ export default function StatsPage() {
           ) : (
             <div className="flex items-center gap-6">
               <span
-                className="text-7xl font-black font-mono tabular-nums text-white"
+                className="text-5xl sm:text-7xl font-black font-mono tabular-nums text-white"
                 style={{ textShadow: '0 0 40px rgba(124,58,237,0.3)' }}
               >
                 {acceptanceRate!.toFixed(0)}%
@@ -467,12 +467,12 @@ export default function StatsPage() {
           {scoredEntries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Card 1: Avg Score Lift */}
               <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Avg Score Lift</p>
                 <p
-                  className="text-5xl font-black font-mono tabular-nums text-emerald-400"
+                  className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
                   style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
                 >
                   {avgScoreLift !== null
@@ -513,7 +513,7 @@ export default function StatsPage() {
               <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Boost Success Rate</p>
                 <p
-                  className="text-5xl font-black font-mono tabular-nums text-emerald-400"
+                  className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
                   style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
                 >
                   {boostSuccessRate !== null ? `${boostSuccessRate.toFixed(0)}%` : "—"}
