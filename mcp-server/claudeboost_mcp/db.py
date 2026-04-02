@@ -9,7 +9,7 @@ import os
 import sys
 import urllib.request
 import urllib.error
-from .auth import load_auth
+from .auth import load_auth, save_auth
 from .feedback import (
     log_to_history as local_log_to_history,
     load_feedback_context as local_load_feedback_context,
@@ -39,11 +39,10 @@ def _refresh_token() -> bool:
         with urllib.request.urlopen(req) as resp:
             data = json.loads(resp.read().decode())
 
-        # Update auth.json with new tokens
+        # Update stored tokens (keychain or file)
         auth["access_token"] = data["access_token"]
         auth["refresh_token"] = data["refresh_token"]
-        with open(AUTH_FILE, "w") as f:
-            json.dump(auth, f, indent=2)
+        save_auth(auth)
 
         print("[ClaudeBoost DB] Token refreshed successfully", file=sys.stderr)
         return True
@@ -187,3 +186,51 @@ def save_settings(settings: dict):
 
     if result is None:
         local_save_settings(settings)
+
+
+def delete_user_data(user_id: str = None) -> dict:
+    """Delete all user data — right-to-erasure (GDPR Article 17).
+
+    Deletes from Supabase if authenticated, and wipes local files.
+    Returns a summary of what was deleted.
+    """
+    import os
+
+    deleted = {"supabase": False, "local_history": False, "local_config": False, "audit_log": False}
+
+    auth = load_auth()
+    uid = user_id or (auth["user_id"] if auth else None)
+
+    # Delete from Supabase
+    if auth and uid:
+        tables = ["boost_history", "user_constraints", "user_settings"]
+        for table in tables:
+            path = f"{table}?user_id=eq.{uid}"
+            _supabase_request("DELETE", path)
+        deleted["supabase"] = True
+
+    # Wipe local files
+    from .feedback import HISTORY_FILE, CONFIG_FILE, SETTINGS_FILE
+    from .rate_limiter import RATE_FILE
+    from .audit import AUDIT_FILE
+
+    for fpath, key in [
+        (HISTORY_FILE, "local_history"),
+        (CONFIG_FILE, "local_config"),
+        (SETTINGS_FILE, "local_settings"),
+        (RATE_FILE, "rate_limits"),
+        (AUDIT_FILE, "audit_log"),
+    ]:
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+                deleted[key] = True
+            except OSError:
+                pass
+
+    # Remove auth credentials
+    from .auth import delete_auth
+    delete_auth()
+    deleted["auth"] = True
+
+    return deleted

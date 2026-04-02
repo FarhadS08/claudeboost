@@ -13,13 +13,14 @@ def run():
         from .cli_login import run_login
         run_login()
     elif len(sys.argv) > 1 and sys.argv[1] in ("--logout", "logout"):
-        import os
-        auth_file = os.path.expanduser("~/.claudeboost/auth.json")
-        if os.path.exists(auth_file):
-            os.remove(auth_file)
+        from .auth import delete_auth, is_authenticated
+        if is_authenticated():
+            delete_auth()
             print("✅ Logged out of ClaudeBoost.")
         else:
             print("Not logged in.")
+    elif len(sys.argv) > 1 and sys.argv[1] in ("--delete-my-data", "delete-my-data"):
+        _run_delete_data()
     elif len(sys.argv) > 1 and sys.argv[1] in ("--status", "status"):
         from .auth import get_auth_status
         status = get_auth_status()
@@ -42,8 +43,9 @@ def run():
         print("  claudeboost-mcp --login      Sign in to ClaudeBoost")
         print("  claudeboost-mcp --logout     Sign out")
         print("  claudeboost-mcp --status     Show current auth status")
-        print("  claudeboost-mcp --doctor     Diagnose issues")
-        print("  claudeboost-mcp --version    Show version")
+        print("  claudeboost-mcp --doctor          Diagnose issues")
+        print("  claudeboost-mcp --delete-my-data  Delete all your data (GDPR)")
+        print("  claudeboost-mcp --version         Show version")
         print()
         print("After setup, restart Claude Code and use /boost")
     else:
@@ -207,6 +209,30 @@ def _run_doctor():
         print("Fix: Run `claudeboost-mcp --setup` to reconfigure.")
         if "not in PATH" in str(issues):
             print(f"     Then manually: claude mcp add claudeboost -- {sys.executable} -m claudeboost_mcp")
+
+
+def _run_delete_data():
+    """Delete all user data — GDPR right to erasure."""
+    print("⚠️  This will permanently delete ALL your ClaudeBoost data.")
+    print("   - All boost history")
+    print("   - All constraints and settings")
+    print("   - Your auth credentials")
+    print()
+    confirm = input("Type 'delete my data' to confirm: ").strip()
+    if confirm != "delete my data":
+        print("Cancelled.")
+        return
+
+    from .db import delete_user_data
+    deleted = delete_user_data()
+
+    print()
+    print("✅ Data deletion complete:")
+    for key, done in deleted.items():
+        status = "✅" if done else "⚠ (not found or skipped)"
+        print(f"   {key}: {status}")
+    print()
+    print("All your ClaudeBoost data has been erased.")
 
 
 if __name__ == "__main__":
