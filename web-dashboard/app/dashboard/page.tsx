@@ -165,7 +165,7 @@ function BoostDrawer({
                   <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 block mb-3">Score Breakdown</span>
                   <div className="flex items-center gap-3 text-[10px] text-zinc-600">
                     <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-zinc-500/50 inline-block" /> Before</span>
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-emerald-500 inline-block" /> After</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded inline-block" style={{ backgroundColor: dc.accent }} /> After</span>
                   </div>
                 </div>
               </div>
@@ -176,6 +176,7 @@ function BoostDrawer({
                     label={DIMENSION_NAMES[key] ?? key}
                     before={entry.original_score!.dimensions[key]}
                     after={entry.boosted_score!.dimensions[key]}
+                    accent={dc.accent}
                   />
                 ))}
               </div>
