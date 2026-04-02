@@ -164,9 +164,17 @@ function BoostDrawer({
   onClose: () => void;
   onFeedback: (id: number, rating: number, feedback: string) => void;
 }) {
+  const [view, setView] = useState<"boosted" | "original">("boosted");
+  const [copied, setCopied] = useState(false);
   const dc = DOMAIN_COLORS[entry.domain] || DOMAIN_COLORS.other;
   const hasScores = entry.original_score?.total != null && entry.boosted_score?.total != null;
   const scoreDelta = hasScores ? (entry.boosted_score?.total ?? 0) - (entry.original_score?.total ?? 0) : null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(entry.boosted);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <>
@@ -198,52 +206,90 @@ function BoostDrawer({
         </div>
 
         <div className="px-4 sm:px-8 py-5 sm:py-6 space-y-6 sm:space-y-8">
-          {/* Original prompt */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Original</span>
-              {entry.original_score && (
-                <span className="text-[10px] text-zinc-600 font-mono">{entry.original_score.total}/30</span>
-              )}
+          {/* Toggle + Score + Copy */}
+          <div className="flex items-center justify-between">
+            {/* Toggle switch */}
+            <div className="flex items-center bg-[rgba(255,255,255,0.04)] rounded-xl p-1 border border-[rgba(255,255,255,0.06)]">
+              <button
+                onClick={() => setView("original")}
+                className={`px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-200 ${
+                  view === "original"
+                    ? "bg-[rgba(255,255,255,0.08)] text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Original
+                {entry.original_score && (
+                  <span className="ml-1.5 text-zinc-600 font-mono">{entry.original_score.total}</span>
+                )}
+              </button>
+              <button
+                onClick={() => setView("boosted")}
+                className={`px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-200 ${
+                  view === "boosted"
+                    ? "text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+                style={view === "boosted" ? { backgroundColor: `${dc.accent}20`, color: dc.accent } : undefined}
+              >
+                Boosted
+                {entry.boosted_score && (
+                  <span className="ml-1.5 font-mono" style={{ opacity: 0.6 }}>{entry.boosted_score.total}</span>
+                )}
+              </button>
             </div>
-            <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-5 border border-[rgba(255,255,255,0.05)]">
-              <p className="text-[14px] text-zinc-400 leading-relaxed">{entry.original}</p>
+
+            <div className="flex items-center gap-3">
+              {/* Score delta */}
+              {hasScores && scoreDelta !== null && scoreDelta > 0 && (
+                <span className="text-[10px] font-mono font-bold px-2 py-1 rounded-lg" style={{ color: dc.accent, backgroundColor: `${dc.accent}12` }}>
+                  +{scoreDelta} pts
+                </span>
+              )}
+              {/* Copy button */}
+              {view === "boosted" && (
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide border transition-all duration-200"
+                  style={{
+                    borderColor: copied ? "rgba(16,185,129,0.3)" : `${dc.accent}30`,
+                    color: copied ? "#10b981" : dc.accent,
+                    backgroundColor: copied ? "rgba(16,185,129,0.08)" : `${dc.accent}08`,
+                  }}
+                >
+                  {copied ? "\u2713 Copied" : "Copy prompt"}
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Score improvement bar */}
-          {hasScores && (
-            <div className="flex items-center gap-4">
-              <div className="flex-1 h-px bg-[rgba(255,255,255,0.06)]" />
-              <div className="flex items-center gap-3">
-                <span className="text-zinc-600 font-mono text-xs">{entry.original_score?.total}</span>
-                <span className="text-zinc-600">&#8594;</span>
-                <span className="font-mono text-sm font-bold text-emerald-400">{entry.boosted_score?.total}</span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400" style={{ boxShadow: '0 0 12px rgba(16,185,129,0.15)' }}>
-                  +{scoreDelta}
-                </span>
+          {/* Prompt content — crossfade */}
+          <div className="relative">
+            {/* Original view */}
+            <div
+              className="transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{ opacity: view === "original" ? 1 : 0, height: view === "original" ? "auto" : 0, overflow: view === "original" ? "visible" : "hidden" }}
+            >
+              <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-5 sm:p-6 border border-[rgba(255,255,255,0.05)]">
+                <p className="text-[14px] text-zinc-400 leading-[1.8]">{entry.original}</p>
               </div>
-              <div className="flex-1 h-px bg-[rgba(255,255,255,0.06)]" />
             </div>
-          )}
 
-          {/* Boosted prompt */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: dc.accent }}>
-                {entry.chosen === "boosted" ? "Accepted" : entry.chosen === "refined" ? "Refined" : "Boosted"}
-              </span>
-              {entry.boosted_score && (
-                <span className="text-[10px] font-mono" style={{ color: `${dc.accent}99` }}>{entry.boosted_score.total}/30</span>
-              )}
-              {entry.boosted_score && (
-                <span className={`text-[10px] font-mono ml-auto ${LEVEL_COLORS[entry.boosted_score.level] ?? "text-zinc-400"}`}>
-                  {LEVEL_LABELS[entry.boosted_score.level] ?? ""}
-                </span>
-              )}
-            </div>
-            <div className="rounded-xl p-6 border text-[14px] leading-[1.8]" style={{ background: `${dc.accent}06`, borderColor: `${dc.accent}12` }}>
-              <BoostedText text={entry.boosted} accent={dc.accent} />
+            {/* Boosted view */}
+            <div
+              className="transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{ opacity: view === "boosted" ? 1 : 0, height: view === "boosted" ? "auto" : 0, overflow: view === "boosted" ? "visible" : "hidden" }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                {entry.boosted_score && (
+                  <span className={`text-[10px] font-mono ${LEVEL_COLORS[entry.boosted_score.level] ?? "text-zinc-400"}`}>
+                    {LEVEL_LABELS[entry.boosted_score.level] ?? ""}
+                  </span>
+                )}
+              </div>
+              <div className="rounded-xl p-5 sm:p-6 border text-[14px] leading-[1.8]" style={{ background: `${dc.accent}06`, borderColor: `${dc.accent}12` }}>
+                <BoostedText text={entry.boosted} accent={dc.accent} />
+              </div>
             </div>
           </div>
 
