@@ -96,7 +96,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
   ];
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/20 transition-colors">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/20 transition-colors">
       <div
         className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
         onClick={() => setExpanded((prev) => !prev)}
@@ -144,7 +144,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
+                className={`flex-1 py-3 text-xs font-medium transition-colors ${
                   tab === t.key
                     ? "text-primary border-b-2 border-primary bg-primary/5"
                     : "text-zinc-500 hover:text-zinc-300 hover:bg-accent/30"
@@ -161,7 +161,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
             {tab === "compare" && (
               <div className="space-y-4">
                 {/* Original */}
-                <div className="bg-zinc-800/30 rounded-xl p-3 border border-zinc-700/30">
+                <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/30">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">Original</span>
                     {entry.original_score && (
@@ -172,7 +172,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                 </div>
 
                 {/* Boosted — final version */}
-                <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                <div className="bg-primary/5 rounded-xl p-5 border border-primary/10">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
                       {entry.chosen === "boosted" ? "\u2728 Accepted" : entry.chosen === "refined" ? "\u270f\ufe0f Refined" : entry.chosen === "original" ? "\ud83d\udcdd Kept Original" : "\u2728 Boosted"}
@@ -207,7 +207,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
               <div className="space-y-4">
                 {hasScores && entry.original_score && entry.boosted_score ? (
                   <>
-                    <div className="flex items-center gap-4 p-3 bg-zinc-800/30 rounded-xl border border-zinc-700/30">
+                    <div className="flex items-center gap-4 p-4 bg-zinc-800/30 rounded-xl border border-zinc-700/30">
                       <div className="text-center flex-1">
                         <p className="text-2xl font-bold text-zinc-500">{entry.original_score.total}</p>
                         <p className="text-[10px] text-zinc-600 uppercase">Before</p>
@@ -227,8 +227,8 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
 
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                        <span className="inline-block w-3 h-2 rounded bg-zinc-500/40" /> Before
-                        <span className="inline-block w-3 h-2 rounded bg-emerald-500 ml-2" /> After
+                        <span className="inline-block w-3 h-2.5 rounded-full bg-primary/30" /> Before
+                        <span className="inline-block w-3 h-2.5 rounded-full bg-emerald-500 ml-2" /> After
                       </div>
                       {(
                         Object.keys(entry.original_score.dimensions) as (keyof ScoreBreakdown["dimensions"])[]

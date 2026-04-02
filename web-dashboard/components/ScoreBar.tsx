@@ -15,16 +15,16 @@ export function ScoreBar({ label, before, after }: ScoreBarProps) {
           {before} &#8594; {after}
         </span>
       </div>
-      <div className="flex gap-1.5 h-1.5">
+      <div className="flex gap-1.5 h-2.5">
         <div className="flex-1 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-muted-foreground/30 rounded-full"
+            className="h-full bg-primary/30 rounded-full"
             style={{ width: `${(before / 5) * 100}%` }}
           />
         </div>
         <div className="flex-1 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary rounded-full"
+            className="h-full bg-emerald-500 rounded-full"
             style={{ width: `${(after / 5) * 100}%` }}
           />
         </div>
