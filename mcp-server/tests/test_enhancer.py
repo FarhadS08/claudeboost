@@ -1,4 +1,4 @@
-"""Tests for enhancer module — playbook-powered prompt enhancement."""
+"""Tests for enhancer module."""
 
 import unittest
 from unittest.mock import patch, MagicMock
@@ -9,13 +9,8 @@ from claudeboost_mcp.enhancer import DOMAIN_RULES, enhance_prompt
 class TestDomainRules(unittest.TestCase):
     def test_all_seven_domains_have_rules(self):
         expected = {
-            "data_science",
-            "data_engineering",
-            "business_analytics",
-            "general_coding",
-            "documentation",
-            "devops",
-            "other",
+            "data_science", "data_engineering", "business_analytics",
+            "general_coding", "documentation", "devops", "other",
         }
         self.assertEqual(set(DOMAIN_RULES.keys()), expected)
         for domain, rules in DOMAIN_RULES.items():
@@ -30,7 +25,6 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text="Enhanced version")]
         mock_client.messages.create.return_value = mock_response
-
         result = enhance_prompt("original prompt", "general_coding")
         self.assertEqual(result, "Enhanced version")
 
@@ -41,9 +35,7 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text="Enhanced")]
         mock_client.messages.create.return_value = mock_response
-
         enhance_prompt("test prompt", "data_science")
-
         call_kwargs = mock_client.messages.create.call_args
         system_prompt = call_kwargs.kwargs.get("system") or call_kwargs[1].get("system")
         self.assertIn("Data Science", system_prompt)
@@ -57,9 +49,7 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text="Enhanced")]
         mock_client.messages.create.return_value = mock_response
-
         enhance_prompt("test prompt", "general_coding", feedback_context="Always use TypeScript")
-
         call_kwargs = mock_client.messages.create.call_args
         system_prompt = call_kwargs.kwargs.get("system") or call_kwargs[1].get("system")
         self.assertIn("Always use TypeScript", system_prompt)
@@ -72,9 +62,7 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text="Enhanced")]
         mock_client.messages.create.return_value = mock_response
-
         enhance_prompt("test prompt", "general_coding")
-
         call_kwargs = mock_client.messages.create.call_args
         system_prompt = call_kwargs.kwargs.get("system") or call_kwargs[1].get("system")
         self.assertNotIn("User feedback", system_prompt)
@@ -84,10 +72,9 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_client = MagicMock()
         mock_anthropic.Anthropic.return_value = mock_client
         mock_client.messages.create.side_effect = Exception("API down")
-
         result = enhance_prompt("my original prompt", "general_coding")
-        self.assertIn("my original prompt", result)
-        self.assertIn("[ClaudeBoost: enhancement failed", result)
+        # Graceful degradation: returns original prompt unmodified
+        self.assertEqual(result, "my original prompt")
 
     @patch("claudeboost_mcp.enhancer.anthropic")
     def test_uses_fallback_rules_for_unknown_domain(self, mock_anthropic):
@@ -96,12 +83,9 @@ class TestEnhancePrompt(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.content = [MagicMock(text="Enhanced")]
         mock_client.messages.create.return_value = mock_response
-
         enhance_prompt("test prompt", "quantum_computing")
-
         call_kwargs = mock_client.messages.create.call_args
         system_prompt = call_kwargs.kwargs.get("system") or call_kwargs[1].get("system")
-        # Should use "other" rules
         self.assertIn("You are a prompt enhancement expert.", system_prompt)
         self.assertIn("No vague requests", system_prompt)
 
