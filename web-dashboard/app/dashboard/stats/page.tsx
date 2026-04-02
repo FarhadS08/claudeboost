@@ -13,6 +13,8 @@ import { Domain } from "@/lib/types";
 import { DomainBadge } from "@/components/DomainBadge";
 import { ScoreBar } from "@/components/ScoreBar";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { ScoreRadar } from "@/components/ScoreRadar";
 import { useRouter } from "next/navigation";
 
 const LEVEL_BAR_COLORS: Record<number, string> = {
@@ -267,7 +269,7 @@ export default function StatsPage() {
   const feedbackPct =
     entries.length > 0 ? (withFeedback / entries.length) * 100 : 0;
   // SVG donut params
-  const R = 30;
+  const R = 38;
   const C = 2 * Math.PI * R;
   const dash = (feedbackPct / 100) * C;
 
@@ -304,6 +306,61 @@ export default function StatsPage() {
         <p className="text-zinc-500 mt-2 text-[15px]">
           Evaluation metrics for your prompt boosts
         </p>
+      </div>
+
+      {/* ── Hero Stats Row ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2 animate-fade-slide-up" style={{ animationDelay: "0ms" }}>
+        {/* Total Boosts */}
+        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Total Boosts</p>
+          <AnimatedNumber
+            value={entries.length}
+            className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-white"
+            style={{ textShadow: "0 0 40px rgba(124,58,237,0.35)" }}
+          />
+        </div>
+
+        {/* Avg Score Lift */}
+        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Avg Score Lift</p>
+          {avgScoreLift !== null ? (
+            <AnimatedNumber
+              value={avgScoreLift}
+              decimals={1}
+              prefix={avgScoreLift >= 0 ? "+" : ""}
+              className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
+              style={{ textShadow: "0 0 40px rgba(16,185,129,0.35)" }}
+            />
+          ) : (
+            <span className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
+          )}
+        </div>
+
+        {/* Success Rate */}
+        <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7">
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Success Rate</p>
+          {boostSuccessRate !== null ? (
+            <AnimatedNumber
+              value={boostSuccessRate}
+              decimals={0}
+              suffix="%"
+              className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
+              style={{ textShadow: "0 0 40px rgba(16,185,129,0.35)" }}
+            />
+          ) : (
+            <span className="text-4xl sm:text-5xl font-black font-mono tabular-nums text-zinc-600">--</span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Section Divider ──────────────────────────────────────────── */}
+      <div className="flex items-center gap-4 my-8">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">Detailed Analytics</span>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.06)] to-transparent" />
       </div>
 
       <div className="space-y-6">
@@ -442,6 +499,17 @@ export default function StatsPage() {
           {scoredEntries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
           ) : (
+            <>
+            {/* Radar visualization */}
+            {(() => {
+              const avgBeforeBreakdown = { dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgBefore])), total: 0, average: 0, level: 0 } as ScoreBreakdown;
+              const avgAfterBreakdown = { dimensions: Object.fromEntries(dimAverages.map(d => [d.dim, d.avgAfter])), total: 0, average: 0, level: 0 } as ScoreBreakdown;
+              return (
+                <div className="flex justify-center mb-6">
+                  <ScoreRadar before={avgBeforeBreakdown} after={avgAfterBreakdown} accent="#7c3aed" size={160} showLabels />
+                </div>
+              );
+            })()}
             <div className="space-y-3">
               {dimAverages.map(({ dim, label, avgBefore, avgAfter }) => (
                 <ScoreBar
@@ -452,6 +520,7 @@ export default function StatsPage() {
                 />
               ))}
             </div>
+            </>
           )}
         </div>
 
@@ -471,14 +540,17 @@ export default function StatsPage() {
               {/* Card 1: Avg Score Lift */}
               <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Avg Score Lift</p>
-                <p
-                  className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
-                  style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
-                >
-                  {avgScoreLift !== null
-                    ? `${avgScoreLift >= 0 ? "+" : ""}${avgScoreLift.toFixed(1)}`
-                    : "—"}
-                </p>
+                {avgScoreLift !== null ? (
+                  <AnimatedNumber
+                    value={avgScoreLift}
+                    decimals={1}
+                    prefix={avgScoreLift >= 0 ? "+" : ""}
+                    className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
+                    style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
+                  />
+                ) : (
+                  <span className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400">--</span>
+                )}
                 <p className="text-xs text-zinc-500 mt-1">points (total score)</p>
               </div>
 
@@ -512,12 +584,17 @@ export default function StatsPage() {
               {/* Card 3: Boost Success Rate */}
               <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Boost Success Rate</p>
-                <p
-                  className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
-                  style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
-                >
-                  {boostSuccessRate !== null ? `${boostSuccessRate.toFixed(0)}%` : "—"}
-                </p>
+                {boostSuccessRate !== null ? (
+                  <AnimatedNumber
+                    value={boostSuccessRate}
+                    decimals={0}
+                    suffix="%"
+                    className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400"
+                    style={{ textShadow: '0 0 30px rgba(16,185,129,0.3)' }}
+                  />
+                ) : (
+                  <span className="text-3xl sm:text-5xl font-black font-mono tabular-nums text-emerald-400">--</span>
+                )}
                 <p className="text-xs text-zinc-500 mt-1">
                   of entries where boosted score &gt; original
                 </p>
@@ -526,12 +603,16 @@ export default function StatsPage() {
               {/* Card 4: Avg Dimensions Improved */}
               <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-6 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-1">Avg Dimensions Improved</p>
-                <p
-                  className="text-5xl font-black font-mono tabular-nums text-purple-400"
-                  style={{ textShadow: '0 0 30px rgba(124,58,237,0.3)' }}
-                >
-                  {avgDimsImproved !== null ? avgDimsImproved.toFixed(1) : "—"}
-                </p>
+                {avgDimsImproved !== null ? (
+                  <AnimatedNumber
+                    value={avgDimsImproved}
+                    decimals={1}
+                    className="text-5xl font-black font-mono tabular-nums text-purple-400"
+                    style={{ textShadow: '0 0 30px rgba(124,58,237,0.3)' }}
+                  />
+                ) : (
+                  <span className="text-5xl font-black font-mono tabular-nums text-purple-400">--</span>
+                )}
                 <p className="text-xs text-zinc-500 mt-1">
                   of {dimensions.length} dimensions per boost
                 </p>
@@ -554,32 +635,44 @@ export default function StatsPage() {
           ) : (
             <div className="flex items-center gap-8">
               {/* SVG Donut */}
-              <svg width="80" height="80" viewBox="0 0 80 80">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <defs>
+                  <filter id="donut-glow">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
                 <circle
-                  cx="40"
-                  cy="40"
+                  cx="50"
+                  cy="50"
                   r={R}
                   fill="none"
                   stroke="rgba(255,255,255,0.06)"
-                  strokeWidth={8}
+                  strokeWidth={10}
                 />
                 <circle
-                  cx="40"
-                  cy="40"
+                  cx="50"
+                  cy="50"
                   r={R}
                   fill="none"
                   stroke="hsl(var(--primary))"
-                  strokeWidth={8}
+                  strokeWidth={10}
                   strokeDasharray={`${dash} ${C}`}
                   strokeLinecap="round"
-                  transform="rotate(-90 40 40)"
+                  transform="rotate(-90 50 50)"
+                  filter="url(#donut-glow)"
+                  className="transition-all duration-1000"
+                  style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
                 />
                 <text
-                  x="40"
-                  y="44"
+                  x="50"
+                  y="54"
                   textAnchor="middle"
                   className="fill-foreground text-2xl font-black font-mono"
-                  fontSize="14"
+                  fontSize="16"
                   fontWeight="900"
                   fill="currentColor"
                 >
@@ -613,14 +706,24 @@ export default function StatsPage() {
           ) : (
             <div className="flex items-end gap-2 h-28">
               {last7.map(({ label, count }) => (
-                <div key={label} className="flex-1 flex flex-col items-center gap-1">
+                <div key={label} className="group relative flex-1 flex flex-col items-center gap-1">
+                  {/* Hover tooltip */}
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    <span className="bg-zinc-800 text-zinc-200 text-[10px] font-mono px-2 py-0.5 rounded-md whitespace-nowrap border border-[rgba(255,255,255,0.08)]">
+                      {count} boost{count !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                   <span className="text-[11px] font-mono tabular-nums text-zinc-400">
                     {count > 0 ? count : ""}
                   </span>
                   <div className="w-full flex items-end" style={{ height: "72px" }}>
                     <div
-                      className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg"
-                      style={{ height: `${(count / maxCount) * 100}%`, minHeight: count > 0 ? "8px" : "0" }}
+                      className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg transition-all duration-300 group-hover:from-purple-500 group-hover:to-purple-300"
+                      style={{
+                        height: `${(count / maxCount) * 100}%`,
+                        minHeight: count > 0 ? "8px" : "0",
+                        boxShadow: count > 0 ? "0 0 12px rgba(124,58,237,0.2)" : undefined,
+                      }}
                     />
                   </div>
                   <span className="text-[10px] text-zinc-600 font-mono">{label}</span>
