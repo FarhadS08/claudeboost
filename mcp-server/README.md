@@ -43,15 +43,28 @@ Or just type any prompt — ClaudeBoost auto-boosts all task prompts.
 - **RLHF Feedback Loop** — Rate boosts and leave feedback → improves future enhancements
 - **Web Dashboard** — View history, stats, score histograms at [claudeboost.com](https://claudeboost.com)
 
-## Commands
+## Terminal Commands
+
+| Command | Description |
+|---------|-------------|
+| `claudeboost-mcp --setup` | Set up API key, skills, and sign in |
+| `claudeboost-mcp --login` | Sign in (email + password) |
+| `claudeboost-mcp --logout` | Sign out |
+| `claudeboost-mcp --status` | Show connected account |
+| `claudeboost-mcp --check` | Quick version/config check |
+| `claudeboost-mcp --doctor` | Full diagnostics (9 checks) |
+| `claudeboost-mcp --version` | Show version |
+
+## Claude Code Commands
 
 | Command | Description |
 |---------|-------------|
 | `/boost <prompt>` | Boost a specific prompt |
-| `/boost --login` | Sign in (opens browser) |
-| `/boost --logout` | Sign out |
-| `/boost-settings --level light\|medium\|full` | Change boost intensity |
-| `/boost-settings --auto true\|false` | Toggle auto-boost |
+| `/boost --setup` | Register MCP server (run once) |
+| `/boost --login` | Sign in via terminal |
+| `/boost --status` | Show connected account |
+| `/boost-settings -l light\|medium\|full` | Change boost intensity |
+| `/boost-settings -a true\|false` | Toggle auto-boost |
 | `/boost-help` | Show all commands |
 | `--raw` | Add to end of prompt to skip boost |
 

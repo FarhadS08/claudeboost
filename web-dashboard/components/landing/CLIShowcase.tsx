@@ -177,6 +177,11 @@ const CLI_FEATURES = [
     title: "--raw",
     description: "Skip boost for a single prompt when you don't need it",
   },
+  {
+    icon: SettingsIcon,
+    title: "--doctor",
+    description: "Full diagnostics — checks all 9 systems in one command",
+  },
 ];
 
 export function CLIShowcase() {
