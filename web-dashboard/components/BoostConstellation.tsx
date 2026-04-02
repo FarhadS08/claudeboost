@@ -104,13 +104,19 @@ export function BoostConstellation({ entries, height = 400 }: BoostConstellation
         node.vx += (cx - node.x) * 0.001;
         node.vy += (cy - node.y) * 0.001;
 
-        // Mouse repulsion
+        // Mouse interaction: gentle push at distance, freeze when very close (hoverable)
         if (mouse) {
           const dx = node.x - mouse.x;
           const dy = node.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 80 && dist > 0) {
-            const force = (80 - dist) / 80 * 2;
+
+          if (dist < node.radius + 8) {
+            // Very close — freeze the node so user can hover it
+            node.vx *= 0.1;
+            node.vy *= 0.1;
+          } else if (dist < 60 && dist > 0) {
+            // Nearby — gentle nudge away
+            const force = (60 - dist) / 60 * 0.3;
             node.vx += (dx / dist) * force;
             node.vy += (dy / dist) * force;
           }
