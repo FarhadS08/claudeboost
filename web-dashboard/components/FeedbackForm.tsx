@@ -30,7 +30,7 @@ export function FeedbackForm({ entry, onSubmit }: FeedbackFormProps) {
       />
       <button
         type="submit"
-        className="bg-primary text-primary-foreground hover:opacity-90 px-5 py-2.5 rounded-xl text-sm font-medium transition-opacity"
+        className="bg-primary text-primary-foreground hover:opacity-90 px-5 py-2.5 rounded-xl text-sm font-medium transition-opacity shadow-lg shadow-primary/25"
       >
         Save Feedback
       </button>

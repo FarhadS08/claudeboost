@@ -60,15 +60,15 @@ export default function ConstraintsPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="font-bold text-2xl">Constraints</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h1 className="text-3xl font-bold tracking-tight">Constraints</h1>
+        <p className="text-muted-foreground text-sm mt-2">
           Configure boost behaviour and per-domain rules
         </p>
       </div>
 
       {/* Boost Settings */}
-      <div className="bg-card border border-border rounded-xl p-6 mb-8">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-5">
+      <div className="bg-card border border-border rounded-2xl p-7 mb-8 hover:border-primary/20 transition-colors">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5">
           Boost Settings
         </h2>
 
@@ -83,7 +83,7 @@ export default function ConstraintsPage() {
                   onClick={() => updateSettings({ boost_level: level })}
                   className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all capitalize ${
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                       : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
                   }`}
                 >
@@ -112,14 +112,14 @@ export default function ConstraintsPage() {
       </div>
 
       {/* Quick Presets */}
-      <div className="bg-card border border-border rounded-xl p-6 mb-8">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-5">
+      <div className="bg-card border border-border rounded-2xl p-7 mb-8 hover:border-primary/20 transition-colors">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5">
           Quick Presets
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
           One-click presets for common stacks. Applies constraints to the matching domain.
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-5">
           {PRESETS.map((preset) => (
             <button
               key={preset.id}
@@ -129,7 +129,7 @@ export default function ConstraintsPage() {
                   [preset.domain]: preset.constraints,
                 }));
               }}
-              className="text-left p-3 rounded-xl border border-zinc-700/30 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+              className="text-left p-4 rounded-xl border border-zinc-700/30 hover:border-primary/40 hover:bg-primary/5 transition-colors group"
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-medium text-zinc-200 group-hover:text-primary transition-colors">
@@ -151,7 +151,7 @@ export default function ConstraintsPage() {
       {/* Domain Constraints */}
       <div>
         <div className="mb-5">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Domain Constraints
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -164,7 +164,7 @@ export default function ConstraintsPage() {
           {DOMAINS.map((domain) => (
             <div
               key={domain}
-              className="bg-card border border-border rounded-xl p-5"
+              className="bg-card border border-border rounded-2xl p-5 hover:border-primary/20 transition-colors"
             >
               <div className="mb-3">
                 <DomainBadge domain={domain} />
@@ -182,7 +182,7 @@ export default function ConstraintsPage() {
         <div className="mt-6 flex items-center gap-4">
           <button
             onClick={saveConstraints}
-            className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2.5 rounded-xl text-sm font-medium transition-opacity shadow-lg shadow-primary/20"
+            className="bg-primary text-primary-foreground hover:opacity-90 px-8 py-3 rounded-xl text-sm font-medium transition-opacity shadow-lg shadow-primary/25"
           >
             Save All Constraints
           </button>

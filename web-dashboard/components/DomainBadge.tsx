@@ -10,7 +10,7 @@ interface DomainBadgeProps {
 export function DomainBadge({ domain }: DomainBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_COLORS[domain]}`}
+      className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium border ${DOMAIN_COLORS[domain]}`}
     >
       {DOMAIN_LABELS[domain]}
     </span>
