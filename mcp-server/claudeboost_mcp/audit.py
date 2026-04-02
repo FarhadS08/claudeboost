@@ -25,6 +25,7 @@ def log_audit(
     prompt: str = None,
     result: str = None,
     metadata: dict = None,
+    latency_ms: int = None,
 ) -> None:
     """Write a structured audit entry to the audit log.
 
@@ -35,6 +36,7 @@ def log_audit(
         prompt: Original prompt text — stored as hash only, never raw
         result: Outcome — 'success', 'skipped', 'error', 'blocked'
         metadata: Additional key/value pairs (no sensitive data)
+        latency_ms: Time taken for the enhance API call in milliseconds
     """
     try:
         os.makedirs(CLAUDEBOOST_DIR, exist_ok=True)
@@ -52,6 +54,8 @@ def log_audit(
             entry["prompt_len"] = len(prompt)
         if result:
             entry["result"] = result
+        if latency_ms is not None:
+            entry["latency_ms"] = latency_ms
         if metadata:
             # Sanitize metadata — ensure no prompt text leaks in
             safe_meta = {
