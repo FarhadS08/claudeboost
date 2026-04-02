@@ -15,6 +15,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { ScoreRadar } from "@/components/ScoreRadar";
+import { BoostConstellation } from "@/components/BoostConstellation";
 import { useRouter } from "next/navigation";
 
 const LEVEL_BAR_COLORS: Record<number, string> = {
@@ -410,6 +411,17 @@ export default function StatsPage() {
           <p className="text-xs text-zinc-500 mt-2">prompts enhanced</p>
         </div>
       </div>
+
+      {/* ── Constellation ────────────────────────────────────────────── */}
+      {entries.length > 0 && (
+        <div className="mb-8 animate-fade-slide-up" style={{ animationDelay: "240ms" }}>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Boost Galaxy</h2>
+            <span className="text-[9px] text-zinc-600">Hover to explore · Move cursor to interact</span>
+          </div>
+          <BoostConstellation entries={entries} height={350} />
+        </div>
+      )}
 
       {/* ── Section 3: Radar + Insights ──────────────────────────────── */}
       <div className="flex flex-col lg:flex-row gap-6 mb-8">
