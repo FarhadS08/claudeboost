@@ -7,6 +7,7 @@ import { DOMAIN_LABELS, DOMAINS, DOMAIN_COLORS, DIMENSION_NAMES, LEVEL_LABELS, L
 import { DomainBadge } from "@/components/DomainBadge";
 import { StarRating } from "@/components/StarRating";
 import { ScoreBar } from "@/components/ScoreBar";
+import { ScoreRadar } from "@/components/ScoreRadar";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -157,11 +158,15 @@ function BoostDrawer({
           {/* Score breakdown */}
           {hasScores && entry.original_score && entry.boosted_score && (
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">Score Breakdown</span>
-                <div className="flex items-center gap-3 ml-auto text-[10px] text-zinc-600">
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-zinc-500/50 inline-block" /> Before</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-emerald-500 inline-block" /> After</span>
+              {/* Large radar + title */}
+              <div className="flex items-start gap-6 mb-6">
+                <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={120} />
+                <div className="flex-1 pt-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 block mb-3">Score Breakdown</span>
+                  <div className="flex items-center gap-3 text-[10px] text-zinc-600">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-zinc-500/50 inline-block" /> Before</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded bg-emerald-500 inline-block" /> After</span>
+                  </div>
                 </div>
               </div>
               <div className="space-y-3">
@@ -386,10 +391,15 @@ function HistoryContent() {
                     <span className="text-[10px] text-zinc-600 font-mono tabular-nums">{new Date(entry.timestamp).toLocaleDateString()}</span>
                   </div>
 
-                  {/* Prompt text */}
-                  <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 mb-4 line-clamp-2">
-                    {truncated}
-                  </p>
+                  {/* Content: text + radar */}
+                  <div className="flex gap-4 mb-4">
+                    {/* Prompt text */}
+                    <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 flex-1 line-clamp-3">
+                      {truncated}
+                    </p>
+                    {/* Radar bloom */}
+                    <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={64} />
+                  </div>
 
                   {/* Score bar + metrics */}
                   <div className="flex items-end justify-between">
