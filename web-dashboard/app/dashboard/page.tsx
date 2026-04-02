@@ -160,7 +160,7 @@ function BoostDrawer({
             <div>
               {/* Large radar + title */}
               <div className="flex items-start gap-6 mb-6">
-                <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={120} />
+                <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={120} showLabels />
                 <div className="flex-1 pt-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 block mb-3">Score Breakdown</span>
                   <div className="flex items-center gap-3 text-[10px] text-zinc-600">

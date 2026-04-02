@@ -9,7 +9,7 @@ export const DOMAIN_COLORS: Record<Domain, { bg: string; text: string; border: s
   general_coding:     { bg: "bg-amber-500/12",    text: "text-amber-400",   border: "border-amber-500/25",   accent: "#f59e0b" },
   documentation:      { bg: "bg-orange-500/12",   text: "text-orange-400",  border: "border-orange-500/25",  accent: "#f97316" },
   devops:             { bg: "bg-rose-500/12",     text: "text-rose-400",    border: "border-rose-500/25",    accent: "#f43f5e" },
-  other:              { bg: "bg-zinc-500/12",     text: "text-zinc-400",    border: "border-zinc-500/25",    accent: "#71717a" },
+  other:              { bg: "bg-cyan-500/12",      text: "text-cyan-400",    border: "border-cyan-500/25",    accent: "#06b6d4" },
 };
 
 export const DOMAIN_LABELS: Record<Domain, string> = {
