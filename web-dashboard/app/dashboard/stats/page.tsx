@@ -431,6 +431,7 @@ export default function StatsPage() {
                   after={avgAfterBreakdown}
                   size={200}
                   showLabels
+                  interactive
                   accent="#7c3aed"
                 />
               </div>
