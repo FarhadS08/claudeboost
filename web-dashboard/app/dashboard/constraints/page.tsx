@@ -60,7 +60,7 @@ export default function ConstraintsPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Constraints</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Constraints</h1>
         <p className="text-muted-foreground text-sm mt-2">
           Configure boost behaviour and per-domain rules
         </p>
@@ -119,7 +119,7 @@ export default function ConstraintsPage() {
         <p className="text-sm text-muted-foreground mb-4">
           One-click presets for common stacks. Applies constraints to the matching domain.
         </p>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {PRESETS.map((preset) => (
             <button
               key={preset.id}

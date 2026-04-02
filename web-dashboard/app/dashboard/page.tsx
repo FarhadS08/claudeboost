@@ -85,9 +85,9 @@ function BoostDrawer({
         onClick={onClose}
       />
       {/* Drawer */}
-      <div className="fixed top-0 right-0 h-full w-[58%] max-w-[720px] min-w-[400px] bg-[#08090f] border-l border-[rgba(255,255,255,0.08)] z-50 overflow-y-auto animate-slide-in-right">
+      <div className="fixed top-0 right-0 h-full w-full sm:w-[75%] lg:w-[58%] sm:max-w-[720px] bg-[#08090f] border-l border-[rgba(255,255,255,0.08)] z-50 overflow-y-auto animate-slide-in-right">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-[#08090f]/90 backdrop-blur-xl border-b border-[rgba(255,255,255,0.06)] px-8 py-5 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-[#08090f]/90 backdrop-blur-xl border-b border-[rgba(255,255,255,0.06)] px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <DomainBadge domain={entry.domain} />
             {entry.chosen && (
@@ -106,7 +106,7 @@ function BoostDrawer({
           </button>
         </div>
 
-        <div className="px-8 py-6 space-y-8">
+        <div className="px-4 sm:px-8 py-5 sm:py-6 space-y-6 sm:space-y-8">
           {/* Original prompt */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -261,12 +261,12 @@ function HistoryContent() {
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-black tracking-tight">History</h1>
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">History</h1>
         <p className="text-zinc-500 mt-2 text-[15px]">Your prompt boost history</p>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10">
         <div className="relative overflow-hidden rounded-2xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-7 hover:border-[rgba(255,255,255,0.12)] hover:translate-y-[-2px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-fade-slide-up">
           <div className="absolute inset-0 opacity-20 blur-2xl" style={{ background: "radial-gradient(circle at 30% 50%, #7c3aed, transparent 70%)" }} />
           <div className="relative flex items-start gap-4">
@@ -274,7 +274,7 @@ function HistoryContent() {
               <Zap className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <AnimatedNumber value={totalBoosts} className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(124,58,237,0.3)" }} />
+              <AnimatedNumber value={totalBoosts} className="text-3xl sm:text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(124,58,237,0.3)" }} />
               <p className="text-[13px] text-zinc-500 font-medium mt-2">Total Boosts</p>
             </div>
           </div>
@@ -288,9 +288,9 @@ function HistoryContent() {
             </div>
             <div>
               {avgScoreLift !== null ? (
-                <AnimatedNumber value={avgScoreLift} prefix="+" decimals={1} className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }} />
+                <AnimatedNumber value={avgScoreLift} prefix="+" decimals={1} className="text-3xl sm:text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }} />
               ) : (
-                <p className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }}>{"\u2014"}</p>
+                <p className="text-3xl sm:text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }}>{"\u2014"}</p>
               )}
               <p className="text-[13px] text-zinc-500 font-medium mt-2">Avg Score Lift</p>
             </div>
@@ -365,7 +365,7 @@ function HistoryContent() {
           {!hasFilter && <p className="text-sm text-zinc-600 mt-2">Use /boost in Claude Code to get started</p>}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((entry, index) => {
             const dc = DOMAIN_COLORS[entry.domain] || DOMAIN_COLORS.other;
             const delta = entry.boosted_score && entry.original_score

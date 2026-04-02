@@ -36,7 +36,7 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <Link
           href="/dashboard"
           className="text-lg font-bold tracking-tight flex items-center gap-1.5 hover:opacity-80 transition-opacity"
@@ -62,14 +62,14 @@ export function Navbar() {
                   )}
                 >
                   <link.icon className="w-4 h-4" />
-                  {link.label}
+                  <span className="hidden sm:inline">{link.label}</span>
                 </Link>
               );
             })}
 
             {email && (
               <div className="flex items-center gap-3 ml-2 pl-4 border-l border-border">
-                <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[150px]">
                   {email}
                 </span>
                 <button
