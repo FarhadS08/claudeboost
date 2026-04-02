@@ -349,87 +349,92 @@ function HistoryContent() {
           {!hasFilter && <p className="text-sm text-zinc-600 mt-2">Use /boost in Claude Code to get started</p>}
         </div>
       ) : (
-        <div className="space-y-2">
-          <p className="text-[13px] text-zinc-600 mb-3">
-            {filtered.length} of {totalBoosts} boosts
-          </p>
+        <div className="grid grid-cols-2 gap-4">
           {filtered.map((entry, index) => {
             const dc = DOMAIN_COLORS[entry.domain] || DOMAIN_COLORS.other;
             const delta = entry.boosted_score && entry.original_score
               ? entry.boosted_score.total - entry.original_score.total : null;
             const isSelected = selectedId === entry.id;
             const scorePercent = entry.boosted_score ? Math.round((entry.boosted_score.total / 30) * 100) : 0;
+            const truncated = entry.original.length > 80 ? entry.original.slice(0, 80) + "..." : entry.original;
 
             return (
               <div
                 key={entry.id}
                 onClick={() => setSelectedId(entry.id)}
-                className={`group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-fade-slide-up ${
-                  isSelected
-                    ? "shadow-[0_0_24px_rgba(0,0,0,0.4)] translate-y-[-1px]"
-                    : "hover:translate-y-[-2px] hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                className={`group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-fade-slide-up hover:translate-y-[-3px] ${
+                  isSelected ? "ring-1 ring-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.5)]" : "hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
                 }`}
-                style={{ animationDelay: `${index * 40}ms` }}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                {/* Ambient glow on hover */}
+                {/* Background glow */}
                 <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl"
-                  style={{ background: `radial-gradient(ellipse at 0% 50%, ${dc.accent}15, transparent 60%)` }}
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(ellipse at 20% 20%, ${dc.accent}18, transparent 65%)` }}
                 />
 
-                {/* Card surface */}
-                <div className={`relative flex items-center gap-4 px-5 py-4 border rounded-2xl transition-all duration-300 ${
-                  isSelected
-                    ? "bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)]"
-                    : "bg-[rgba(255,255,255,0.025)] border-[rgba(255,255,255,0.05)] group-hover:bg-[rgba(255,255,255,0.05)] group-hover:border-[rgba(255,255,255,0.1)]"
-                }`}
-                  style={{ borderLeftWidth: "3px", borderLeftColor: isSelected ? dc.accent : `${dc.accent}60` }}
-                >
-                  {/* Domain + text */}
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Top accent strip */}
+                <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${dc.accent}, ${dc.accent}40)` }} />
+
+                {/* Card body */}
+                <div className={`relative p-5 transition-colors duration-300 ${
+                  isSelected ? "bg-[rgba(255,255,255,0.06)]" : "bg-[rgba(255,255,255,0.025)] group-hover:bg-[rgba(255,255,255,0.045)]"
+                }`}>
+                  {/* Top row: badge + date */}
+                  <div className="flex items-center justify-between mb-3">
                     <DomainBadge domain={entry.domain} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[13px] text-zinc-300 truncate group-hover:text-white transition-colors duration-300">
-                        {entry.original.length > 65 ? entry.original.slice(0, 65) + "..." : entry.original}
-                      </p>
-                      {/* Mini score bar */}
-                      {scorePercent > 0 && (
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <div className="w-20 h-1 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${scorePercent}%`, backgroundColor: dc.accent }} />
-                          </div>
-                          <span className="text-[9px] text-zinc-600 font-mono tabular-nums">{entry.boosted_score?.total}/30</span>
-                        </div>
-                      )}
-                    </div>
+                    <span className="text-[10px] text-zinc-600 font-mono tabular-nums">{new Date(entry.timestamp).toLocaleDateString()}</span>
                   </div>
 
-                  {/* Right side metadata */}
-                  <div className="flex items-center gap-3 shrink-0">
+                  {/* Prompt text */}
+                  <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 mb-4 line-clamp-2">
+                    {truncated}
+                  </p>
+
+                  {/* Score bar + metrics */}
+                  <div className="flex items-end justify-between">
+                    <div className="flex-1 mr-4">
+                      {/* Score progress */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] text-zinc-600 font-mono">Score</span>
+                        {delta !== null && delta > 0 && (
+                          <span className="text-[10px] font-mono font-bold text-emerald-400" style={{ textShadow: '0 0 6px rgba(16,185,129,0.3)' }}>+{delta}</span>
+                        )}
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${scorePercent}%`,
+                            background: `linear-gradient(90deg, ${dc.accent}, ${dc.accent}90)`,
+                            boxShadow: `0 0 8px ${dc.accent}40`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[9px] text-zinc-700 font-mono">{entry.original_score?.total ?? '?'}</span>
+                        <span className="text-[9px] font-mono font-semibold" style={{ color: dc.accent }}>{entry.boosted_score?.total ?? '?'}/30</span>
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
                     {entry.chosen && (
-                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold tracking-wide ${
-                        entry.chosen === "boosted" ? "bg-emerald-500/12 text-emerald-400" :
-                        entry.chosen === "refined" ? "bg-amber-500/12 text-amber-400" :
-                        "bg-zinc-500/12 text-zinc-500"
+                      <div className={`px-2.5 py-1 rounded-lg text-[9px] font-bold tracking-wider uppercase ${
+                        entry.chosen === "boosted" ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20" :
+                        entry.chosen === "refined" ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20" :
+                        "bg-zinc-500/10 text-zinc-500 ring-1 ring-zinc-500/20"
                       }`}>
-                        {entry.chosen === "boosted" ? "USED" : entry.chosen === "refined" ? "EDITED" : "SKIP"}
-                      </span>
+                        {entry.chosen === "boosted" ? "Used" : entry.chosen === "refined" ? "Edited" : "Skip"}
+                      </div>
                     )}
-                    {delta !== null && delta > 0 && (
-                      <span
-                        className="text-[11px] font-mono font-black tabular-nums text-emerald-400 px-1.5 py-0.5 rounded-md bg-emerald-500/8"
-                        style={{ textShadow: '0 0 8px rgba(16,185,129,0.3)' }}
-                      >
-                        +{delta}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-zinc-700 font-mono tabular-nums">{new Date(entry.timestamp).toLocaleDateString()}</span>
-                    {/* Arrow indicator */}
-                    <span className={`text-zinc-700 group-hover:text-zinc-400 transition-all duration-300 text-sm ${isSelected ? 'text-zinc-400' : ''}`}>
-                      &#8250;
-                    </span>
                   </div>
                 </div>
+
+                {/* Bottom border glow on hover */}
+                <div
+                  className="h-px w-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `linear-gradient(90deg, transparent, ${dc.accent}40, transparent)` }}
+                />
               </div>
             );
           })}
