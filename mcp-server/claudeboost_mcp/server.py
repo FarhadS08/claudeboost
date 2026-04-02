@@ -3,6 +3,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 import asyncio
 import json
+import time
 from .classifier import classify_domain
 from .enhancer import enhance_prompt
 from .db import load_feedback_context, log_to_history, load_settings, save_settings
@@ -12,6 +13,7 @@ from .auth import is_authenticated, get_login_message, open_login_page, get_auth
 from .config import LOGIN_URL
 from .rate_limiter import check_rate_limit, record_call, get_usage
 from .audit import log_audit
+from . import __version__
 
 app = Server("claudeboost")
 
@@ -34,6 +36,7 @@ async def list_tools() -> list[Tool]:
                     }
                 },
                 "required": ["prompt"],
+                "x-schema-version": "1.1",
             },
         ),
         Tool(
@@ -83,18 +86,12 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="boost_help",
             description="Show ClaudeBoost help: available commands, settings, and usage instructions.",
-            inputSchema={
-                "type": "object",
-                "properties": {},
-            },
+            inputSchema={"type": "object", "properties": {}},
         ),
         Tool(
             name="boost_status",
             description="Show current ClaudeBoost auth status: which account is connected, settings, and sync state.",
-            inputSchema={
-                "type": "object",
-                "properties": {},
-            },
+            inputSchema={"type": "object", "properties": {}},
         ),
     ]
 
@@ -116,7 +113,6 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 
 async def _handle_boost(arguments: dict) -> list[TextContent]:
-    # Check authentication
     if not is_authenticated():
         open_login_page()
         return [TextContent(type="text", text=json.dumps({
@@ -125,7 +121,6 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
             "login_url": LOGIN_URL
         }))]
 
-    # Check rate limit
     user_id = get_user_id() or "local"
     rate_check = check_rate_limit(user_id)
     if not rate_check["allowed"]:
@@ -141,13 +136,10 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     settings = load_settings()
     level = settings.get("boost_level", "medium")
 
-    # Score the original prompt
     original_score = score_prompt(original)
 
-    # Smart skip: if prompt already scores well, don't waste time boosting
-    SKIP_THRESHOLD = 20  # out of 30
+    SKIP_THRESHOLD = 20
     if original_score["total"] >= SKIP_THRESHOLD:
-        # Identify what's already strong
         strong_dims = [k for k, v in original_score["dimensions"].items() if v >= 4]
         return [TextContent(type="text", text=json.dumps({
             "skipped": True,
@@ -159,16 +151,13 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
             "streak": get_streak(),
         }))]
 
-    # Classify domain and get feedback
     domain = classify_domain(original)
     feedback_context = load_feedback_context(domain)
 
-    # Get weakest dimensions weighted by domain importance
     level_thresholds = {"light": 2, "medium": 3, "full": 5}
     threshold = level_thresholds.get(level, 3)
     weak_dims = get_weighted_weakest(original_score["dimensions"], domain, threshold)
 
-    # Identify what the boost will add (for messaging)
     weak_labels = {
         "specificity": "file references & specific behavior",
         "verification": "tests & success criteria",
@@ -179,20 +168,20 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
     }
     improvements_added = [weak_labels.get(d, d) for d in weak_dims[:3]]
 
-    # Record the API call for rate limiting
     record_call(user_id)
 
-    # Enhance with dimension focus
+    t0 = time.monotonic()
     boosted = enhance_prompt(original, domain, feedback_context, level=level, weak_dimensions=weak_dims)
+    latency_ms = int((time.monotonic() - t0) * 1000)
 
-    # Score the boosted prompt
     boosted_score = score_prompt(boosted)
-
     improvement = boosted_score["total"] - original_score["total"]
-    log_audit("boost", user_id, domain=domain, prompt=original, result="success",
-              metadata={"level": level, "improvement": improvement})
 
-    result = json.dumps({
+    log_audit("boost", user_id, domain=domain, prompt=original, result="success",
+              metadata={"level": level, "improvement": improvement},
+              latency_ms=latency_ms)
+
+    return [TextContent(type="text", text=json.dumps({
         "domain": domain,
         "original": original,
         "boosted": boosted,
@@ -202,9 +191,8 @@ async def _handle_boost(arguments: dict) -> list[TextContent]:
         "improvement": improvement,
         "improvements_added": improvements_added,
         "streak": get_streak(),
-    })
-
-    return [TextContent(type="text", text=result)]
+        "server_version": __version__,
+    }))]
 
 
 async def _handle_log_boost(arguments: dict) -> list[TextContent]:
@@ -216,7 +204,6 @@ async def _handle_log_boost(arguments: dict) -> list[TextContent]:
     domain = arguments["domain"]
     chosen = arguments.get("chosen", "boosted")
 
-    # Parse scores if passed as strings (Claude sometimes serializes them)
     original_score = arguments.get("original_score")
     boosted_score = arguments.get("boosted_score")
     if isinstance(original_score, str):
@@ -230,7 +217,6 @@ async def _handle_log_boost(arguments: dict) -> list[TextContent]:
         except (json.JSONDecodeError, TypeError):
             boosted_score = None
 
-    # Always re-score the final versions for accuracy
     boosted_score = score_prompt(boosted)
     original_score = score_prompt(original)
 
@@ -257,8 +243,7 @@ async def _handle_settings(arguments: dict) -> list[TextContent]:
     settings = load_settings()
 
     if action == "get":
-        result = json.dumps(settings)
-        return [TextContent(type="text", text=result)]
+        return [TextContent(type="text", text=json.dumps(settings))]
 
     if "boost_level" in arguments:
         settings["boost_level"] = arguments["boost_level"]
@@ -266,8 +251,7 @@ async def _handle_settings(arguments: dict) -> list[TextContent]:
         settings["auto_boost"] = arguments["auto_boost"]
 
     save_settings(settings)
-    result = json.dumps(settings)
-    return [TextContent(type="text", text=result)]
+    return [TextContent(type="text", text=json.dumps(settings))]
 
 
 async def _handle_help() -> list[TextContent]:
@@ -302,16 +286,14 @@ async def _handle_status() -> list[TextContent]:
     status = get_auth_status()
     settings = load_settings() if status["authenticated"] else {"boost_level": "medium", "auto_boost": True}
     streak = get_streak()
-
     user_id = get_user_id() or "local"
-    result = json.dumps({
+    return [TextContent(type="text", text=json.dumps({
         **status,
         "settings": settings,
         "streak": streak,
         "usage": get_usage(user_id),
         "login_url": LOGIN_URL,
-    })
-    return [TextContent(type="text", text=result)]
+    }))]
 
 
 async def main():
