@@ -227,13 +227,34 @@ claudeboost-mcp --setup`}</CodeBlock>
                 ClaudeBoost adds several slash commands and modifiers to Claude Code:
               </Paragraph>
 
+              <SubHeading>Terminal Commands</SubHeading>
+              <Paragraph>
+                Run these in your regular terminal (outside Claude Code):
+              </Paragraph>
+              <Table
+                headers={["Command", "Description"]}
+                rows={[
+                  ["claudeboost-mcp --setup", "Set up API key, install skills, and sign in"],
+                  ["claudeboost-mcp --login", "Sign in (email + password in terminal)"],
+                  ["claudeboost-mcp --logout", "Sign out"],
+                  ["claudeboost-mcp --status", "Show connected account"],
+                  ["claudeboost-mcp --check", "Quick version/config consistency check"],
+                  ["claudeboost-mcp --doctor", "Full diagnostics (checks all 9 systems)"],
+                  ["claudeboost-mcp --version", "Show installed version"],
+                ]}
+              />
+
+              <SubHeading>Claude Code Commands</SubHeading>
+              <Paragraph>
+                Run these inside Claude Code:
+              </Paragraph>
               <Table
                 headers={["Command", "Description"]}
                 rows={[
                   ["Just type normally", "Auto-boosts every task prompt (when auto-boost is on)"],
                   ["/boost <prompt>", "Manually boost a specific prompt with the full comparison UI"],
                   ["/boost --setup", "Register the MCP server (run once inside Claude Code)"],
-                  ["/boost --login", "Sign in to ClaudeBoost (email + password in terminal)"],
+                  ["/boost --login", "Sign in to ClaudeBoost (runs terminal login)"],
                   ["/boost --logout", "Sign out of ClaudeBoost"],
                   ["/boost --status", "Show connected account and sync state"],
                   ["/boost-settings", "View current boost settings (level and auto-boost status)"],
@@ -503,6 +524,14 @@ npm run dev
                   {
                     q: "Can I disable ClaudeBoost temporarily?",
                     a: "Use /boost-settings --auto false to turn off auto-boost. You can still manually boost with /boost <prompt>. Or append --raw to any prompt to skip just that one.",
+                  },
+                  {
+                    q: "Something isn't working after upgrading. What do I do?",
+                    a: "Run claudeboost-mcp --check in your terminal. It detects version mismatches, stale skills, and missing config. The fix is almost always: claudeboost-mcp --setup (to re-install skills matching your new version). For full diagnostics: claudeboost-mcp --doctor.",
+                  },
+                  {
+                    q: "MCP server says 'not connected' even after setup",
+                    a: "The MCP server must be registered inside Claude Code. Open Claude Code and type: /boost --setup. This runs 'claude mcp add' which always works from inside Claude Code. Then restart Claude Code.",
                   },
                 ].map((faq) => (
                   <div key={faq.q} className="bg-card border border-border rounded-xl p-5">
