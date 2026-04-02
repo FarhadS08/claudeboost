@@ -143,19 +143,23 @@ function HistoryContent() {
 
       {/* Domain quick filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {DOMAINS.map((d) => (
-          <button
-            key={d}
-            onClick={() => filterDomain === d ? clearFilter() : setFilter("domain", d)}
-            className={`rounded-xl px-4 py-2 text-xs font-medium transition-all ${
-              filterDomain === d
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                : "bg-card border border-border hover:border-primary/30"
-            }`}
-          >
-            {DOMAIN_LABELS[d]}
-          </button>
-        ))}
+        {DOMAINS.map((d) => {
+          const c = DOMAIN_COLORS[d] || DOMAIN_COLORS.other;
+          const isActive = filterDomain === d;
+          return (
+            <button
+              key={d}
+              onClick={() => isActive ? clearFilter() : setFilter("domain", d)}
+              className={`rounded-lg px-3.5 py-1.5 text-[11px] font-semibold tracking-wide transition-all border ${
+                isActive
+                  ? `${c.bg} ${c.text} ${c.border}`
+                  : "bg-transparent border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600"
+              }`}
+            >
+              {DOMAIN_LABELS[d]}
+            </button>
+          );
+        })}
       </div>
 
       {/* History list */}

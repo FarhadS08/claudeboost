@@ -2,14 +2,14 @@ import { Domain } from "./types";
 
 export const DOMAINS: Domain[] = ["data_science", "data_engineering", "business_analytics", "general_coding", "documentation", "devops", "other"];
 
-export const DOMAIN_COLORS: Record<Domain, string> = {
-  data_science: "bg-primary/15 text-primary border-primary/25",
-  data_engineering: "bg-violet-500/15 text-violet-400 border-violet-500/25",
-  business_analytics: "bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25",
-  general_coding: "bg-purple-400/15 text-purple-300 border-purple-400/25",
-  documentation: "bg-indigo-500/15 text-indigo-400 border-indigo-500/25",
-  devops: "bg-pink-500/15 text-pink-400 border-pink-500/25",
-  other: "bg-zinc-500/15 text-zinc-400 border-zinc-500/25",
+export const DOMAIN_COLORS: Record<Domain, { bg: string; text: string; border: string; accent: string }> = {
+  data_science:       { bg: "bg-blue-500/12",    text: "text-blue-400",    border: "border-blue-500/25",    accent: "#3b82f6" },
+  data_engineering:   { bg: "bg-violet-500/12",   text: "text-violet-400",  border: "border-violet-500/25",  accent: "#8b5cf6" },
+  business_analytics: { bg: "bg-emerald-500/12",  text: "text-emerald-400", border: "border-emerald-500/25", accent: "#10b981" },
+  general_coding:     { bg: "bg-amber-500/12",    text: "text-amber-400",   border: "border-amber-500/25",   accent: "#f59e0b" },
+  documentation:      { bg: "bg-orange-500/12",   text: "text-orange-400",  border: "border-orange-500/25",  accent: "#f97316" },
+  devops:             { bg: "bg-rose-500/12",     text: "text-rose-400",    border: "border-rose-500/25",    accent: "#f43f5e" },
+  other:              { bg: "bg-zinc-500/12",     text: "text-zinc-400",    border: "border-zinc-500/25",    accent: "#71717a" },
 };
 
 export const DOMAIN_LABELS: Record<Domain, string> = {
@@ -43,6 +43,6 @@ export const LEVEL_COLORS: Record<number, string> = {
   1: "text-red-400",
   2: "text-orange-400",
   3: "text-yellow-400",
-  4: "text-primary",
-  5: "text-violet-400",
+  4: "text-emerald-400",
+  5: "text-cyan-400",
 };

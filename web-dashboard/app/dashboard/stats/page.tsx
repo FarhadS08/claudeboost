@@ -7,7 +7,9 @@ import {
   DIMENSION_NAMES,
   LEVEL_LABELS,
   LEVEL_COLORS,
+  DOMAIN_COLORS,
 } from "@/lib/constants";
+import { Domain } from "@/lib/types";
 import { DomainBadge } from "@/components/DomainBadge";
 import { ScoreBar } from "@/components/ScoreBar";
 import { InfoTooltip } from "@/components/InfoTooltip";
@@ -358,19 +360,22 @@ export default function StatsPage() {
                 for (const e of entries) counts[e.domain] = (counts[e.domain] ?? 0) + 1;
                 const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
                 const maxDomainCount = Math.max(...sorted.map(([, c]) => c), 1);
-                return sorted.map(([domain, count]) => (
-                  <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
-                    <div className="w-36 shrink-0">
-                      <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
+                return sorted.map(([domain, count]) => {
+                  const dc = DOMAIN_COLORS[domain as Domain] || DOMAIN_COLORS.other;
+                  return (
+                    <div key={domain} className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/dashboard?domain=${domain}`)}>
+                      <div className="w-36 shrink-0">
+                        <DomainBadge domain={domain as Domain} />
+                      </div>
+                      <div className="flex-1 h-3 bg-zinc-800/60 rounded overflow-hidden">
+                        <div className="h-full rounded transition-all duration-500" style={{ width: `${(count / maxDomainCount) * 100}%`, backgroundColor: dc.accent }} />
+                      </div>
+                      <span className="text-xs font-mono tabular-nums text-zinc-400 w-8 text-right">
+                        {count}
+                      </span>
                     </div>
-                    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${(count / maxDomainCount) * 100}%` }} />
-                    </div>
-                    <span className="text-xs tabular-nums text-muted-foreground w-10 text-right">
-                      {count}
-                    </span>
-                  </div>
-                ));
+                  );
+                });
               })()}
             </div>
           )}
