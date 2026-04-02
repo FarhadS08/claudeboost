@@ -14,49 +14,140 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Zap, TrendingUp, Crown, X } from "lucide-react";
 
-/* ── Boosted text renderer ─────────────────────────────────────────────── */
-function BoostedText({ text }: { text: string }) {
+/* ── Section icons ─────────────────────────────────────────────────────── */
+const SECTION_META: Record<string, { icon: string; color: string }> = {
+  "context": { icon: "\ud83c\udfaf", color: "#3b82f6" },
+  "goal": { icon: "\ud83c\udfaf", color: "#3b82f6" },
+  "context & goal": { icon: "\ud83c\udfaf", color: "#3b82f6" },
+  "context and goal": { icon: "\ud83c\udfaf", color: "#3b82f6" },
+  "task": { icon: "\u2699\ufe0f", color: "#f59e0b" },
+  "verification": { icon: "\u2705", color: "#10b981" },
+  "constraints": { icon: "\ud83d\udee1\ufe0f", color: "#ef4444" },
+  "output": { icon: "\ud83d\udce6", color: "#8b5cf6" },
+  "output format": { icon: "\ud83d\udce6", color: "#8b5cf6" },
+};
+
+function getSectionMeta(title: string) {
+  const lower = title.toLowerCase().replace(/:$/, "").trim();
+  return SECTION_META[lower] || { icon: "\u25c8", color: "#71717a" };
+}
+
+/* ── Boosted text renderer — structured sections + timeline ───────────── */
+function BoostedText({ text, accent }: { text: string; accent?: string }) {
+  // Parse into sections
+  const lines = text.split("\n");
+  const sections: { title: string; content: string[] }[] = [];
+  let current: { title: string; content: string[] } | null = null;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === "") continue;
+
+    // Detect section headers: **Context:** or **Task:** etc
+    const headerMatch = trimmed.match(/^\*\*(.+?):?\*\*:?\s*(.*)$/);
+    if (headerMatch && !trimmed.match(/^\d+\./)) {
+      // Check if this looks like a section header (not an inline bold)
+      const potentialTitle = headerMatch[1].toLowerCase().replace(/:$/, "");
+      const isSection = Object.keys(SECTION_META).some(k => potentialTitle.includes(k)) || headerMatch[2] === "" || headerMatch[2] === ":";
+
+      if (isSection) {
+        if (current) sections.push(current);
+        current = { title: headerMatch[1].replace(/:$/, ""), content: [] };
+        if (headerMatch[2] && headerMatch[2] !== ":") {
+          current.content.push(headerMatch[2]);
+        }
+        continue;
+      }
+    }
+
+    if (current) {
+      current.content.push(trimmed);
+    } else {
+      // Pre-section text
+      if (!current) {
+        current = { title: "", content: [] };
+      }
+      current.content.push(trimmed);
+    }
+  }
+  if (current) sections.push(current);
+
   return (
-    <div className="space-y-1">
-      {text.split("\n").map((line, i) => {
-        const trimmed = line.trim();
-        if (trimmed === "") return <div key={i} className="h-3" />;
-        const headerMatch = trimmed.match(/^\*\*(.+?)\*\*(.*)$/);
-        if (headerMatch) {
-          return (
-            <p key={i} className="py-1">
-              <strong className="text-white text-[15px]">{headerMatch[1]}</strong>
-              {headerMatch[2] && <span className="text-zinc-300">{headerMatch[2]}</span>}
-            </p>
-          );
-        }
-        if (/^\d+\./.test(trimmed)) {
-          const parts = trimmed.split(/\*\*(.+?)\*\*/g);
-          return (
-            <p key={i} className="pl-3 py-0.5 text-zinc-300 leading-relaxed">
-              {parts.map((part, j) =>
-                j % 2 === 1 ? <strong key={j} className="text-zinc-100">{part}</strong> : <span key={j}>{part}</span>
-              )}
-            </p>
-          );
-        }
-        if (/^[-\u2022]/.test(trimmed)) {
-          const parts = trimmed.split(/\*\*(.+?)\*\*/g);
-          return (
-            <p key={i} className="pl-6 py-0.5 text-zinc-400 leading-relaxed">
-              {parts.map((part, j) =>
-                j % 2 === 1 ? <strong key={j} className="text-zinc-300">{part}</strong> : <span key={j}>{part}</span>
-              )}
-            </p>
-          );
-        }
-        const parts = trimmed.split(/\*\*(.+?)\*\*/g);
+    <div className="space-y-4">
+      {sections.map((section, si) => {
+        const meta = section.title ? getSectionMeta(section.title) : null;
+
         return (
-          <p key={i} className="py-0.5 text-zinc-300 leading-relaxed">
-            {parts.map((part, j) =>
-              j % 2 === 1 ? <strong key={j} className="text-zinc-100">{part}</strong> : <span key={j}>{part}</span>
+          <div key={si} className={section.title ? "relative" : ""}>
+            {/* Section header */}
+            {section.title && meta && (
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px]" style={{ backgroundColor: `${meta.color}15` }}>
+                  {meta.icon}
+                </div>
+                <span className="text-[13px] font-bold text-white tracking-wide">{section.title}</span>
+                <div className="flex-1 h-px ml-2" style={{ background: `linear-gradient(90deg, ${meta.color}20, transparent)` }} />
+              </div>
             )}
-          </p>
+
+            {/* Section content */}
+            <div className={section.title ? "pl-8" : ""}>
+              {section.content.map((line, li) => {
+                // Numbered items — render as timeline
+                const numMatch = line.match(/^(\d+)\.\s*(.*)$/);
+                if (numMatch) {
+                  const stepText = numMatch[2];
+                  const parts = stepText.split(/\*\*(.+?)\*\*/g);
+                  const isLast = li === section.content.length - 1 || !section.content[li + 1]?.match(/^\d+\./);
+
+                  return (
+                    <div key={li} className="flex gap-3 relative">
+                      {/* Timeline line */}
+                      {!isLast && (
+                        <div className="absolute left-[9px] top-[22px] bottom-0 w-px" style={{ backgroundColor: accent ? `${accent}20` : "rgba(255,255,255,0.06)" }} />
+                      )}
+                      {/* Dot */}
+                      <div className="w-[19px] h-[19px] rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5" style={{ borderColor: accent || "#71717a", backgroundColor: `${accent || "#71717a"}15` }}>
+                        <span className="text-[8px] font-bold" style={{ color: accent || "#71717a" }}>{numMatch[1]}</span>
+                      </div>
+                      {/* Step text */}
+                      <p className="text-[13px] text-zinc-300 leading-relaxed pb-3 flex-1">
+                        {parts.map((part, j) =>
+                          j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : <span key={j}>{part}</span>
+                        )}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Bullet items
+                if (/^[-\u2022]/.test(line)) {
+                  const bulletText = line.replace(/^[-\u2022]\s*/, "");
+                  const parts = bulletText.split(/\*\*(.+?)\*\*/g);
+                  return (
+                    <div key={li} className="flex gap-2.5 py-0.5">
+                      <span className="text-zinc-600 mt-0.5 text-[8px]">{"\u25cf"}</span>
+                      <p className="text-[13px] text-zinc-400 leading-relaxed flex-1">
+                        {parts.map((part, j) =>
+                          j % 2 === 1 ? <strong key={j} className="text-zinc-200">{part}</strong> : <span key={j}>{part}</span>
+                        )}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Regular text
+                const parts = line.split(/\*\*(.+?)\*\*/g);
+                return (
+                  <p key={li} className="text-[13px] text-zinc-300 leading-relaxed py-0.5">
+                    {parts.map((part, j) =>
+                      j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : <span key={j}>{part}</span>
+                    )}
+                  </p>
+                );
+              })}
+            </div>
+          </div>
         );
       })}
     </div>
@@ -152,7 +243,7 @@ function BoostDrawer({
               )}
             </div>
             <div className="rounded-xl p-6 border text-[14px] leading-[1.8]" style={{ background: `${dc.accent}06`, borderColor: `${dc.accent}12` }}>
-              <BoostedText text={entry.boosted} />
+              <BoostedText text={entry.boosted} accent={dc.accent} />
             </div>
           </div>
 
