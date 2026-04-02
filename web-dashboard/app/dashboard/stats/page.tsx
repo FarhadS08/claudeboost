@@ -25,13 +25,13 @@ function HowItWorksSection() {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-primary/3 border border-primary/20 rounded-lg overflow-hidden animate-fade-slide-up">
+    <div className="bg-gradient-to-br from-primary/5 to-transparent border border-primary/20 rounded-2xl overflow-hidden animate-fade-slide-up">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full p-6 text-left flex items-center justify-between hover:bg-primary/5 transition-colors"
+        className="w-full p-7 text-left flex items-center justify-between hover:bg-primary/5 transition-colors"
       >
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-primary flex items-center gap-2">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
             🧠 How ClaudeBoost Learns From You
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
@@ -298,8 +298,8 @@ export default function StatsPage() {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-bold text-2xl">Stats</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h1 className="text-3xl font-bold tracking-tight">Stats</h1>
+        <p className="text-muted-foreground mt-2">
           Evaluation metrics for your prompt boosts
         </p>
       </div>
@@ -310,10 +310,10 @@ export default function StatsPage() {
 
         {/* ── Section 1: Boost Acceptance Rate ─────────────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
           style={{ animationDelay: "0ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             Boost Acceptance Rate
             <InfoTooltip text="How often you chose the boosted version over your original prompt. Only counts prompts where you made an explicit choice (Use boosted or Keep original)." />
           </h2>
@@ -321,11 +321,11 @@ export default function StatsPage() {
             <p className="text-muted-foreground text-sm">No data yet</p>
           ) : (
             <div className="flex items-center gap-6">
-              <span className="text-5xl font-bold text-primary tabular-nums">
+              <span className="text-6xl font-bold text-primary font-mono tabular-nums">
                 {acceptanceRate!.toFixed(0)}%
               </span>
               <div className="flex-1">
-                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${acceptanceRate}%` }}
@@ -342,10 +342,10 @@ export default function StatsPage() {
 
         {/* ── Section 1.5: Boosts by Domain (all entries) ─────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "40ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "80ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             Boosts by Domain
             <InfoTooltip text="Total number of prompts boosted in each domain. ClaudeBoost auto-classifies prompts into 7 domains. Click a bar to filter History by that domain." />
           </h2>
@@ -363,7 +363,7 @@ export default function StatsPage() {
                     <div className="w-36 shrink-0">
                       <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                     </div>
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
                       <div className="h-full bg-primary rounded-full" style={{ width: `${(count / maxDomainCount) * 100}%` }} />
                     </div>
                     <span className="text-xs tabular-nums text-muted-foreground w-10 text-right">
@@ -378,10 +378,10 @@ export default function StatsPage() {
 
         {/* ── Section 2: Average Rating by Domain ──────────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "80ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "160ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             Average Rating by Domain
             <InfoTooltip text="Average star rating (1-5) you gave to boosted prompts, grouped by domain. Rate boosts in the History page by expanding a card and using the feedback form." />
           </h2>
@@ -394,7 +394,7 @@ export default function StatsPage() {
                   <div className="w-36 shrink-0">
                     <DomainBadge domain={domain as Parameters<typeof DomainBadge>[0]["domain"]} />
                   </div>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full"
                       style={{ width: `${(avg / 5) * 100}%` }}
@@ -411,12 +411,12 @@ export default function StatsPage() {
 
         {/* ── Section 3: Score Improvement Histogram ───────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "120ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "240ms" }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center">
                 Score Improvement — Before vs After
                 <InfoTooltip text="Each prompt is scored across 6 dimensions (1-5 each): Specificity, Verification, Context, Constraints, Structure, and Output. Gray bars show the average original score, green bars show the average boosted score. Higher is better." />
               </h2>
@@ -427,7 +427,7 @@ export default function StatsPage() {
             <span className="text-xs text-muted-foreground">
               <span className="inline-block w-3 h-3 rounded bg-zinc-500/40 mr-1 align-middle" />
               Before ·{" "}
-              <span className="inline-block w-3 h-3 rounded bg-primary mr-1 align-middle" />
+              <span className="inline-block w-3 h-3 rounded bg-emerald-500 mr-1 align-middle" />
               After
             </span>
           </div>
@@ -449,21 +449,21 @@ export default function StatsPage() {
 
         {/* ── Section 4: ROI Metrics ────────────────────────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "180ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "320ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             ROI Metrics
             <InfoTooltip text="Return on Investment metrics. Avg Score Lift = how many points the boost adds (out of 30). Quality Level Distribution = how many boosts reach each quality tier (L1=Unacceptable to L5=Enterprise). Success Rate = % of boosts that improved the score. Dims Improved = how many of the 6 dimensions got better per boost." />
           </h2>
           {scoredEntries.length === 0 ? (
             <p className="text-muted-foreground text-sm">No data yet</p>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               {/* Card 1: Avg Score Lift */}
-              <div className="bg-muted/40 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-xl p-5">
                 <p className="text-xs text-muted-foreground mb-1">Avg Score Lift</p>
-                <p className="text-3xl font-bold text-primary tabular-nums">
+                <p className="text-4xl font-bold font-mono tabular-nums text-emerald-400">
                   {avgScoreLift !== null
                     ? `${avgScoreLift >= 0 ? "+" : ""}${avgScoreLift.toFixed(1)}`
                     : "—"}
@@ -472,7 +472,7 @@ export default function StatsPage() {
               </div>
 
               {/* Card 2: Quality Level Distribution */}
-              <div className="bg-muted/40 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-xl p-5">
                 <p className="text-xs text-muted-foreground mb-2">Quality Level Distribution</p>
                 <div className="space-y-1.5">
                   {[5, 4, 3, 2, 1].map((lvl) => (
@@ -499,9 +499,9 @@ export default function StatsPage() {
               </div>
 
               {/* Card 3: Boost Success Rate */}
-              <div className="bg-muted/40 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-xl p-5">
                 <p className="text-xs text-muted-foreground mb-1">Boost Success Rate</p>
-                <p className="text-3xl font-bold text-primary tabular-nums">
+                <p className="text-4xl font-bold font-mono tabular-nums text-emerald-400">
                   {boostSuccessRate !== null ? `${boostSuccessRate.toFixed(0)}%` : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -510,9 +510,9 @@ export default function StatsPage() {
               </div>
 
               {/* Card 4: Avg Dimensions Improved */}
-              <div className="bg-muted/40 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-xl p-5">
                 <p className="text-xs text-muted-foreground mb-1">Avg Dimensions Improved</p>
-                <p className="text-3xl font-bold text-violet-400 tabular-nums">
+                <p className="text-4xl font-bold font-mono tabular-nums text-emerald-400">
                   {avgDimsImproved !== null ? avgDimsImproved.toFixed(1) : "—"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -525,10 +525,10 @@ export default function StatsPage() {
 
         {/* ── Section 5: Feedback Coverage ─────────────────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "240ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "400ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             Feedback Coverage
             <InfoTooltip text="Percentage of boosted prompts where you left a star rating or text feedback. Higher coverage means ClaudeBoost learns your preferences better and tailors future boosts to your style." />
           </h2>
@@ -561,8 +561,8 @@ export default function StatsPage() {
                   x="40"
                   y="44"
                   textAnchor="middle"
-                  className="fill-foreground"
-                  fontSize="13"
+                  className="fill-foreground font-bold text-xl"
+                  fontSize="14"
                   fontWeight="700"
                   fill="currentColor"
                 >
@@ -584,10 +584,10 @@ export default function StatsPage() {
 
         {/* ── Section 6: Daily Activity — Last 7 Days ──────────────────────── */}
         <div
-          className="bg-card border border-border rounded-lg p-6 animate-fade-slide-up"
-          style={{ animationDelay: "300ms" }}
+          className="bg-card border border-border rounded-2xl p-7 hover:border-primary/20 transition-colors animate-fade-slide-up"
+          style={{ animationDelay: "480ms" }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 flex items-center">
             Daily Activity — Last 7 Days
             <InfoTooltip text="Number of prompts boosted each day over the past week. Tracks your ClaudeBoost usage pattern." />
           </h2>
@@ -602,8 +602,8 @@ export default function StatsPage() {
                   </span>
                   <div className="w-full flex items-end" style={{ height: "72px" }}>
                     <div
-                      className="w-full bg-primary rounded-t"
-                      style={{ height: `${(count / maxCount) * 100}%`, minHeight: count > 0 ? "4px" : "0" }}
+                      className="w-full bg-primary rounded-t-md"
+                      style={{ height: `${(count / maxCount) * 100}%`, minHeight: count > 0 ? "8px" : "0" }}
                     />
                   </div>
                   <span className="text-xs text-muted-foreground">{label}</span>
