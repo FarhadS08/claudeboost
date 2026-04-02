@@ -86,18 +86,18 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
 
   return (
     <div
-      className="group relative bg-card border border-border rounded-2xl overflow-hidden transition-all duration-200 hover:border-zinc-600/50"
+      className="group relative bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-2xl overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[rgba(255,255,255,0.1)]"
       style={{ borderLeftWidth: "3px", borderLeftColor: domainColor.accent }}
     >
       {/* Collapsed header */}
       <div
-        className="px-5 py-4 cursor-pointer transition-colors hover:bg-white/[0.02]"
+        className="px-5 py-4 cursor-pointer transition-colors hover:bg-[rgba(255,255,255,0.02)]"
         onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <DomainBadge domain={entry.domain} />
-            <span className="text-sm text-zinc-400 truncate">{truncatedOriginal}</span>
+            <span className="text-[13px] text-zinc-500 truncate">{truncatedOriginal}</span>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
@@ -111,16 +111,19 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
               </span>
             )}
             {scoreDelta !== null && (
-              <span className={`text-xs font-mono font-bold tabular-nums px-2 py-0.5 rounded-md ${
-                scoreDelta > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-500"
-              }`}>
+              <span
+                className={`text-xs font-mono font-bold tabular-nums px-2 py-0.5 rounded-md ${
+                  scoreDelta > 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-500"
+                }`}
+                style={{ boxShadow: scoreDelta > 0 ? '0 0 8px rgba(16,185,129,0.2)' : undefined }}
+              >
                 +{scoreDelta}
               </span>
             )}
             {entry.rating !== null && entry.rating > 0 && (
               <StarRating value={entry.rating} readonly />
             )}
-            <span className="text-[11px] text-zinc-600 tabular-nums">
+            <span className="text-[11px] text-zinc-600 font-mono tabular-nums">
               {new Date(entry.timestamp).toLocaleDateString()}
             </span>
             <span className={`text-zinc-600 text-xs transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}>
@@ -132,17 +135,17 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
 
       {/* Expanded content */}
       {expanded && (
-        <div className="border-t border-border">
+        <div className="border-t border-[rgba(255,255,255,0.06)]">
           {/* Tab bar */}
           <div className="flex">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex-1 py-3 text-[12px] font-semibold tracking-wide transition-all ${
+                className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${
                   tab === t.key
-                    ? "text-primary border-b-2 border-primary bg-primary/[0.04]"
-                    : "text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent"
+                    ? "text-white border-b-2 border-white bg-[rgba(255,255,255,0.03)]"
+                    : "text-zinc-600 hover:text-zinc-400 border-b-2 border-transparent"
                 }`}
               >
                 {t.label}
@@ -154,9 +157,9 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
             {/* Compare tab */}
             {tab === "compare" && (
               <div className="space-y-4">
-                <div className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800/50">
+                <div className="bg-[rgba(255,255,255,0.02)] rounded-xl p-4 border border-[rgba(255,255,255,0.04)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Original</span>
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500 font-bold">Original</span>
                     {entry.original_score && (
                       <span className="text-[10px] text-zinc-600 font-mono">{entry.original_score.total}/30</span>
                     )}
@@ -164,9 +167,12 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                   <p className="text-[13px] text-zinc-400 leading-relaxed">{entry.original}</p>
                 </div>
 
-                <div className="rounded-xl p-5 border" style={{ background: `${domainColor.accent}08`, borderColor: `${domainColor.accent}15` }}>
+                <div
+                  className="rounded-xl p-5 border"
+                  style={{ background: `${domainColor.accent}06`, borderColor: `${domainColor.accent}12` }}
+                >
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: domainColor.accent }}>
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: domainColor.accent }}>
                       {entry.chosen === "boosted" ? "Accepted" : entry.chosen === "refined" ? "Refined" : entry.chosen === "original" ? "Original kept" : "Boosted"}
                     </span>
                     {entry.boosted_score && (
@@ -178,7 +184,7 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                       </span>
                     )}
                   </div>
-                  <div className="text-[13px] text-zinc-300 leading-relaxed max-h-[350px] overflow-y-auto pr-2">
+                  <div className="text-[13px] text-zinc-300 leading-relaxed max-h-[400px] overflow-y-auto pr-2">
                     <BoostedText text={entry.boosted} />
                   </div>
                 </div>
@@ -191,19 +197,19 @@ export function HistoryCard({ entry, onFeedback }: HistoryCardProps) {
                 {hasScores && entry.original_score && entry.boosted_score ? (
                   <>
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center p-4 bg-zinc-900/50 rounded-xl border border-zinc-800/50">
-                        <p className="text-3xl font-bold font-mono text-zinc-500 tabular-nums">{entry.original_score.total}</p>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-wider mt-1">Before</p>
+                      <div className="text-center p-5 bg-[rgba(255,255,255,0.02)] rounded-xl border border-[rgba(255,255,255,0.04)]">
+                        <p className="text-3xl font-black font-mono tabular-nums text-zinc-500" style={{ textShadow: '0 0 20px rgba(161,161,170,0.15)' }}>{entry.original_score.total}</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-[0.15em] mt-1 font-bold">Before</p>
                       </div>
-                      <div className="text-center p-4 bg-emerald-500/[0.06] rounded-xl border border-emerald-500/15">
-                        <p className="text-3xl font-bold font-mono text-emerald-400 tabular-nums">{entry.boosted_score.total}</p>
-                        <p className="text-[10px] text-emerald-500/60 uppercase tracking-wider mt-1">After</p>
+                      <div className="text-center p-5 bg-[rgba(16,185,129,0.04)] rounded-xl border border-[rgba(16,185,129,0.1)]">
+                        <p className="text-3xl font-black font-mono tabular-nums text-emerald-400" style={{ textShadow: '0 0 20px rgba(16,185,129,0.3)' }}>{entry.boosted_score.total}</p>
+                        <p className="text-[10px] text-emerald-500/60 uppercase tracking-[0.15em] mt-1 font-bold">After</p>
                       </div>
-                      <div className="text-center p-4 bg-primary/[0.06] rounded-xl border border-primary/15">
-                        <p className={`text-3xl font-bold font-mono tabular-nums ${scoreDelta! > 0 ? "text-primary" : "text-zinc-400"}`}>
+                      <div className="text-center p-5 bg-[rgba(124,58,237,0.04)] rounded-xl border border-[rgba(124,58,237,0.1)]">
+                        <p className={`text-3xl font-black font-mono tabular-nums ${scoreDelta! > 0 ? "text-purple-400" : "text-zinc-400"}`} style={{ textShadow: '0 0 20px rgba(124,58,237,0.3)' }}>
                           +{scoreDelta}
                         </p>
-                        <p className="text-[10px] text-primary/50 uppercase tracking-wider mt-1">Lift</p>
+                        <p className="text-[10px] text-purple-400/50 uppercase tracking-[0.15em] mt-1 font-bold">Lift</p>
                       </div>
                     </div>
 
