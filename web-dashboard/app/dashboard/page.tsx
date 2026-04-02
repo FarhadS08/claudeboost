@@ -9,6 +9,7 @@ import { StarRating } from "@/components/StarRating";
 import { ScoreBar } from "@/components/ScoreBar";
 import { ScoreRadar } from "@/components/ScoreRadar";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Zap, TrendingUp, Crown, X } from "lucide-react";
@@ -273,7 +274,7 @@ function HistoryContent() {
               <Zap className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(124,58,237,0.3)" }}>{totalBoosts}</p>
+              <AnimatedNumber value={totalBoosts} className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(124,58,237,0.3)" }} />
               <p className="text-[13px] text-zinc-500 font-medium mt-2">Total Boosts</p>
             </div>
           </div>
@@ -286,9 +287,11 @@ function HistoryContent() {
               <TrendingUp className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }}>
-                {avgScoreLift !== null ? `+${avgScoreLift.toFixed(1)}` : "\u2014"}
-              </p>
+              {avgScoreLift !== null ? (
+                <AnimatedNumber value={avgScoreLift} prefix="+" decimals={1} className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }} />
+              ) : (
+                <p className="text-5xl font-black font-mono tabular-nums tracking-tight text-white" style={{ textShadow: "0 0 40px rgba(16,185,129,0.3)" }}>{"\u2014"}</p>
+              )}
               <p className="text-[13px] text-zinc-500 font-medium mt-2">Avg Score Lift</p>
             </div>
           </div>

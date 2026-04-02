@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useId } from "react";
 import { ScoreBreakdown } from "@/lib/types";
 
 interface ScoreRadarProps {
@@ -38,10 +39,24 @@ function shapePath(scores: Record<string, number>, maxR: number, cx: number, cy:
   }).join(" ") + " Z";
 }
 
+function centerPath(cx: number, cy: number): string {
+  return DIMS.map((_, i) => {
+    const angle = (360 / DIMS.length) * i;
+    return `${i === 0 ? "M" : "L"}${cx.toFixed(1)},${cy.toFixed(1)}`;
+  }).join(" ") + " Z";
+}
+
 export function ScoreRadar({ before, after, accent, size = 56, showLabels = false }: ScoreRadarProps) {
+  const [animated, setAnimated] = useState(false);
+  const uid = useId().replace(/:/g, "");
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
   if (!before && !after) return null;
 
-  const pad = showLabels ? 28 : 4;
   const svgSize = size + (showLabels ? 56 : 0);
   const cx = svgSize / 2;
   const cy = svgSize / 2;
@@ -52,11 +67,22 @@ export function ScoreRadar({ before, after, accent, size = 56, showLabels = fals
 
   const beforePath = shapePath(beforeDims, maxR, cx, cy);
   const afterPath = shapePath(afterDims, maxR, cx, cy);
+  const zeroPath = centerPath(cx, cy);
 
-  const filterId = `glow-${accent.replace('#', '')}-${size}`;
+  const filterId = `glow-${uid}`;
 
   return (
     <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`} className="shrink-0">
+      <defs>
+        <filter id={filterId}>
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
       {/* Grid rings */}
       {[0.33, 0.66, 1].map((r) => (
         <polygon
@@ -73,7 +99,7 @@ export function ScoreRadar({ before, after, accent, size = 56, showLabels = fals
       ))}
 
       {/* Axis lines */}
-      {DIMS.map((dim, i) => {
+      {DIMS.map((_, i) => {
         const angle = (360 / DIMS.length) * i;
         const { x, y } = polarToXY(angle, maxR, cx, cy);
         return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />;
@@ -84,9 +110,7 @@ export function ScoreRadar({ before, after, accent, size = 56, showLabels = fals
         const angle = (360 / DIMS.length) * i;
         const labelR = maxR + 16;
         const { x, y } = polarToXY(angle, labelR, cx, cy);
-        const afterVal = afterDims[dim] || 0;
-        const beforeVal = beforeDims[dim] || 0;
-        const improved = afterVal > beforeVal;
+        const improved = (afterDims[dim] || 0) > (beforeDims[dim] || 0);
         return (
           <text
             key={dim}
@@ -98,46 +122,56 @@ export function ScoreRadar({ before, after, accent, size = 56, showLabels = fals
             fontSize="9"
             fontWeight={improved ? "600" : "400"}
             fontFamily="Inter, sans-serif"
+            style={{ opacity: animated ? 1 : 0, transition: `opacity 0.4s ease ${0.3 + i * 0.05}s` }}
           >
             {DIM_SHORT[dim]}
           </text>
         );
       })}
 
-      {/* Before shape */}
-      <path d={beforePath} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3 2" />
-
-      {/* After shape with glow */}
-      <defs>
-        <filter id={filterId}>
-          <feGaussianBlur stdDeviation="2.5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
+      {/* Before shape — fades in */}
       <path
-        d={afterPath}
+        d={beforePath}
+        fill="rgba(255,255,255,0.04)"
+        stroke="rgba(255,255,255,0.15)"
+        strokeWidth="1"
+        strokeDasharray="3 2"
+        style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s ease 0.1s" }}
+      />
+
+      {/* After shape — blooms from center */}
+      <path
+        d={animated ? afterPath : zeroPath}
         fill={`${accent}18`}
         stroke={accent}
         strokeWidth="1.5"
         filter={`url(#${filterId})`}
-        className="transition-all duration-700"
+        style={{ transition: "d 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, opacity 0.5s ease 0.2s", opacity: animated ? 1 : 0 }}
       />
 
-      {/* Dimension value dots on after shape */}
+      {/* Dots on after shape — appear with stagger + pulse */}
       {showLabels && DIMS.map((dim, i) => {
         const angle = (360 / DIMS.length) * i;
         const val = (afterDims[dim] || 1) / 5;
         const { x, y } = polarToXY(angle, val * maxR, cx, cy);
         return (
-          <circle key={`dot-${dim}`} cx={x} cy={y} r="2.5" fill={accent} opacity="0.8" />
+          <circle
+            key={`dot-${dim}`}
+            cx={animated ? x : cx}
+            cy={animated ? y : cy}
+            r="2.5"
+            fill={accent}
+            opacity={animated ? 0.9 : 0}
+            style={{ transition: `cx 0.7s cubic-bezier(0.16,1,0.3,1) ${0.25 + i * 0.06}s, cy 0.7s cubic-bezier(0.16,1,0.3,1) ${0.25 + i * 0.06}s, opacity 0.4s ease ${0.3 + i * 0.06}s` }}
+          >
+            {/* Pulse once */}
+            <animate attributeName="r" values="2.5;4;2.5" dur="0.5s" begin={`${0.7 + i * 0.06}s`} repeatCount="1" />
+          </circle>
         );
       })}
 
       {/* Center dot */}
-      <circle cx={cx} cy={cy} r="1.5" fill={accent} opacity="0.5" />
+      <circle cx={cx} cy={cy} r="1.5" fill={accent} opacity={animated ? 0.5 : 0} style={{ transition: "opacity 0.3s ease" }} />
     </svg>
   );
 }
