@@ -358,40 +358,77 @@ function HistoryContent() {
             const delta = entry.boosted_score && entry.original_score
               ? entry.boosted_score.total - entry.original_score.total : null;
             const isSelected = selectedId === entry.id;
+            const scorePercent = entry.boosted_score ? Math.round((entry.boosted_score.total / 30) * 100) : 0;
 
             return (
               <div
                 key={entry.id}
                 onClick={() => setSelectedId(entry.id)}
-                className={`flex items-center gap-4 px-5 py-3.5 rounded-xl cursor-pointer transition-all duration-200 animate-fade-slide-up ${
+                className={`group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-fade-slide-up ${
                   isSelected
-                    ? "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)]"
-                    : "bg-[rgba(255,255,255,0.02)] border border-transparent hover:bg-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.06)]"
+                    ? "shadow-[0_0_24px_rgba(0,0,0,0.4)] translate-y-[-1px]"
+                    : "hover:translate-y-[-2px] hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                 }`}
-                style={{
-                  animationDelay: `${index * 40}ms`,
-                  borderLeftWidth: "3px",
-                  borderLeftColor: isSelected ? dc.accent : `${dc.accent}40`,
-                }}
+                style={{ animationDelay: `${index * 40}ms` }}
               >
-                <DomainBadge domain={entry.domain} />
-                <span className="text-[13px] text-zinc-400 truncate flex-1 min-w-0">
-                  {entry.original.length > 70 ? entry.original.slice(0, 70) + "..." : entry.original}
-                </span>
-                <div className="flex items-center gap-2.5 shrink-0">
-                  {entry.chosen && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold ${
-                      entry.chosen === "boosted" ? "bg-emerald-500/15 text-emerald-400" :
-                      entry.chosen === "refined" ? "bg-amber-500/15 text-amber-400" :
-                      "bg-zinc-500/15 text-zinc-500"
-                    }`}>
-                      {entry.chosen === "boosted" ? "Used" : entry.chosen === "refined" ? "Edited" : "Skip"}
+                {/* Ambient glow on hover */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl"
+                  style={{ background: `radial-gradient(ellipse at 0% 50%, ${dc.accent}15, transparent 60%)` }}
+                />
+
+                {/* Card surface */}
+                <div className={`relative flex items-center gap-4 px-5 py-4 border rounded-2xl transition-all duration-300 ${
+                  isSelected
+                    ? "bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)]"
+                    : "bg-[rgba(255,255,255,0.025)] border-[rgba(255,255,255,0.05)] group-hover:bg-[rgba(255,255,255,0.05)] group-hover:border-[rgba(255,255,255,0.1)]"
+                }`}
+                  style={{ borderLeftWidth: "3px", borderLeftColor: isSelected ? dc.accent : `${dc.accent}60` }}
+                >
+                  {/* Domain + text */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <DomainBadge domain={entry.domain} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] text-zinc-300 truncate group-hover:text-white transition-colors duration-300">
+                        {entry.original.length > 65 ? entry.original.slice(0, 65) + "..." : entry.original}
+                      </p>
+                      {/* Mini score bar */}
+                      {scorePercent > 0 && (
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <div className="w-20 h-1 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${scorePercent}%`, backgroundColor: dc.accent }} />
+                          </div>
+                          <span className="text-[9px] text-zinc-600 font-mono tabular-nums">{entry.boosted_score?.total}/30</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right side metadata */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    {entry.chosen && (
+                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold tracking-wide ${
+                        entry.chosen === "boosted" ? "bg-emerald-500/12 text-emerald-400" :
+                        entry.chosen === "refined" ? "bg-amber-500/12 text-amber-400" :
+                        "bg-zinc-500/12 text-zinc-500"
+                      }`}>
+                        {entry.chosen === "boosted" ? "USED" : entry.chosen === "refined" ? "EDITED" : "SKIP"}
+                      </span>
+                    )}
+                    {delta !== null && delta > 0 && (
+                      <span
+                        className="text-[11px] font-mono font-black tabular-nums text-emerald-400 px-1.5 py-0.5 rounded-md bg-emerald-500/8"
+                        style={{ textShadow: '0 0 8px rgba(16,185,129,0.3)' }}
+                      >
+                        +{delta}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-zinc-700 font-mono tabular-nums">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                    {/* Arrow indicator */}
+                    <span className={`text-zinc-700 group-hover:text-zinc-400 transition-all duration-300 text-sm ${isSelected ? 'text-zinc-400' : ''}`}>
+                      &#8250;
                     </span>
-                  )}
-                  {delta !== null && (
-                    <span className="text-[11px] font-mono font-bold tabular-nums text-emerald-400">+{delta}</span>
-                  )}
-                  <span className="text-[10px] text-zinc-700 font-mono tabular-nums">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </div>
             );
