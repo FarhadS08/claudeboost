@@ -17,7 +17,7 @@ export function Footer() {
         </div>
 
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <Link href="/dashboard" className="hover:text-foreground transition-colors">
+          <Link href="/org/new" className="hover:text-foreground transition-colors">
             Dashboard
           </Link>
           <Link href="https://github.com/FarhadS08/claudeboost" className="hover:text-foreground transition-colors">

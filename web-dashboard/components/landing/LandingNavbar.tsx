@@ -62,16 +62,16 @@ export function LandingNavbar() {
             Docs
           </Link>
           <Link
-            href="/dashboard"
+            href="/org/new"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Dashboard
           </Link>
           <Link
-            href="/dashboard"
+            href="/org/new"
             className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            Get Started Free
+            Get Started
           </Link>
         </div>
       </div>
