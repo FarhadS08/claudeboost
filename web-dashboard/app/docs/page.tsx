@@ -455,7 +455,7 @@ claudeboost-mcp --setup`}</CodeBlock>
                 {[
                   {
                     title: "History",
-                    path: "/dashboard",
+                    path: "/org/new",
                     desc: "Browse all boosted prompts. Filter by domain or quality level. Expand cards to see original vs boosted, score breakdown, and leave feedback.",
                   },
                   {

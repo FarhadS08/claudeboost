@@ -19,22 +19,17 @@ export function CTASection() {
         </h2>
 
         <p className="text-muted-foreground mt-6 text-lg max-w-xl mx-auto">
-          Join developers who use ClaudeBoost to turn every prompt into a
-          production-grade instruction. Free and open source.
+          Set up your org in 2 minutes. Add a <code className="text-primary">.mcp.json</code> to your repo.
+          Every developer gets enhanced prompts aligned with your standards.
         </p>
 
         <div className="flex flex-col items-center gap-6 mt-10">
-          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-card border border-border font-mono text-sm">
-            <span className="text-primary">&#10095;</span>
-            <span className="text-foreground">pip install claudeboost-mcp</span>
-          </div>
-
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/org/new"
               className="px-10 py-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/25 text-base"
             >
-              Open Dashboard
+              Create Organization
             </Link>
             <Link
               href="https://github.com/FarhadS08/claudeboost"
@@ -46,7 +41,7 @@ export function CTASection() {
         </div>
 
         <p className="text-xs text-muted-foreground mt-6">
-          100% free &middot; Install in 30 seconds &middot; Works with Claude Code CLI
+          Per-seat pricing &middot; Zero developer install &middot; Your API key, your data
         </p>
       </div>
     </section>

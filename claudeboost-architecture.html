@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaudeBoost Enterprise — Architecture Playground</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0a0b14;--card:#12131f;--border:#1e2035;--text:#e4e4ed;--dim:#6b6b80;--primary:#7c3aed;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--mono:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace;--sans:system-ui,-apple-system,sans-serif}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden;height:100vh}
+  .app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:48px 1fr 140px;height:100vh}
+  .header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border);background:var(--card)}
+  .header h1{font-family:var(--mono);font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .header h1 span{color:var(--primary)}
+  .tabs{display:flex;gap:2px}
+  .tab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--dim);background:transparent;border:none}
+  .tab.active{color:var(--primary);background:rgba(124,58,237,.12)}
+  .tab:hover{color:var(--text)}
+  .legend{display:flex;gap:12px;font-size:11px;color:var(--dim)}
+  .legend-item{display:flex;align-items:center;gap:5px}
+  .legend-dot{width:8px;height:8px;border-radius:50%}
+  .sidebar{border-right:1px solid var(--border);background:var(--card);overflow-y:auto;padding:12px}
+  .sidebar h3{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin:12px 0 8px 4px;font-weight:600}
+  .sidebar h3:first-child{margin-top:4px}
+  .layer-toggle{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:12px;font-weight:500}
+  .layer-toggle:hover{background:rgba(255,255,255,.04)}
+  .layer-toggle input{accent-color:var(--primary)}
+  .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .conn-toggle{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--dim)}
+  .conn-toggle:hover{color:var(--text)}
+  .conn-toggle input{accent-color:var(--primary)}
+  .conn-line{width:16px;height:2px;border-radius:1px}
+  .comment-item{padding:8px;border-radius:8px;background:rgba(255,255,255,.03);margin-bottom:6px;font-size:11px;border:1px solid var(--border)}
+  .comment-target{color:var(--primary);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+  .comment-text{color:var(--dim);margin-top:3px;line-height:1.4}
+  .comment-del{float:right;color:var(--dim);cursor:pointer;font-size:10px;opacity:.5}
+  .comment-del:hover{color:var(--red);opacity:1}
+  .canvas-area{position:relative;overflow:hidden;background:var(--bg)}
+  .canvas-area svg{width:100%;height:100%}
+  .prompt-area{grid-column:1/-1;border-top:1px solid var(--border);background:var(--card);padding:12px 20px;display:flex;flex-direction:column;gap:8px}
+  .prompt-header{display:flex;justify-content:space-between;align-items:center}
+  .prompt-header span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:600}
+  .copy-btn{padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--primary);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+  .copy-btn:hover{background:rgba(124,58,237,.1)}
+  .prompt-text{flex:1;overflow-y:auto;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.6;white-space:pre-wrap}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:420px;max-width:90vw}
+  .modal h2{font-size:15px;font-weight:700;margin-bottom:4px}
+  .modal .file{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:12px}
+  .status-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:8px}
+  .modal textarea{width:100%;height:80px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:var(--sans);font-size:12px;resize:none;outline:none}
+  .modal textarea:focus{border-color:var(--primary)}
+  .schema-box{font-family:var(--mono);font-size:11px;color:var(--dim);background:rgba(0,0,0,.3);border-radius:8px;padding:10px;margin:8px 0;line-height:1.5;max-height:120px;overflow-y:auto;white-space:pre-wrap}
+  .modal-btns{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+  .btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-secondary{background:transparent;color:var(--dim);border:1px solid var(--border)}
+  .node{cursor:pointer;transition:all .15s}
+  .node:hover rect{stroke-width:2;filter:drop-shadow(0 0 8px rgba(124,58,237,.2))}
+  .node text{pointer-events:none}
+  @keyframes flowDash{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
+  .flow-anim{animation:flowDash .8s linear infinite}
+  .conn-path{fill:none;stroke-width:1.5;transition:opacity .2s}
+  .conn-label{font-size:9px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1><span>&#9889;</span> ClaudeBoost Architecture</h1>
+    <div class="tabs" id="tabs"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Built</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Placeholder</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Not Built</div>
+    </div>
+  </div>
+  <div class="sidebar" id="sidebar"></div>
+  <div class="canvas-area"><svg id="canvas" viewBox="0 0 1000 520"></svg></div>
+  <div class="prompt-area">
+    <div class="prompt-header"><span>Architecture Analysis Prompt</span><button class="copy-btn" id="copyBtn">Copy</button></div>
+    <div class="prompt-text" id="prompt-output"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title"></h2>
+    <div class="file" id="modal-file"></div>
+    <div class="schema-box" id="modal-schema" style="display:none"></div>
+    <textarea id="modal-comment" placeholder="Add a note about this component..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save Note</button>
+    </div>
+  </div>
+</div>
+<script>
+const LAYERS={client:{label:'Developer (Claude Code)',color:'#3b82f6'},mcp:{label:'MCP Server (Vercel)',color:'#7c3aed'},api:{label:'API Routes',color:'#f59e0b'},ai:{label:'AI Pipeline',color:'#10b981'},db:{label:'Database (Supabase)',color:'#ec4899'},dashboard:{label:'Admin Dashboard',color:'#06b6d4'},planned:{label:'Planned (v2)',color:'#6b7280'}};
+const CONN_TYPES={data:{label:'Data Flow',color:'#3b82f6',dash:''},api:{label:'API Calls',color:'#f59e0b',dash:'6,3'},mcp:{label:'MCP Protocol',color:'#7c3aed',dash:'8,4'}};
+const state={view:'pipeline',layers:{client:true,mcp:true,api:true,ai:true,db:true,dashboard:true,planned:false},conns:{data:true,api:true,mcp:true},comments:[],selectedNode:null};
+
+const VIEWS={
+pipeline:{nodes:[
+{id:'dev',label:'Developer',subtitle:'Types prompt in Claude Code',x:80,y:30,w:160,h:45,layer:'client',status:'built'},
+{id:'mcpjson',label:'.mcp.json',subtitle:'Repo root config file',x:320,y:30,w:160,h:45,layer:'client',status:'built',schema:'{\n  "mcpServers": {\n    "claudeboost": {\n      "type": "url",\n      "url": "https://claudeboost.vercel.app/mcp",\n      "headers": {\n        "Authorization": "Bearer cb_org_<key>"\n      }\n    }\n  }\n}'},
+{id:'mcp-route',label:'/mcp route.ts',subtitle:'app/mcp/route.ts',x:320,y:110,w:160,h:45,layer:'mcp',status:'built',schema:'POST /mcp\n- Validates Bearer cb_org_<key>\n- SHA-256 hash lookup in org_api_keys\n- Resolves org_id, API key, boost_level\n- Handles JSON-RPC: initialize, tools/list, tools/call'},
+{id:'auth-check',label:'API Key Auth',subtitle:'SHA-256 hash lookup',x:560,y:110,w:150,h:45,layer:'mcp',status:'built'},
+{id:'classify',label:'1. Classify Domain',subtitle:'lib/boost/classifier.ts',x:80,y:210,w:170,h:50,layer:'ai',status:'built',schema:'Claude Haiku (claude-haiku-4-5-20251001)\ntemperature=0, max_tokens=20\nReturns: data_science | data_engineering |\n  business_analytics | general_coding |\n  documentation | devops | other'},
+{id:'score-orig',label:'2. Score Original',subtitle:'lib/boost/scorer.ts',x:280,y:210,w:170,h:50,layer:'ai',status:'built',schema:'Pure regex, NO API call\n6 dimensions (1-5 each):\n  specificity, verification, context,\n  constraints, structure, output_definition\nDomain-specific weights\nSmart skip: total >= 20'},
+{id:'fetch-rules',label:'3. Fetch Org Rules',subtitle:'lib/mcp/tools.ts',x:480,y:210,w:170,h:50,layer:'ai',status:'built',schema:'Fetches from org_rules table:\n  - _global rules (apply to all domains)\n  - domain-specific rules\nAdmin-defined text like:\n  "Always use TypeScript"\n  "Follow REST API conventions"'},
+{id:'enhance',label:'4. Enhance Prompt',subtitle:'lib/boost/enhancer.ts',x:180,y:300,w:170,h:50,layer:'ai',status:'built',schema:'System prompt = DOMAIN_RULES[domain]\n  + org global rules + org domain rules\n  + LEVEL_INSTRUCTIONS[level]\n  + weak dimension focus\n\nLight/Medium: Haiku (~1-3s)\nFull: Sonnet (~10s)\ntemperature=0'},
+{id:'score-boost',label:'5. Score Boosted',subtitle:'lib/boost/scorer.ts',x:400,y:300,w:170,h:50,layer:'ai',status:'built'},
+{id:'log-result',label:'6. Log Result',subtitle:'boost_history table',x:300,y:390,w:160,h:45,layer:'db',status:'built'},
+{id:'org-keys-db',label:'org_api_keys',subtitle:'key_hash, org_id',x:730,y:110,w:140,h:40,layer:'db',status:'built'},
+{id:'org-rules-db',label:'org_rules',subtitle:'domain, rule_text, enabled',x:700,y:210,w:160,h:40,layer:'db',status:'built'},
+{id:'boost-hist',label:'boost_history',subtitle:'org_id, domain, scores',x:520,y:390,w:160,h:40,layer:'db',status:'built'},
+{id:'response',label:'JSON-RPC Response',subtitle:'{domain, original, boosted, scores}',x:80,y:390,w:190,h:45,layer:'mcp',status:'built'}
+],connections:[
+{from:'dev',to:'mcpjson',type:'data',label:'reads'},{from:'mcpjson',to:'mcp-route',type:'mcp',label:'HTTP POST'},{from:'mcp-route',to:'auth-check',type:'api',label:'validate'},{from:'auth-check',to:'org-keys-db',type:'data',label:'lookup'},{from:'mcp-route',to:'classify',type:'mcp',label:'tools/call'},{from:'classify',to:'score-orig',type:'data'},{from:'score-orig',to:'fetch-rules',type:'data'},{from:'fetch-rules',to:'org-rules-db',type:'data',label:'SELECT'},{from:'fetch-rules',to:'enhance',type:'data'},{from:'enhance',to:'score-boost',type:'data'},{from:'score-boost',to:'log-result',type:'data'},{from:'log-result',to:'boost-hist',type:'data',label:'INSERT'},{from:'log-result',to:'response',type:'mcp',label:'return'}
+]},
+data:{nodes:[
+{id:'org-table',label:'organizations',subtitle:'id, name, slug, anthropic_api_key, boost_level',x:400,y:40,w:220,h:50,layer:'db',status:'built',schema:'id UUID PK\nname TEXT NOT NULL\nslug TEXT UNIQUE\ncreated_by UUID FK\nanthropic_api_key TEXT (server-only)\nboost_level TEXT (light|medium|full)\nmax_seats INTEGER DEFAULT 50'},
+{id:'members-table',label:'org_members',subtitle:'org_id, user_id, role (admin/manager/member)',x:100,y:140,w:240,h:50,layer:'db',status:'built',schema:'id UUID PK\norg_id UUID FK CASCADE\nuser_id UUID FK CASCADE\nrole TEXT (admin|manager|member)\njoined_at TIMESTAMPTZ\nUNIQUE(org_id, user_id)'},
+{id:'rules-table',label:'org_rules',subtitle:'org_id, domain, rule_text, enabled',x:400,y:140,w:220,h:50,layer:'db',status:'built',schema:'id UUID PK\norg_id UUID FK CASCADE\ndomain TEXT (_global + 7 domains)\nrule_text TEXT DEFAULT ""\nenabled BOOLEAN DEFAULT true\nUNIQUE(org_id, domain)'},
+{id:'keys-table',label:'org_api_keys',subtitle:'org_id, key_hash (SHA-256), key_prefix',x:700,y:140,w:220,h:50,layer:'db',status:'built',schema:'id UUID PK\norg_id UUID FK CASCADE\nkey_hash TEXT (SHA-256)\nkey_prefix TEXT (first 16 chars)\ncreated_by UUID FK\nlast_used_at TIMESTAMPTZ'},
+{id:'invites-table',label:'org_invitations',subtitle:'email, invite_code, role, expires_at',x:100,y:260,w:240,h:50,layer:'db',status:'built',schema:'id UUID PK\norg_id UUID FK\nemail TEXT\nrole TEXT\ninvite_code TEXT UNIQUE\ninvited_by UUID FK\naccepted_at TIMESTAMPTZ\nexpires_at TIMESTAMPTZ (7 days)'},
+{id:'activity-table',label:'activity_logs',subtitle:'org_id, user_id, action, details JSONB',x:400,y:260,w:220,h:50,layer:'db',status:'built',schema:'id UUID PK\norg_id UUID FK\nuser_id UUID FK\naction TEXT\ndetails JSONB\ncreated_at TIMESTAMPTZ\nINDEX(org_id, created_at DESC)'},
+{id:'history-table',label:'boost_history',subtitle:'org_id, domain, original, boosted, scores',x:700,y:260,w:220,h:50,layer:'db',status:'built',schema:'id BIGINT PK\norg_id UUID FK\ntimestamp TIMESTAMPTZ\ndomain TEXT\noriginal TEXT, boosted TEXT\noriginal_score JSONB\nboosted_score JSONB'},
+{id:'profiles-table',label:'profiles',subtitle:'email, display_name, avatar_url',x:100,y:380,w:220,h:50,layer:'db',status:'built',schema:'id UUID PK FK auth.users\nemail TEXT\ndisplay_name TEXT\navatar_url TEXT\nAuto-created via trigger'},
+{id:'auth-users',label:'auth.users (Supabase)',subtitle:'Email + OAuth providers',x:400,y:380,w:200,h:50,layer:'db',status:'built',schema:'Managed by Supabase Auth\nProviders: Email (built), Google (placeholder), Microsoft (placeholder)\nSession: JWT + refresh token'},
+{id:'rls-note',label:'RLS: BYPASSED',subtitle:'Routes use service role client',x:700,y:380,w:220,h:50,layer:'api',status:'built',schema:'Auth: supabase.auth.getUser()\nDB: createAdminClient() (service role)\nReason: self-referencing RLS policies\ncaused infinite recursion'}
+],connections:[
+{from:'org-table',to:'members-table',type:'data',label:'1:N'},{from:'org-table',to:'rules-table',type:'data',label:'1:N'},{from:'org-table',to:'keys-table',type:'data',label:'1:N'},{from:'org-table',to:'invites-table',type:'data',label:'1:N'},{from:'org-table',to:'activity-table',type:'data',label:'1:N'},{from:'org-table',to:'history-table',type:'data',label:'1:N'},{from:'auth-users',to:'profiles-table',type:'data',label:'1:1'},{from:'auth-users',to:'members-table',type:'data',label:'1:N'}
+]},
+pages:{nodes:[
+{id:'landing',label:'/ Landing',subtitle:'app/page.tsx',x:80,y:30,w:180,h:45,layer:'dashboard',status:'built'},
+{id:'login',label:'/auth/login',subtitle:'Email + Google + Microsoft OAuth',x:320,y:30,w:200,h:45,layer:'dashboard',status:'built'},
+{id:'signup',label:'/auth/signup',subtitle:'Same OAuth + email form',x:570,y:30,w:180,h:45,layer:'dashboard',status:'built'},
+{id:'org-new',label:'/org/new',subtitle:'Create org or select existing',x:80,y:110,w:180,h:45,layer:'dashboard',status:'built'},
+{id:'org-overview',label:'/org/[slug]',subtitle:'Stats + setup guide + .mcp.json',x:80,y:190,w:180,h:50,layer:'dashboard',status:'built'},
+{id:'org-history',label:'/org/[slug]/history',subtitle:'Team boosts + search + filters',x:300,y:190,w:200,h:50,layer:'dashboard',status:'built'},
+{id:'org-stats',label:'/org/[slug]/stats',subtitle:'Score improvement + domains',x:540,y:190,w:200,h:50,layer:'dashboard',status:'built'},
+{id:'org-rules',label:'/org/[slug]/rules',subtitle:'8-tab rule editor',x:80,y:280,w:180,h:50,layer:'dashboard',status:'built'},
+{id:'org-members',label:'/org/[slug]/members',subtitle:'Member list + invite modal',x:300,y:280,w:200,h:50,layer:'dashboard',status:'built'},
+{id:'org-activity',label:'/org/[slug]/activity',subtitle:'Timestamped action log',x:540,y:280,w:200,h:50,layer:'dashboard',status:'built'},
+{id:'org-settings',label:'/org/[slug]/settings',subtitle:'API key + boost level',x:300,y:370,w:200,h:50,layer:'dashboard',status:'built'},
+{id:'join-page',label:'/join/[code]',subtitle:'Accept invitation',x:540,y:370,w:180,h:50,layer:'dashboard',status:'built'},
+{id:'api-mcp',label:'POST /mcp',subtitle:'MCP Streamable HTTP',x:800,y:190,w:140,h:45,layer:'mcp',status:'built'}
+],connections:[
+{from:'landing',to:'login',type:'api',label:'CTA'},{from:'login',to:'org-new',type:'api',label:'redirect'},{from:'org-new',to:'org-overview',type:'api'}
+]},
+planned:{nodes:[
+{id:'p-auth',label:'Auth System',subtitle:'Email + OAuth placeholders',x:80,y:40,w:170,h:45,layer:'dashboard',status:'built'},
+{id:'p-orgs',label:'Team Workspace',subtitle:'Org CRUD, members, roles',x:280,y:40,w:180,h:45,layer:'dashboard',status:'built'},
+{id:'p-rules',label:'Rule Engine',subtitle:'Per-domain org rules',x:500,y:40,w:160,h:45,layer:'ai',status:'built'},
+{id:'p-mcp',label:'Remote MCP Server',subtitle:'Streamable HTTP on Vercel',x:700,y:40,w:180,h:45,layer:'mcp',status:'built'},
+{id:'p-boost',label:'Boost Pipeline',subtitle:'Classify / Score / Enhance',x:80,y:120,w:180,h:45,layer:'ai',status:'built'},
+{id:'p-stats',label:'Stats Dashboard',subtitle:'Score improvement, domains',x:300,y:120,w:170,h:45,layer:'dashboard',status:'built'},
+{id:'p-activity',label:'Activity Logs',subtitle:'Who did what, when',x:510,y:120,w:160,h:45,layer:'dashboard',status:'built'},
+{id:'p-invites',label:'Team Invitations',subtitle:'Email invite + join page',x:710,y:120,w:170,h:45,layer:'dashboard',status:'built'},
+{id:'p-google',label:'Google OAuth',subtitle:'Supabase provider config',x:80,y:220,w:170,h:45,layer:'dashboard',status:'placeholder'},
+{id:'p-msft',label:'Microsoft OAuth',subtitle:'Azure AD registration',x:280,y:220,w:180,h:45,layer:'dashboard',status:'placeholder'},
+{id:'p-workflow',label:'Workflow Automation',subtitle:'Drag-and-drop builder',x:80,y:320,w:200,h:50,layer:'planned',status:'planned',schema:'Steps: Input / Prompt / Model / Output / Action\nInputs: text, CSV, PDF, API\nOutputs: DB, email, Slack\nTemplates + scheduling + retry'},
+{id:'p-multi',label:'Multi-Model Support',subtitle:'Claude + GPT + fallback',x:320,y:320,w:180,h:50,layer:'planned',status:'planned',schema:'Claude Haiku/Sonnet/Opus + GPT-4o\nModel selector, auto-recommend\nFallback, cost routing\nCompare outputs side-by-side'},
+{id:'p-integrations',label:'Integrations',subtitle:'Slack, Notion, Docs, Webhooks',x:540,y:320,w:200,h:50,layer:'planned',status:'planned',schema:'Slack, Notion, Google Docs\nWebhooks, HubSpot, Salesforce\nOAuth per integration'},
+{id:'p-analytics',label:'Analytics Dashboard',subtitle:'Token usage, cost, budgets',x:80,y:420,w:200,h:50,layer:'planned',status:'planned',schema:'Token usage per user/team\nCost breakdown daily/weekly/monthly\nBudget alerts, export CSV/PDF'},
+{id:'p-billing',label:'Billing (Stripe)',subtitle:'Per-seat pricing',x:320,y:420,w:170,h:50,layer:'planned',status:'planned'},
+{id:'p-sso',label:'SSO / SAML',subtitle:'Enterprise auth',x:530,y:420,w:150,h:50,layer:'planned',status:'planned'},
+{id:'p-rag',label:'Document Upload / RAG',subtitle:'PDF, architecture docs',x:720,y:420,w:200,h:50,layer:'planned',status:'planned',schema:'Upload PDF/MD/TXT docs\nChunking + embedding\npgvector in Supabase\nRetrieval at boost-time'}
+],connections:[
+{from:'p-auth',to:'p-google',type:'api',label:'config'},{from:'p-auth',to:'p-msft',type:'api',label:'config'},{from:'p-boost',to:'p-multi',type:'data',label:'extend'},{from:'p-stats',to:'p-analytics',type:'data',label:'extend'},{from:'p-rules',to:'p-rag',type:'data',label:'extend'}
+]}
+};
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function render(){
+  // Tabs
+  const tabsEl=document.getElementById('tabs');
+  tabsEl.textContent='';
+  ['pipeline','data','pages','planned'].forEach(v=>{
+    const b=document.createElement('button');
+    b.className='tab'+(state.view===v?' active':'');
+    b.textContent=v.charAt(0).toUpperCase()+v.slice(1);
+    b.addEventListener('click',()=>setView(v));
+    tabsEl.appendChild(b);
+  });
+
+  // Sidebar
+  const sb=document.getElementById('sidebar');
+  sb.textContent='';
+  const h1=document.createElement('h3');h1.textContent='Layers';sb.appendChild(h1);
+  Object.entries(LAYERS).forEach(([id,l])=>{
+    const label=document.createElement('label');label.className='layer-toggle';
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=state.layers[id];
+    cb.addEventListener('change',()=>{state.layers[id]=!state.layers[id];render();});
+    const dot=document.createElement('div');dot.className='dot';dot.style.background=l.color;
+    label.appendChild(cb);label.appendChild(dot);label.appendChild(document.createTextNode(l.label));
+    sb.appendChild(label);
+  });
+
+  const h2=document.createElement('h3');h2.textContent='Connections';sb.appendChild(h2);
+  Object.entries(CONN_TYPES).forEach(([id,c])=>{
+    const label=document.createElement('label');label.className='conn-toggle';
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=state.conns[id];
+    cb.addEventListener('change',()=>{state.conns[id]=!state.conns[id];render();});
+    const line=document.createElement('div');line.className='conn-line';line.style.background=c.color;
+    label.appendChild(cb);label.appendChild(line);label.appendChild(document.createTextNode(c.label));
+    sb.appendChild(label);
+  });
+
+  const h3=document.createElement('h3');h3.textContent='Notes ('+state.comments.length+')';sb.appendChild(h3);
+  if(state.comments.length===0){
+    const hint=document.createElement('div');hint.style.cssText='font-size:11px;color:var(--dim);padding:4px';
+    hint.textContent='Click any component to add notes';sb.appendChild(hint);
+  }
+  state.comments.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='comment-item';
+    const del=document.createElement('span');del.className='comment-del';del.textContent='\u2715';
+    del.addEventListener('click',()=>{state.comments.splice(i,1);render();});
+    const tgt=document.createElement('div');tgt.className='comment-target';tgt.textContent=c.targetLabel;
+    const txt=document.createElement('div');txt.className='comment-text';txt.textContent=c.text;
+    div.appendChild(del);div.appendChild(tgt);div.appendChild(txt);sb.appendChild(div);
+  });
+
+  renderCanvas();
+  updatePrompt();
+}
+
+function renderCanvas(){
+  const svg=document.getElementById('canvas');
+  const view=VIEWS[state.view];if(!view)return;
+  // Clear
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+
+  // Defs
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  Object.entries(CONN_TYPES).forEach(([id,c])=>{
+    const marker=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    marker.setAttribute('id','arrow-'+id);marker.setAttribute('markerWidth','8');marker.setAttribute('markerHeight','6');
+    marker.setAttribute('refX','7');marker.setAttribute('refY','3');marker.setAttribute('orient','auto');
+    const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points','0 0, 8 3, 0 6');poly.setAttribute('fill',c.color);
+    marker.appendChild(poly);defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  // Connections
+  view.connections.forEach(c=>{
+    if(!state.conns[c.type])return;
+    const from=view.nodes.find(n=>n.id===c.from);const to=view.nodes.find(n=>n.id===c.to);
+    if(!from||!to||!state.layers[from.layer]||!state.layers[to.layer])return;
+    const ct=CONN_TYPES[c.type];
+    const x1=from.x+from.w/2,y1=from.y+from.h,x2=to.x+to.w/2,y2=to.y;
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M'+x1+','+y1+' Q'+x1+','+my+' '+mx+','+my+' Q'+x2+','+my+' '+x2+','+y2);
+    path.setAttribute('class','conn-path flow-anim');path.setAttribute('stroke',ct.color);
+    path.setAttribute('marker-end','url(#arrow-'+c.type+')');
+    if(ct.dash)path.setAttribute('stroke-dasharray',ct.dash);
+    svg.appendChild(path);
+    if(c.label){
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',String(mx));txt.setAttribute('y',String(my-5));txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('class','conn-label');txt.setAttribute('fill','#6b6b80');txt.textContent=c.label;
+      svg.appendChild(txt);
+    }
+  });
+
+  // Nodes
+  view.nodes.forEach(n=>{
+    if(!state.layers[n.layer])return;
+    const lc=LAYERS[n.layer]?LAYERS[n.layer].color:'#666';
+    const sc=n.status==='built'?'#10b981':n.status==='placeholder'?'#f59e0b':'#ef4444';
+    const hasComment=state.comments.some(c=>c.target===n.id);
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','node');
+    if(n.status==='planned')g.style.opacity='0.35';
+    g.addEventListener('click',()=>openModal(n.id));
+
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',String(n.x));rect.setAttribute('y',String(n.y));
+    rect.setAttribute('width',String(n.w));rect.setAttribute('height',String(n.h));
+    rect.setAttribute('rx','10');rect.setAttribute('fill',lc+'10');
+    rect.setAttribute('stroke',hasComment?'#7c3aed':lc+'40');
+    rect.setAttribute('stroke-width',hasComment?'2':'1');
+    g.appendChild(rect);
+
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',String(n.x+n.w-12));circle.setAttribute('cy',String(n.y+12));
+    circle.setAttribute('r','4');circle.setAttribute('fill',sc);
+    g.appendChild(circle);
+
+    const title=document.createElementNS('http://www.w3.org/2000/svg','text');
+    title.setAttribute('x',String(n.x+12));title.setAttribute('y',String(n.y+20));
+    title.setAttribute('fill','#e4e4ed');title.setAttribute('font-size','11');title.setAttribute('font-weight','700');
+    title.textContent=n.label;g.appendChild(title);
+
+    const sub=document.createElementNS('http://www.w3.org/2000/svg','text');
+    sub.setAttribute('x',String(n.x+12));sub.setAttribute('y',String(n.y+n.h-10));
+    sub.setAttribute('fill','#6b6b80');sub.setAttribute('font-size','9');sub.setAttribute('font-family','monospace');
+    sub.textContent=n.subtitle.length>38?n.subtitle.slice(0,38)+'...':n.subtitle;g.appendChild(sub);
+
+    svg.appendChild(g);
+  });
+}
+
+function setView(v){
+  state.view=v;
+  if(v==='planned')state.layers.planned=true;
+  render();
+}
+
+function openModal(nodeId){
+  const view=VIEWS[state.view];const node=view.nodes.find(n=>n.id===nodeId);if(!node)return;
+  state.selectedNode=node;
+  const titleEl=document.getElementById('modal-title');
+  titleEl.textContent=node.label+' ';
+  const badge=document.createElement('span');badge.className='status-badge';
+  badge.textContent=node.status;
+  badge.style.background=node.status==='built'?'rgba(16,185,129,.15)':node.status==='placeholder'?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)';
+  badge.style.color=node.status==='built'?'#10b981':node.status==='placeholder'?'#f59e0b':'#ef4444';
+  titleEl.appendChild(badge);
+
+  document.getElementById('modal-file').textContent=node.subtitle;
+  const schemaEl=document.getElementById('modal-schema');
+  if(node.schema){schemaEl.textContent=node.schema;schemaEl.style.display='block';}
+  else{schemaEl.style.display='none';}
+  const existing=state.comments.find(c=>c.target===nodeId);
+  document.getElementById('modal-comment').value=existing?existing.text:'';
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+function saveComment(){
+  const text=document.getElementById('modal-comment').value.trim();
+  const node=state.selectedNode;if(!node)return;
+  state.comments=state.comments.filter(c=>c.target!==node.id);
+  if(text)state.comments.push({target:node.id,targetLabel:node.label,targetFile:node.subtitle,text:text});
+  closeModal();render();
+}
+
+function updatePrompt(){
+  const visibleLayers=Object.entries(state.layers).filter(function(e){return e[1];}).map(function(e){return LAYERS[e[0]]?LAYERS[e[0]].label:'';}).filter(Boolean);
+  const view=VIEWS[state.view];
+  const built=view.nodes.filter(function(n){return n.status==='built';}).length;
+  const placeholder=view.nodes.filter(function(n){return n.status==='placeholder';}).length;
+  const planned=view.nodes.filter(function(n){return n.status==='planned';}).length;
+
+  let p='ClaudeBoost Enterprise Architecture \u2014 '+state.view.charAt(0).toUpperCase()+state.view.slice(1)+' View\n';
+  p+='Visible layers: '+visibleLayers.join(', ')+'\n';
+  p+='Status: '+built+' built, '+placeholder+' placeholder, '+planned+' planned\n';
+
+  if(state.comments.length>0){
+    p+='\nNotes on specific components:\n';
+    state.comments.forEach(function(c){p+='\n**'+c.targetLabel+'** ('+c.targetFile+'):\n'+c.text+'\n';});
+  }
+  if(state.view==='pipeline')p+='\nPipeline: Developer \u2192 .mcp.json \u2192 /mcp route \u2192 Auth \u2192 Classify \u2192 Score \u2192 Fetch Rules \u2192 Enhance \u2192 Score \u2192 Log \u2192 Response';
+  else if(state.view==='data')p+='\n8 tables in Supabase PostgreSQL. RLS bypassed \u2014 all API routes use service role client.';
+  else if(state.view==='planned')p+='\nPlanned: Workflow Automation, Multi-Model, Integrations, Analytics, Billing, SSO, RAG';
+
+  document.getElementById('prompt-output').textContent=p;
+}
+
+document.getElementById('copyBtn').addEventListener('click',function(){
+  navigator.clipboard.writeText(document.getElementById('prompt-output').textContent);
+  this.textContent='Copied!';this.style.color='var(--green)';
+  var btn=this;setTimeout(function(){btn.textContent='Copy';btn.style.color='';},2000);
+});
+document.getElementById('cancelBtn').addEventListener('click',closeModal);
+document.getElementById('saveBtn').addEventListener('click',saveComment);
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+render();
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ export function HeroSection() {
       {/* Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-xs text-primary mb-8 animate-fade-slide-up">
         <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-        Free &amp; open source &middot; Claude Code MCP plugin
+        Enterprise prompt governance &middot; Claude Code MCP
       </div>
 
       {/* Headline */}
@@ -25,17 +25,17 @@ export function HeroSection() {
 
       {/* Subheadline */}
       <p className="text-lg md:text-xl text-muted-foreground text-center max-w-2xl mt-6 leading-relaxed animate-fade-slide-up" style={{ animationDelay: "100ms" }}>
-        ClaudeBoost is a free MCP plugin for Claude Code that transforms vague prompts into
-        enterprise-grade instructions. Better prompts, better code, every time.
+        ClaudeBoost enforces your team&apos;s coding standards at prompt-time.
+        Upload your rules, every developer&apos;s Claude Code prompts align automatically. Zero install.
       </p>
 
       {/* CTAs */}
       <div className="flex items-center gap-4 mt-10 animate-fade-slide-up" style={{ animationDelay: "200ms" }}>
         <Link
-          href="/dashboard"
+          href="/org/new"
           className="px-8 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-primary/25"
         >
-          Get Started Free
+          Create Organization
         </Link>
         <Link
           href="#use-cases"
