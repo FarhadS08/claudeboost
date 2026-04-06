@@ -70,7 +70,24 @@ export async function DELETE(
   }
 
   const { member_id } = await request.json();
+
+  // Get member info before deleting for the log
+  const { data: target } = await db
+    .from("org_members")
+    .select("user_id, profiles(email)")
+    .eq("id", member_id)
+    .single();
+
   await db.from("org_members").delete().eq("id", member_id).eq("org_id", org.id);
+
+  // Log activity
+  const targetProfile = target?.profiles as unknown as { email?: string } | null;
+  await db.from("activity_logs").insert({
+    org_id: org.id,
+    user_id: user.id,
+    action: "member_removed",
+    details: { removed_email: targetProfile?.email, removed_user_id: target?.user_id },
+  });
 
   return NextResponse.json({ success: true });
 }
@@ -106,6 +123,14 @@ export async function PATCH(
   }
 
   await db.from("org_members").update({ role }).eq("id", member_id).eq("org_id", org.id);
+
+  // Log activity
+  await db.from("activity_logs").insert({
+    org_id: org.id,
+    user_id: user.id,
+    action: "role_changed",
+    details: { member_id, new_role: role },
+  });
 
   return NextResponse.json({ success: true });
 }

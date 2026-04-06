@@ -115,5 +115,14 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Log activity
+  const changedFields = Object.keys(updates).filter(k => k !== "anthropic_api_key");
+  await db.from("activity_logs").insert({
+    org_id: org.id,
+    user_id: user.id,
+    action: "settings_changed",
+    details: { fields: changedFields, has_api_key_change: "anthropic_api_key" in updates },
+  });
+
   return NextResponse.json(updated);
 }

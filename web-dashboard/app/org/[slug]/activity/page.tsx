@@ -25,12 +25,14 @@ interface LogEntry {
 
 const ACTION_CONFIG: Record<string, { icon: typeof Zap; label: string; color: string }> = {
   boost:            { icon: Zap,        label: "Boosted a prompt",   color: "text-primary" },
+  org_created:      { icon: Zap,        label: "Created organization", color: "text-emerald-400" },
   invite_sent:      { icon: UserPlus,   label: "Sent invitation",    color: "text-amber-400" },
   invite_accepted:  { icon: UserCheck,  label: "Joined the team",    color: "text-emerald-400" },
   rule_updated:     { icon: ScrollText, label: "Updated rules",      color: "text-violet-400" },
   settings_changed: { icon: Settings,   label: "Changed settings",   color: "text-blue-400" },
   api_key_generated:{ icon: Key,        label: "Generated API key",  color: "text-amber-400" },
   member_removed:   { icon: Trash2,     label: "Removed member",     color: "text-red-400" },
+  role_changed:     { icon: Settings,   label: "Changed member role", color: "text-blue-400" },
 };
 
 export default function OrgActivityPage() {

@@ -3,36 +3,48 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Zap, Check, X, ArrowRight } from "lucide-react";
+import { Zap, Check, X, ArrowRight, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
-// This is a placeholder page for the invite acceptance flow.
-// Full implementation requires a server-side API to validate the invite code
-// and add the user to the org. For now, it shows the invite info.
+interface InviteInfo {
+  email: string;
+  role: string;
+  org_name: string;
+  org_slug: string;
+}
 
 export default function JoinPage() {
   const params = useParams();
   const code = params.code as string;
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "ready" | "accepted" | "error">("loading");
-  const [orgName, setOrgName] = useState("");
-  const [role, setRole] = useState("");
+  const [status, setStatus] = useState<"loading" | "ready" | "accepting" | "accepted" | "error">("loading");
+  const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [error, setError] = useState("");
   const [user, setUser] = useState<{ email: string } | null>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // Check auth + fetch invite info in parallel
+    const load = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser({ email: user.email || "" });
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        setUser({ email: authUser.email || "" });
       }
-      // For now, just show a placeholder
-      setOrgName("Organization");
-      setRole("member");
+
+      // Fetch invite details
+      const res = await fetch(`/api/join/${code}`);
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Invalid invitation");
+        setStatus("error");
+        return;
+      }
+
+      const data = await res.json();
+      setInvite(data);
       setStatus("ready");
     };
-    checkAuth();
+    load();
   }, [code]);
 
   const handleAccept = async () => {
@@ -40,8 +52,22 @@ export default function JoinPage() {
       router.push(`/auth/login?redirect=/join/${code}`);
       return;
     }
-    // Placeholder — will be implemented with server-side API
+
+    setStatus("accepting");
+    const res = await fetch(`/api/join/${code}`, { method: "POST" });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Failed to accept invitation");
+      setStatus("error");
+      return;
+    }
+
     setStatus("accepted");
+    // Redirect to org after short delay
+    setTimeout(() => {
+      router.push(`/org/${data.org_slug || invite?.org_slug}`);
+    }, 2000);
   };
 
   return (
@@ -60,22 +86,36 @@ export default function JoinPage() {
           </div>
         )}
 
-        {status === "ready" && (
+        {status === "ready" && invite && (
           <div className="rounded-2xl border border-border bg-card p-8 space-y-5">
             <h2 className="text-xl font-bold">You&apos;re invited!</h2>
             <p className="text-sm text-zinc-500">
-              You&apos;ve been invited to join <span className="text-zinc-300 font-medium">{orgName}</span> as a{" "}
-              <span className="text-primary font-medium">{role}</span>.
+              Join <span className="text-zinc-300 font-medium">{invite.org_name}</span> as a{" "}
+              <span className="text-primary font-medium">{invite.role}</span>.
             </p>
 
+            {invite.email && user && invite.email.toLowerCase() !== user.email.toLowerCase() && (
+              <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-400/10 rounded-xl p-3 text-left">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  This invite was sent to <strong>{invite.email}</strong>. You&apos;re logged in as <strong>{user.email}</strong>.
+                </span>
+              </div>
+            )}
+
             {user ? (
-              <button
-                onClick={handleAccept}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white
-                           text-sm font-medium shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all"
-              >
-                Accept Invitation <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="space-y-3">
+                <p className="text-xs text-zinc-600">
+                  Signed in as <span className="text-zinc-400">{user.email}</span>
+                </p>
+                <button
+                  onClick={handleAccept}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white
+                             text-sm font-medium shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all"
+                >
+                  Accept Invitation <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             ) : (
               <div className="space-y-3">
                 <p className="text-xs text-zinc-600">Sign in or create an account to accept:</p>
@@ -98,28 +138,33 @@ export default function JoinPage() {
           </div>
         )}
 
+        {status === "accepting" && (
+          <div className="rounded-2xl border border-border bg-card p-8">
+            <p className="text-zinc-500 animate-pulse">Joining team...</p>
+          </div>
+        )}
+
         {status === "accepted" && (
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-8 space-y-4">
             <Check className="w-10 h-10 text-emerald-400 mx-auto" />
             <h2 className="text-xl font-bold text-emerald-400">Welcome to the team!</h2>
             <p className="text-sm text-zinc-500">
-              You&apos;ve joined {orgName}. You can now use ClaudeBoost with your team&apos;s rules.
+              You&apos;ve joined <span className="text-zinc-300">{invite?.org_name}</span>. Redirecting to dashboard...
             </p>
-            <Link
-              href="/org/new"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-medium
-                         shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all"
-            >
-              Go to Dashboard <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
         )}
 
         {status === "error" && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-8 space-y-4">
             <X className="w-10 h-10 text-red-400 mx-auto" />
-            <h2 className="text-xl font-bold text-red-400">Invalid Invitation</h2>
-            <p className="text-sm text-zinc-500">{error || "This invitation may have expired or already been used."}</p>
+            <h2 className="text-xl font-bold text-red-400">Cannot Join</h2>
+            <p className="text-sm text-zinc-500">{error}</p>
+            <Link
+              href="/"
+              className="inline-block text-xs text-primary hover:underline mt-2"
+            >
+              Go to homepage
+            </Link>
           </div>
         )}
       </div>

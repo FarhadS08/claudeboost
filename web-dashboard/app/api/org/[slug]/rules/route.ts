@@ -79,5 +79,13 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Log activity
+  await db.from("activity_logs").insert({
+    org_id: org.id,
+    user_id: user.id,
+    action: "rule_updated",
+    details: { domain, has_content: !!(rule_text && rule_text.trim()), enabled: enabled ?? true },
+  });
+
   return NextResponse.json(rule);
 }
