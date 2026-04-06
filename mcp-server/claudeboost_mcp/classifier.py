@@ -24,6 +24,7 @@ def classify_domain(prompt: str) -> str:
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=20,
+            temperature=0,
             system=(
                 "You are a domain classifier. Classify the user's prompt into exactly one "
                 "of these domains: data_science, data_engineering, business_analytics, "
