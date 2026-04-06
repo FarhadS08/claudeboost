@@ -214,6 +214,7 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
         response = client.messages.create(
             model=model,
             max_tokens=max_tokens,
+            temperature=0,
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
