@@ -48,6 +48,14 @@ export async function POST(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Log activity
+  await db.from("activity_logs").insert({
+    org_id: org.id,
+    user_id: user.id,
+    action: "api_key_generated",
+    details: { key_prefix: keyPrefix },
+  });
+
   // Return the full key ONCE — it's never shown again
   return NextResponse.json({ key: rawKey, prefix: keyPrefix }, { status: 201 });
 }

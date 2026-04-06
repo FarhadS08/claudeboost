@@ -144,6 +144,20 @@ export async function handleToolCall(
       timestamp: new Date().toISOString(),
     });
 
+    // 10. Log activity
+    await ctx.supabase.from("activity_logs").insert({
+      org_id: ctx.orgId,
+      action: "boost",
+      details: {
+        domain,
+        level,
+        original_total: originalScore.total,
+        boosted_total: boostedScore.total,
+        delta: boostedScore.total - originalScore.total,
+        org_rules_applied: !!(orgRules.global || orgRules.domain),
+      },
+    });
+
     return {
       content: [{
         type: "text",
