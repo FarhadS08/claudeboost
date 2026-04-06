@@ -277,7 +277,7 @@ export default function OrgMembersPage() {
 
               {inviteResult?.url && (
                 <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3">
-                  <p className="text-xs text-emerald-400 font-medium mb-2">Invitation sent! Share this link:</p>
+                  <p className="text-xs text-emerald-400 font-medium mb-2">Invitation created! Copy and share this link:</p>
                   <div className="flex gap-2">
                     <code className="flex-1 text-[11px] bg-black/30 rounded-lg px-3 py-1.5 text-zinc-400 truncate">
                       {inviteResult.url}
@@ -306,7 +306,7 @@ export default function OrgMembersPage() {
                     : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
                 )}
               >
-                {inviting ? "Sending..." : "Send Invitation"}
+                {inviting ? "Creating..." : "Create Invitation"}
               </button>
             </div>
           </div>
