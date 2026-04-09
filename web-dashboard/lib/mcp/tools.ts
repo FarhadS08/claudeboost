@@ -133,9 +133,10 @@ export async function handleToolCall(
       }
     }
 
-    // 9. Log to history
-    await ctx.supabase.from("boost_history").insert({
+    // 9. Log to history (user_id is NULL for MCP/API-key inserts)
+    const { error: historyError } = await ctx.supabase.from("boost_history").insert({
       org_id: ctx.orgId,
+      user_id: null,
       domain,
       original: prompt,
       boosted,
@@ -144,8 +145,12 @@ export async function handleToolCall(
       timestamp: new Date().toISOString(),
     });
 
+    if (historyError) {
+      console.error("[ClaudeBoost] Failed to insert boost_history:", historyError.message);
+    }
+
     // 10. Log activity
-    await ctx.supabase.from("activity_logs").insert({
+    const { error: activityError } = await ctx.supabase.from("activity_logs").insert({
       org_id: ctx.orgId,
       action: "boost",
       details: {
@@ -157,6 +162,10 @@ export async function handleToolCall(
         org_rules_applied: !!(orgRules.global || orgRules.domain),
       },
     });
+
+    if (activityError) {
+      console.error("[ClaudeBoost] Failed to insert activity_log:", activityError.message);
+    }
 
     return {
       content: [{
