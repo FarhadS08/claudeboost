@@ -59,7 +59,7 @@ export interface OrgMember {
 export interface OrgRule {
   id: string;
   org_id: string;
-  domain: string; // Domain | "_global"
+  domain: Domain | "_global";
   rule_text: string;
   enabled: boolean;
   updated_at: string;
@@ -70,4 +70,39 @@ export interface OrgApiKey {
   org_id: string;
   key_prefix: string;
   created_at: string;
+}
+
+// ─── Prompt Registry Types ────────────────────────────────────────────────
+
+export type PromptType = "boost" | "template" | "constraint";
+
+export interface PromptEntry {
+  id: string;
+  org_id: string;
+  type: PromptType;
+  title: string;
+  content: string;
+  domain: Domain | null;
+  tags: string[];
+  variables: string[];
+  created_by: string;
+  updated_by: string;
+  is_public: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  author_email?: string;
+  author_name?: string;
+}
+
+export interface PromptVersion {
+  id: string;
+  prompt_id: string;
+  version: number;
+  content: string;
+  change_summary: string | null;
+  changed_by: string;
+  created_at: string;
+  author_email?: string;
+  author_name?: string;
 }
