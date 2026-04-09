@@ -104,7 +104,7 @@ export default function OrgOverviewPage() {
     {
       num: 3,
       title: "Generate MCP Key",
-      description: "Create API key for .mcp.json",
+      description: apiKey ? "Key generated — copy it below!" : org.has_api_key ? "Key exists — generate a new one if needed" : "Create API key for .mcp.json",
       done: org.has_api_key,
       action: generateApiKey,
       icon: Shield,
@@ -223,18 +223,18 @@ export default function OrgOverviewPage() {
                 </a>
               )}
 
-              {step.action && !step.done && (
+              {step.action && (
                 <button
                   onClick={step.action}
                   disabled={generatingKey}
                   className="flex items-center gap-1 text-xs font-medium text-primary hover:underline disabled:opacity-50"
                 >
-                  {generatingKey ? "Generating..." : "Generate"}{" "}
+                  {generatingKey ? "Generating..." : step.done ? "Generate New" : "Generate"}{" "}
                   <ArrowRight className="w-3 h-3" />
                 </button>
               )}
 
-              {step.done && (
+              {step.done && !step.action && (
                 <span className="text-xs text-emerald-400 font-medium">Done</span>
               )}
             </div>
@@ -276,6 +276,12 @@ export default function OrgOverviewPage() {
 
       {/* .mcp.json snippet */}
       <div className="rounded-2xl border border-border bg-card p-6">
+        {!apiKey && org.has_api_key && (
+          <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 text-xs text-amber-400">
+            <Key className="w-3.5 h-3.5 shrink-0" />
+            You have an existing key but it was only shown once. Click &quot;Generate New&quot; above to create a fresh key and see it in the snippet below.
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <code className="text-primary text-sm">.mcp.json</code>
