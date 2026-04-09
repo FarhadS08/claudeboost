@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DOMAIN_LABELS, DOMAINS, DOMAIN_COLORS, DIMENSION_NAMES } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { ScoreRadar } from "@/components/ScoreRadar";
 import type { Domain, HistoryEntry } from "@/lib/types";
 
 /* ── Section icons for boosted text ──────────────────────────────────── */
@@ -189,9 +190,17 @@ function BoostDrawer({ entry, onClose }: { entry: HistoryEntry; onClose: () => v
             </div>
           )}
 
-          {/* Dimension Scores */}
+          {/* Radar + Dimension Scores */}
           {entry.original_score && entry.boosted_score && (
             <div>
+              {/* Large interactive radar */}
+              <div className="flex items-center justify-center mb-6">
+                <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={140} showLabels interactive />
+              </div>
+              <div className="flex items-center justify-center gap-6 mb-6 text-[10px]">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded inline-block bg-white/10 border border-white/15" /> Before</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-2 rounded inline-block" style={{ backgroundColor: dc.accent }} /> After</span>
+              </div>
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 block mb-4">Dimension Scores</span>
               <div className="grid grid-cols-2 gap-3">
                 {Object.entries(entry.boosted_score.dimensions).map(([dim, after]) => {
@@ -431,23 +440,27 @@ export default function OrgHistoryPage() {
                     </span>
                   </div>
 
-                  {/* Content */}
-                  <div className="mb-3">
-                    <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 line-clamp-2">
-                      {truncated}
-                    </p>
-                    {/* Transformation line */}
-                    {entry.boosted && (
-                      <div className="mt-2 flex items-center gap-0 overflow-hidden h-5">
-                        <span className="text-[10px] text-zinc-600 truncate max-w-[40%] shrink-0">
-                          {entry.original.slice(0, 25)}
-                        </span>
-                        <span className="mx-1.5 text-[10px] shrink-0" style={{ color: dc.accent }}>{"\u2192"}</span>
-                        <span className="text-[10px] truncate font-medium" style={{ color: dc.accent }}>
-                          {entry.boosted.replace(/\*\*/g, "").slice(0, 40)}
-                        </span>
-                      </div>
-                    )}
+                  {/* Content + Radar */}
+                  <div className="flex gap-4 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-200 transition-colors duration-300 line-clamp-2">
+                        {truncated}
+                      </p>
+                      {/* Transformation line */}
+                      {entry.boosted && (
+                        <div className="mt-2 flex items-center gap-0 overflow-hidden h-5">
+                          <span className="text-[10px] text-zinc-600 truncate max-w-[40%] shrink-0">
+                            {entry.original.slice(0, 25)}
+                          </span>
+                          <span className="mx-1.5 text-[10px] shrink-0" style={{ color: dc.accent }}>{"\u2192"}</span>
+                          <span className="text-[10px] truncate font-medium" style={{ color: dc.accent }}>
+                            {entry.boosted.replace(/\*\*/g, "").slice(0, 40)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Mini radar bloom */}
+                    <ScoreRadar before={entry.original_score} after={entry.boosted_score} accent={dc.accent} size={64} />
                   </div>
 
                   {/* Bottom: score + delta */}
