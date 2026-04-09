@@ -224,4 +224,4 @@ def enhance_prompt(prompt: str, domain: str, feedback_context: str = "", level: 
     except Exception as e:
         import sys
         print(f"[ClaudeBoost] Enhancement error: {type(e).__name__}: {e}", file=sys.stderr)
-        return f"{prompt}\n\n[ClaudeBoost: enhancement failed — {type(e).__name__}: {e}]"
+        return f"{prompt}\n\n[ClaudeBoost: enhancement failed — please check your API key and network connection]"

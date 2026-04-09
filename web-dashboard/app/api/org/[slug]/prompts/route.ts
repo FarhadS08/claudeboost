@@ -40,7 +40,7 @@ export async function GET(
   if (tag) query = query.contains("tags", [tag]);
   // Sanitize search to prevent PostgREST operator injection
   if (search) {
-    const sanitized = search.replace(/[,%()]/g, "");
+    const sanitized = search.replace(/[^a-zA-Z0-9\s\-_]/g, "");
     if (sanitized) {
       query = query.or(`title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`);
     }

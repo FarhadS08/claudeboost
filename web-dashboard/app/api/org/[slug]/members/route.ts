@@ -78,6 +78,26 @@ export async function DELETE(
     .eq("id", member_id)
     .single();
 
+  // Prevent self-removal
+  if (target?.user_id === user.id) {
+    return NextResponse.json({ error: "Cannot remove yourself" }, { status: 400 });
+  }
+
+  // Prevent removing the last admin
+  const { count: adminCount } = await db
+    .from("org_members")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", org.id)
+    .eq("role", "admin");
+  const targetIsAdmin = await db
+    .from("org_members")
+    .select("role")
+    .eq("id", member_id)
+    .single();
+  if (targetIsAdmin?.data?.role === "admin" && (adminCount ?? 0) <= 1) {
+    return NextResponse.json({ error: "Cannot remove the last admin" }, { status: 400 });
+  }
+
   await db.from("org_members").delete().eq("id", member_id).eq("org_id", org.id);
 
   // Log activity

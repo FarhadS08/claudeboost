@@ -201,21 +201,7 @@ async def _handle_log_boost(arguments: dict) -> list[TextContent]:
     domain = arguments["domain"]
     chosen = arguments.get("chosen", "boosted")
 
-    # Parse scores if passed as strings (Claude sometimes serializes them)
-    original_score = arguments.get("original_score")
-    boosted_score = arguments.get("boosted_score")
-    if isinstance(original_score, str):
-        try:
-            original_score = json.loads(original_score)
-        except (json.JSONDecodeError, TypeError):
-            original_score = None
-    if isinstance(boosted_score, str):
-        try:
-            boosted_score = json.loads(boosted_score)
-        except (json.JSONDecodeError, TypeError):
-            boosted_score = None
-
-    # Always re-score the final versions for accuracy
+    # Score the final versions for accuracy
     boosted_score = score_prompt(boosted)
     original_score = score_prompt(original)
 
@@ -243,6 +229,8 @@ async def _handle_settings(arguments: dict) -> list[TextContent]:
         return [TextContent(type="text", text=result)]
 
     if "boost_level" in arguments:
+        if arguments["boost_level"] not in ("light", "medium", "full"):
+            return [TextContent(type="text", text=json.dumps({"error": "Invalid boost_level. Must be light, medium, or full."}))]
         settings["boost_level"] = arguments["boost_level"]
     if "auto_boost" in arguments:
         settings["auto_boost"] = arguments["auto_boost"]
