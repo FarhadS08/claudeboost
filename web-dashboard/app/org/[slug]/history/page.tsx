@@ -11,6 +11,7 @@ import {
   Crown,
   Copy,
   Check,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DOMAIN_LABELS, DOMAINS, DOMAIN_COLORS, DIMENSION_NAMES } from "@/lib/constants";
@@ -106,12 +107,37 @@ function BoostedText({ text, accent }: { text: string; accent?: string }) {
 }
 
 /* ── Side Drawer ─────────────────────────────────────────────────────── */
-function BoostDrawer({ entry, onClose }: { entry: HistoryEntry; onClose: () => void }) {
+function BoostDrawer({ entry, onClose, slug }: { entry: HistoryEntry; onClose: () => void; slug: string }) {
   const [view, setView] = useState<"boosted" | "original">("boosted");
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [showSaveForm, setShowSaveForm] = useState(false);
   const dc = DOMAIN_COLORS[entry.domain] || DOMAIN_COLORS.other;
   const hasScores = entry.original_score?.total != null && entry.boosted_score?.total != null;
   const scoreDelta = hasScores ? (entry.boosted_score?.total ?? 0) - (entry.original_score?.total ?? 0) : null;
+
+  const handleSaveToLibrary = async () => {
+    if (!saveTitle.trim()) return;
+    setSaving(true);
+    const res = await fetch(`/api/org/${slug}/prompts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "boost",
+        title: saveTitle.trim(),
+        content: entry.boosted,
+        domain: entry.domain,
+        tags: [],
+      }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      setSaved(true);
+      setShowSaveForm(false);
+    }
+  };
 
   return (
     <>
@@ -164,20 +190,65 @@ function BoostDrawer({ entry, onClose }: { entry: HistoryEntry; onClose: () => v
                 </span>
               )}
               {view === "boosted" && (
-                <button
-                  onClick={() => { navigator.clipboard.writeText(entry.boosted); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide border transition-all duration-200"
-                  style={{
-                    borderColor: copied ? "rgba(16,185,129,0.3)" : `${dc.accent}30`,
-                    color: copied ? "#10b981" : dc.accent,
-                    backgroundColor: copied ? "rgba(16,185,129,0.08)" : `${dc.accent}08`,
-                  }}
-                >
-                  {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(entry.boosted); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide border transition-all duration-200"
+                    style={{
+                      borderColor: copied ? "rgba(16,185,129,0.3)" : `${dc.accent}30`,
+                      color: copied ? "#10b981" : dc.accent,
+                      backgroundColor: copied ? "rgba(16,185,129,0.08)" : `${dc.accent}08`,
+                    }}
+                  >
+                    {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
+                  </button>
+                  {!saved && (
+                    <button
+                      onClick={() => setShowSaveForm(!showSaveForm)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wide border border-primary/30 text-primary bg-primary/8 hover:bg-primary/15 transition-all duration-200"
+                    >
+                      <BookOpen className="w-3 h-3" /> Save to Library
+                    </button>
+                  )}
+                  {saved && (
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-emerald-400 bg-emerald-400/8">
+                      <Check className="w-3 h-3" /> Saved
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
+
+          {/* Save to Library form */}
+          {showSaveForm && (
+            <div className="flex gap-2 items-center p-3 rounded-xl bg-primary/5 border border-primary/15">
+              <input
+                value={saveTitle}
+                onChange={(e) => setSaveTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveToLibrary()}
+                placeholder="Give this prompt a title..."
+                autoFocus
+                className="flex-1 px-3 py-2 rounded-lg bg-black/30 border border-primary/20 text-sm
+                           focus:outline-none focus:ring-1 focus:ring-primary/30 placeholder:text-zinc-700"
+              />
+              <button
+                onClick={handleSaveToLibrary}
+                disabled={saving || !saveTitle.trim()}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                  saveTitle.trim()
+                    ? "bg-primary text-white shadow-lg shadow-primary/25"
+                    : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                )}
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+              <button onClick={() => setShowSaveForm(false)} className="p-1.5 text-zinc-600 hover:text-zinc-300">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Content */}
           {view === "original" ? (
@@ -493,7 +564,7 @@ export default function OrgHistoryPage() {
 
       {/* Side drawer */}
       {selectedEntry && (
-        <BoostDrawer entry={selectedEntry} onClose={() => setSelectedId(null)} />
+        <BoostDrawer entry={selectedEntry} onClose={() => setSelectedId(null)} slug={slug} />
       )}
     </div>
   );
