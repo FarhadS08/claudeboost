@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS prompt_registry (
   created_by UUID NOT NULL REFERENCES auth.users(id),
   updated_by UUID NOT NULL REFERENCES auth.users(id),
   is_public BOOLEAN DEFAULT true,
-  version INTEGER DEFAULT 1,
+  version INTEGER DEFAULT 1 CHECK (version >= 1),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -34,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_prompt_registry_search ON prompt_registry USING g
 CREATE TABLE IF NOT EXISTS prompt_versions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   prompt_id UUID NOT NULL REFERENCES prompt_registry(id) ON DELETE CASCADE,
-  version INTEGER NOT NULL,
+  version INTEGER NOT NULL CHECK (version >= 1),
   content TEXT NOT NULL,
   change_summary TEXT,  -- like a commit message
   changed_by UUID NOT NULL REFERENCES auth.users(id),

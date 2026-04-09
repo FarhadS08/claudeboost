@@ -33,6 +33,9 @@ const ACTION_CONFIG: Record<string, { icon: typeof Zap; label: string; color: st
   api_key_generated:{ icon: Key,        label: "Generated API key",  color: "text-amber-400" },
   member_removed:   { icon: Trash2,     label: "Removed member",     color: "text-red-400" },
   role_changed:     { icon: Settings,   label: "Changed member role", color: "text-blue-400" },
+  prompt_created:   { icon: Zap,        label: "Created prompt",     color: "text-primary" },
+  prompt_updated:   { icon: ScrollText, label: "Updated prompt",     color: "text-violet-400" },
+  prompt_deleted:   { icon: Trash2,     label: "Deleted prompt",     color: "text-red-400" },
 };
 
 export default function OrgActivityPage() {

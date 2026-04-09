@@ -38,18 +38,28 @@ export async function GET(
   if (type) query = query.eq("type", type);
   if (domain) query = query.eq("domain", domain);
   if (tag) query = query.contains("tags", [tag]);
-  if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+  // Sanitize search to prevent PostgREST operator injection
+  if (search) {
+    const sanitized = search.replace(/[,%()]/g, "");
+    if (sanitized) {
+      query = query.or(`title.ilike.%${sanitized}%,content.ilike.%${sanitized}%`);
+    }
+  }
 
   const { data: prompts, error } = await query.limit(100);
 
   if (error) {
-    // Fallback: query without profile join if FK name is wrong
-    const { data: fallback } = await db
+    // Fallback: query without profile join, reapply filters
+    let fallbackQuery = db
       .from("prompt_registry")
       .select("*")
       .eq("org_id", org.id)
-      .order("updated_at", { ascending: false })
-      .limit(100);
+      .order("updated_at", { ascending: false });
+
+    if (type) fallbackQuery = fallbackQuery.eq("type", type);
+    if (domain) fallbackQuery = fallbackQuery.eq("domain", domain);
+
+    const { data: fallback } = await fallbackQuery.limit(100);
 
     return NextResponse.json(
       (fallback || []).map((p) => ({ ...p, author_email: null, author_name: null }))
@@ -129,13 +139,19 @@ export async function POST(
   }
 
   // Create version 1
-  await db.from("prompt_versions").insert({
+  const { error: versionError } = await db.from("prompt_versions").insert({
     prompt_id: prompt.id,
     version: 1,
     content,
     change_summary: "Initial version",
     changed_by: user.id,
   });
+
+  if (versionError) {
+    // Prompt was created but version failed — clean up
+    await db.from("prompt_registry").delete().eq("id", prompt.id);
+    return NextResponse.json({ error: versionError.message }, { status: 500 });
+  }
 
   // Log activity
   await db.from("activity_logs").insert({

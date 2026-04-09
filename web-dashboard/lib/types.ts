@@ -59,7 +59,7 @@ export interface OrgMember {
 export interface OrgRule {
   id: string;
   org_id: string;
-  domain: string; // Domain | "_global"
+  domain: Domain | "_global";
   rule_text: string;
   enabled: boolean;
   updated_at: string;
@@ -82,7 +82,7 @@ export interface PromptEntry {
   type: PromptType;
   title: string;
   content: string;
-  domain: string | null;
+  domain: Domain | null;
   tags: string[];
   variables: string[];
   created_by: string;
@@ -100,7 +100,7 @@ export interface PromptVersion {
   prompt_id: string;
   version: number;
   content: string;
-  change_summary: string;
+  change_summary: string | null;
   changed_by: string;
   created_at: string;
   author_email?: string;

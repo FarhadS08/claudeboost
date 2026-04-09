@@ -92,7 +92,20 @@ export async function PATCH(
     }
   }
 
-  // Update prompt
+  // Create version record FIRST to avoid inconsistent state
+  const { error: versionError } = await db.from("prompt_versions").insert({
+    prompt_id: id,
+    version: newVersion,
+    content,
+    change_summary: change_summary.trim(),
+    changed_by: user.id,
+  });
+
+  if (versionError) {
+    return NextResponse.json({ error: versionError.message }, { status: 500 });
+  }
+
+  // Update prompt (safe now — version record exists)
   const updates: Record<string, unknown> = {
     content,
     version: newVersion,
@@ -113,19 +126,6 @@ export async function PATCH(
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
-
-  // Create new version record
-  const { error: versionError } = await db.from("prompt_versions").insert({
-    prompt_id: id,
-    version: newVersion,
-    content,
-    change_summary: change_summary.trim(),
-    changed_by: user.id,
-  });
-
-  if (versionError) {
-    return NextResponse.json({ error: versionError.message }, { status: 500 });
   }
 
   // Log activity
@@ -169,7 +169,10 @@ export async function DELETE(
   if (!prompt) return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
 
   // Delete cascades to prompt_versions
-  await db.from("prompt_registry").delete().eq("id", id);
+  const { error: deleteError } = await db.from("prompt_registry").delete().eq("id", id);
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  }
 
   // Log activity
   await db.from("activity_logs").insert({
