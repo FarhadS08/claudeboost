@@ -13,6 +13,7 @@ import {
   Clock,
   Users,
   Activity,
+  BookOpen,
   Zap,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ const sidebarLinks = [
   { href: "", label: "Overview", icon: LayoutDashboard },
   { href: "/history", label: "History", icon: Clock },
   { href: "/stats", label: "Stats", icon: BarChart3 },
+  { href: "/prompts", label: "Prompts", icon: BookOpen },
   { href: "/rules", label: "Rules", icon: ScrollText },
   { href: "/members", label: "Members", icon: Users },
   { href: "/activity", label: "Activity", icon: Activity },
