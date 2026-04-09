@@ -5,15 +5,14 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
   Building2,
-  ArrowRight,
   Zap,
   Sparkles,
   Shield,
   Globe,
   Plus,
-  Users,
   ChevronRight,
   LogOut,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +33,7 @@ export default function OrgSelectorPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -55,11 +55,17 @@ export default function OrgSelectorPage() {
             // Auto-redirect if exactly 1 org
             if (data.length === 1) {
               router.push(`/org/${data[0].slug}`);
+              // Fallback: if redirect stalls, show page after 3s
+              setTimeout(() => setLoading(false), 3000);
               return;
             }
           }
+        } else {
+          setFetchError(true);
         }
-      } catch {}
+      } catch {
+        setFetchError(true);
+      }
       setLoading(false);
     };
     load();
@@ -73,21 +79,26 @@ export default function OrgSelectorPage() {
     setCreating(true);
     setError("");
 
-    const res = await fetch("/api/org", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() }),
-    });
+    try {
+      const res = await fetch("/api/org", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
 
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to create organization");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Server error" }));
+        setError(data.error || "Failed to create organization");
+        setCreating(false);
+        return;
+      }
+
+      const org = await res.json();
+      router.push(`/org/${org.slug}/settings`);
+    } catch {
+      setError("Network error — check your connection and try again");
       setCreating(false);
-      return;
     }
-
-    const org = await res.json();
-    router.push(`/org/${org.slug}/settings`);
   };
 
   const handleLogout = async () => {
@@ -132,6 +143,14 @@ export default function OrgSelectorPage() {
             </p>
           )}
         </div>
+
+        {/* Fetch error warning */}
+        {fetchError && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-400">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>Could not load your organizations. You may already have an org — try refreshing.</span>
+          </div>
+        )}
 
         {/* Existing orgs — shown prominently when user has orgs */}
         {orgs.length > 0 && (
@@ -202,7 +221,7 @@ export default function OrgSelectorPage() {
                 onChange={(e) => { setName(e.target.value); setError(""); }}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                 placeholder="Acme Corp"
-                autoFocus={orgs.length === 0}
+                autoFocus={false}
                 className="w-full rounded-xl border border-border bg-black/20 px-4 py-3 text-sm
                            focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30
                            placeholder:text-zinc-700"
