@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 CLAUDEBOOST_DIR = os.path.expanduser("~/.claudeboost")
 HISTORY_FILE = os.path.join(CLAUDEBOOST_DIR, "history.json")
@@ -159,11 +159,11 @@ def get_streak() -> dict:
 
         if d == check_date:
             streak += 1
-            check_date -= __import__("datetime").timedelta(days=1)
-        elif d == check_date - __import__("datetime").timedelta(days=1):
+            check_date -= timedelta(days=1)
+        elif d == check_date - timedelta(days=1):
             # Allow for "yesterday counts if today hasn't boosted yet"
             streak += 1
-            check_date = d - __import__("datetime").timedelta(days=1)
+            check_date = d - timedelta(days=1)
         else:
             break
 

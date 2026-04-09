@@ -78,6 +78,15 @@ export async function GET(
     .single();
   if (!org) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Verify membership
+  const { data: member } = await db
+    .from("org_members")
+    .select("role")
+    .eq("org_id", org.id)
+    .eq("user_id", user.id)
+    .single();
+  if (!member) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+
   const { data: keys } = await db
     .from("org_api_keys")
     .select("id, key_prefix, created_at")

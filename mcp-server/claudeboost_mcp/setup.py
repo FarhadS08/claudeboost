@@ -6,11 +6,17 @@ Run with: claudeboost-mcp --setup
 
 import json
 import os
+import shutil
 import sys
 
 CLAUDE_DIR = os.path.expanduser("~/.claude")
 MCP_SETTINGS_FILE = os.path.join(CLAUDE_DIR, "mcp_settings.json")
 SKILLS_DIR = os.path.join(CLAUDE_DIR, "skills")
+
+
+def _find_claude_cli() -> str | None:
+    """Find the Claude CLI executable in PATH."""
+    return shutil.which("claude")
 
 
 BOOST_SKILL = """---

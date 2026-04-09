@@ -44,6 +44,7 @@ def _refresh_token() -> bool:
         auth["refresh_token"] = data["refresh_token"]
         with open(AUTH_FILE, "w") as f:
             json.dump(auth, f, indent=2)
+        os.chmod(AUTH_FILE, 0o600)
 
         print("[ClaudeBoost DB] Token refreshed successfully", file=sys.stderr)
         return True

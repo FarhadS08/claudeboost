@@ -41,9 +41,12 @@ export const updateSession = async (request: NextRequest) => {
   const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/pricing" || request.nextUrl.pathname === "/docs";
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const isMcpRoute = request.nextUrl.pathname.startsWith("/mcp");
+  const isJoinRoute = request.nextUrl.pathname.startsWith("/join");
 
-  // Redirect unauthenticated users to login (only for protected routes like /dashboard/*)
-  if (!user && !isAuthPage && !isApiRoute && !isPublicPage) {
+  // Redirect unauthenticated users to login (only for protected routes)
+  // Skip MCP (uses Bearer token auth) and join routes (public invite acceptance)
+  if (!user && !isAuthPage && !isApiRoute && !isPublicPage && !isMcpRoute && !isJoinRoute) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
@@ -52,7 +55,7 @@ export const updateSession = async (request: NextRequest) => {
   // Redirect authenticated users away from auth pages (except cli-login)
   const isCliLogin = request.nextUrl.pathname === "/auth/cli-login";
   if (user && isAuthPage && !isCliLogin) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/org/new", request.url));
   }
 
   return supabaseResponse;

@@ -22,6 +22,15 @@ export async function GET(
     .single();
   if (!org) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Verify membership
+  const { data: member } = await db
+    .from("org_members")
+    .select("role")
+    .eq("org_id", org.id)
+    .eq("user_id", user.id)
+    .single();
+  if (!member) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+
   const { data: rules } = await db
     .from("org_rules")
     .select("id, domain, rule_text, enabled, updated_at")
@@ -61,6 +70,11 @@ export async function POST(
   }
 
   const { domain, rule_text, enabled } = await request.json();
+
+  const validDomains = ["_global", "data_science", "data_engineering", "business_analytics", "general_coding", "documentation", "devops", "other"];
+  if (!domain || !validDomains.includes(domain)) {
+    return NextResponse.json({ error: "Invalid domain" }, { status: 400 });
+  }
 
   const { data: rule, error } = await db
     .from("org_rules")

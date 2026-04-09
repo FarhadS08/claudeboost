@@ -91,6 +91,7 @@ def run_login():
     os.makedirs(os.path.dirname(AUTH_FILE), exist_ok=True)
     with open(AUTH_FILE, "w") as f:
         json.dump(auth_data, f, indent=2)
+    os.chmod(AUTH_FILE, 0o600)
 
     print()
     print(f"✅ Logged in as: {data['user']['email']}")
@@ -124,6 +125,7 @@ def _signup(email: str, password: str):
         os.makedirs(os.path.dirname(AUTH_FILE), exist_ok=True)
         with open(AUTH_FILE, "w") as f:
             json.dump(auth_data, f, indent=2)
+        os.chmod(AUTH_FILE, 0o600)
 
         print()
         print(f"✅ Account created and logged in as: {data['user']['email']}")

@@ -103,7 +103,12 @@ export async function PATCH(
   const updates: Record<string, unknown> = {};
 
   if (body.name) updates.name = body.name;
-  if (body.boost_level) updates.boost_level = body.boost_level;
+  if (body.boost_level) {
+    if (!["light", "medium", "full"].includes(body.boost_level)) {
+      return NextResponse.json({ error: "Invalid boost_level. Must be light, medium, or full." }, { status: 400 });
+    }
+    updates.boost_level = body.boost_level;
+  }
   if (body.anthropic_api_key !== undefined) updates.anthropic_api_key = body.anthropic_api_key;
 
   const { data: updated, error } = await db

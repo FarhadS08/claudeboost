@@ -57,7 +57,10 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
     });
 
     fetch(`/api/org/${slug}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load org");
+        return r.json();
+      })
       .then(setOrg)
       .catch(() => router.push("/org/new"));
   }, [slug, router]);

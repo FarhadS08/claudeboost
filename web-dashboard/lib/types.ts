@@ -51,7 +51,7 @@ export interface OrgMember {
   id: string;
   org_id: string;
   user_id: string;
-  role: "admin" | "member";
+  role: "admin" | "manager" | "member";
   joined_at: string;
   email?: string; // from profiles join
 }
