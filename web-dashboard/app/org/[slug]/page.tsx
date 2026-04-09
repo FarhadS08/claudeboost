@@ -75,7 +75,6 @@ export default function OrgOverviewPage() {
   const mcpJson = `{
   "mcpServers": {
     "claudeboost": {
-      "type": "url",
       "url": "https://claudeboost.vercel.app/mcp",
       "headers": {
         "Authorization": "Bearer ${apiKey?.key || "cb_org_<your-key>"}"
