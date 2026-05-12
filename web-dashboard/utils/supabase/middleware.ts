@@ -11,9 +11,19 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
+  // If Supabase env vars are missing (e.g. not configured for this Vercel
+  // environment), skip auth handling entirely instead of crashing every route
+  // with a 500/blank page.
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn(
+      "[middleware] Supabase env vars missing — skipping session refresh"
+    );
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    supabaseUrl!,
-    supabaseKey!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -34,8 +44,16 @@ export const updateSession = async (request: NextRequest) => {
     }
   );
 
-  // Refresh the session — this keeps the user logged in
-  const { data: { user } } = await supabase.auth.getUser();
+  // Refresh the session — this keeps the user logged in.
+  // Never let an auth/network error white-screen the whole app.
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.warn("[middleware] supabase.auth.getUser failed", err);
+    return supabaseResponse;
+  }
 
   // Public routes — no auth required
   const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/pricing" || request.nextUrl.pathname === "/docs";
